@@ -9,13 +9,30 @@ export default function PublisherRegisterPage() {
     password: '',
     confirmPassword: '',
     phone: '',
+    captcha: '',
     inviteCode: '',
     agreeToTerms: false
   });
+  const [captchaCode, setCaptchaCode] = useState(generateCaptcha());
+  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
-  const router = useRouter();
+  // 生成随机验证码
+  function generateCaptcha(length = 4) {
+    const chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    let result = '';
+    for (let i = 0; i < length; i++) {
+      result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
+  }
+
+  // 刷新验证码
+  const refreshCaptcha = () => {
+    setCaptchaCode(generateCaptcha());
+    setFormData({ ...formData, captcha: '' });
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,15 +55,13 @@ export default function PublisherRegisterPage() {
       return;
     }
 
-    if (!formData.phone.trim()) {
-      setErrorMessage('请输入手机号码');
-      return;
-    }
-
-    const phoneRegex = /^1[3-9]\d{9}$/;
-    if (!phoneRegex.test(formData.phone)) {
-      setErrorMessage('请输入正确的手机号码');
-      return;
+    // 如果填写了手机号，则验证手机号格式
+    if (formData.phone.trim()) {
+      const phoneRegex = /^1[3-9]\d{9}$/;
+      if (!phoneRegex.test(formData.phone)) {
+        setErrorMessage('请输入正确的手机号码');
+        return;
+      }
     }
 
     if (!formData.agreeToTerms) {
@@ -54,20 +69,48 @@ export default function PublisherRegisterPage() {
       return;
     }
 
+    // 验证码验证
+    if (!formData.captcha.trim()) {
+      setErrorMessage('请输入验证码');
+      return;
+    }
+
+    if (formData.captcha.toUpperCase() !== captchaCode.toUpperCase()) {
+      setErrorMessage('验证码错误');
+      refreshCaptcha();
+      return;
+    }
+
     setIsLoading(true);
     
     try {
-      // 模拟注册API调用
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // 调用发布者注册API
+      const response = await fetch('/api/register/publisher', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          username: formData.username,
+          password: formData.password,
+          phone: formData.phone,
+          inviteCode: formData.inviteCode
+        }),
+      });
+
+      const result = await response.json();
       
-      // 模拟注册成功
-      setSuccessMessage('派单员账号注册成功！欢迎加入抖音派单系统。');
-      
-      // 2秒后跳转到登录页
-      setTimeout(() => {
-        router.push('/auth/login');
-      }, 2000);
-      
+      if (result.success) {
+        // 注册成功
+        setSuccessMessage(result.message);
+        
+        // 2秒后跳转到登录页
+        setTimeout(() => {
+          router.push('/auth/login/publisherlogin');
+        }, 2000);
+      } else {
+        setErrorMessage(result.message || '注册失败');
+      }
     } catch (error) {
       console.error('Registration error:', error);
       setErrorMessage('注册过程中发生错误，请重试');
@@ -135,7 +178,7 @@ export default function PublisherRegisterPage() {
                 </div>
 
                 {/* 确认密码 */}
-                <div>
+                <div className="mb-3">
                   <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
                     确认密码 <span className="text-red-500">*</span>
                   </label>
@@ -147,22 +190,44 @@ export default function PublisherRegisterPage() {
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                   />
                 </div>
-              </div>
 
-              {/* 手机号 */}
-              <div className="bg-green-50 rounded-lg p-3 md:p-4">
-                <h3 className="text-sm font-bold text-green-800 mb-3">联系方式</h3>
-                <div>
-                  <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
-                    手机号 <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="tel"
-                    placeholder="请输入11位手机号"
-                    value={formData.phone}
-                    onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                  />
+                {/* 手机号和验证码 */}
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
+                      手机号
+                    </label>
+                    <input
+                      type="tel"
+                      placeholder="请输入11位手机号（选填）"
+                      value={formData.phone}
+                      onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                    />
+                  </div>
+
+                  {/* 验证码 */}
+                  <div>
+                    <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
+                      验证码 <span className="text-red-500">*</span>
+                    </label>
+                    <div className="flex space-x-2">
+                      <input
+                        type="text"
+                        placeholder="请输入验证码"
+                        value={formData.captcha}
+                        onChange={(e) => setFormData({...formData, captcha: e.target.value})}
+                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                      />
+                      <div 
+                        className="w-24 h-10 flex items-center justify-center bg-gray-100 border border-gray-300 rounded-lg font-bold text-lg cursor-pointer"
+                        onClick={refreshCaptcha}
+                      >
+                        {captchaCode}
+                      </div>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">点击验证码可刷新</p>
+                  </div>
                 </div>
               </div>
 
@@ -231,19 +296,19 @@ export default function PublisherRegisterPage() {
             {/* 底部链接 */}
             <div className="mt-4 text-center">
               <p className="text-xs text-gray-600">
-                已有账号？
+                已有账号？{' '}
                 <button 
-                  onClick={() => router.push('/auth/login')}
-                  className="text-blue-600 hover:text-blue-800 underline ml-1"
+                  onClick={() => router.push('/auth/login/publisherlogin')}
+                  className="text-blue-600 hover:text-blue-800 underline"
                 >
                   立即登录
                 </button>
               </p>
               <p className="text-xs text-gray-600 mt-2">
-                申请评论员账号？
+                申请评论员账号？{' '}
                 <button 
                   onClick={() => router.push('/auth/register/commenter')}
-                  className="text-green-600 hover:text-green-800 underline ml-1"
+                  className="text-green-600 hover:text-green-800 underline"
                 >
                   点击这里
                 </button>

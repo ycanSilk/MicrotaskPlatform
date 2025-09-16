@@ -1,182 +1,118 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+
+// 定义数据类型
+interface Task {
+  id: string;
+  title: string;
+  category: string;
+  price: number;
+  status: string;
+  statusText: string;
+  statusColor: string;
+  participants: number;
+  maxParticipants: number;
+  completed: number;
+  publishTime: string;
+  deadline: string;
+  description: string;
+}
+
+interface PendingOrder {
+  id: string;
+  taskTitle: string;
+  commenterName: string;
+  submitTime: string;
+  content: string;
+  images: string[];
+}
+
+interface DispatchedTask {
+  id: string;
+  title: string;
+  status: string;
+  statusText: string;
+  participants: number;
+  maxParticipants: number;
+  time: string;
+  completed: number;
+  inProgress: number; // 添加进行中的数量
+  pending: number; // 添加待抢单的数量
+}
+
+interface Stats {
+  totalTasks: number;
+  activeTasks: number;
+  completedTasks: number;
+  totalSpent: number;
+  totalParticipants: number;
+}
 
 export default function PublisherDashboardPage() {
   const [activeTab, setActiveTab] = useState('overview');
   const [sortBy, setSortBy] = useState('time'); // 'time' | 'status' | 'price'
   const [statsTimeRange, setStatsTimeRange] = useState('today'); // 'today' | 'yesterday' | 'week' | 'month'
   
-  // 模拟发布的任务数据
-  const myTasks = [
-    {
-      id: 1,
-      title: '美食探店推广',
-      category: '美食',
-      price: 3.50,
-      status: 'active',
-      statusText: '进行中',
-      statusColor: 'bg-green-100 text-green-600',
-      participants: 12,
-      maxParticipants: 20,
-      completed: 8,
-      publishTime: '2024-01-15 14:30',
-      deadline: '2024-01-18 23:59',
-      description: '需要到店体验并发布真实评论'
-    },
-    {
-      id: 2,
-      title: '护肤产品体验',
-      category: '美妆',
-      price: 5.20,
-      status: 'active',
-      statusText: '进行中',
-      statusColor: 'bg-green-100 text-green-600',
-      participants: 8,
-      maxParticipants: 15,
-      completed: 5,
-      publishTime: '2024-01-15 10:20',
-      deadline: '2024-01-20 23:59',
-      description: '使用产品一周后发布使用心得'
-    },
-    {
-      id: 3,
-      title: '科技产品评测',
-      category: '数码',
-      price: 6.80,
-      status: 'review',
-      statusText: '待审核',
-      statusColor: 'bg-orange-100 text-orange-600',
-      participants: 10,
-      maxParticipants: 10,
-      completed: 9,
-      publishTime: '2024-01-14 16:45',
-      deadline: '2024-01-17 23:59',
-      description: '深度评测产品各项性能'
-    },
-    {
-      id: 4,
-      title: '旅游景点推荐',
-      category: '旅游',
-      price: 4.20,
-      status: 'completed',
-      statusText: '已完成',
-      statusColor: 'bg-green-100 text-green-600',
-      participants: 15,
-      maxParticipants: 15,
-      completed: 15,
-      publishTime: '2024-01-12 09:00',
-      deadline: '2024-01-15 23:59',
-      description: '分享景点游玩攻略和体验'
-    },
-    {
-      id: 5,
-      title: '电影观后感',
-      category: '影视',
-      price: 3.80,
-      status: 'paused',
-      statusText: '已暂停',
-      statusColor: 'bg-gray-100 text-gray-600',
-      participants: 3,
-      maxParticipants: 20,
-      completed: 2,
-      publishTime: '2024-01-13 20:15',
-      deadline: '2024-01-25 23:59',
-      description: '观看指定电影并分享观后感'
-    },
-    {
-      id: 6,
-      title: '直播带货推广',
-      category: '直播',
-      price: 8.00,
-      status: 'review',
-      statusText: '待审核',
-      statusColor: 'bg-orange-100 text-orange-600',
-      participants: 5,
-      maxParticipants: 10,
-      completed: 5,
-      publishTime: '2024-01-16 09:00',
-      deadline: '2024-01-19 23:59',
-      description: '参与直播间互动并分享产品体验'
-    }
-  ];
+  // 状态管理
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState<Stats>({
+    totalTasks: 0,
+    activeTasks: 0,
+    completedTasks: 0,
+    totalSpent: 0,
+    totalParticipants: 0
+  });
+  const [myTasks, setMyTasks] = useState<Task[]>([]);
+  const [pendingOrders, setPendingOrders] = useState<PendingOrder[]>([]);
+  const [dispatchedTasks, setDispatchedTasks] = useState<DispatchedTask[]>([]);
 
-  // 待审核的订单数据
-  const pendingOrders = [
-    {
-      id: 101,
-      taskTitle: '科技产品评测',
-      commenterName: '评论员小王',
-      submitTime: '2024-01-16 14:30',
-      content: '这款手机的拍照功能确实不错，夜景模式很实用...',
-      images: ['image1.jpg', 'image2.jpg'],
-      status: 'pending'
-    },
-    {
-      id: 102,
-      taskTitle: '直播带货推广',
-      commenterName: '评论员小李',
-      submitTime: '2024-01-16 16:20',
-      content: '直播间氛围很好，主播介绍很详细，产品质量不错...',
-      images: ['image3.jpg'],
-      status: 'pending'
-    },
-    {
-      id: 103,
-      taskTitle: '科技产品评测',
-      commenterName: '评论员小张',
-      submitTime: '2024-01-16 18:15',
-      content: '产品包装精美，使用体验良好，性价比很高...',
-      images: ['image4.jpg', 'image5.jpg'],
-      status: 'pending'
-    }
-  ];
+  // 获取仪表板数据
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        setLoading(true);
+        console.log(`正在获取仪表板数据，时间范围: ${statsTimeRange}`);
+        const response = await fetch(`/api/publisher/dashboard?timeRange=${statsTimeRange}`);
+        const result = await response.json();
+        console.log('API响应:', result);
+        
+        if (result.success) {
+          console.log('统计数据:', result.data.stats);
+          console.log('活动任务数量:', result.data.activeTasks.length);
+          console.log('已完成任务数量:', result.data.completedTasks.length);
+          console.log('待审核订单数量:', result.data.pendingOrders.length);
+          console.log('派发任务数量:', result.data.dispatchedTasks.length);
+          
+          setStats(result.data.stats);
+          setMyTasks([...result.data.activeTasks, ...result.data.completedTasks]);
+          setPendingOrders(result.data.pendingOrders);
+          setDispatchedTasks(result.data.dispatchedTasks);
+          console.log('数据更新完成');
+        } else {
+          console.error('API返回错误:', result.message);
+        }
+      } catch (error) {
+        console.error('获取仪表板数据失败:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboardData();
+  }, [statsTimeRange]);
 
   // 根据时间范围获取统计数据
   const getStatsByTimeRange = (range: string) => {
-    const baseStats = {
-      totalTasks: myTasks.length,
-      activeTasks: myTasks.filter(t => t.status === 'active').length,
-      completedTasks: myTasks.filter(t => t.status === 'completed').length,
-      totalSpent: myTasks.reduce((sum, task) => sum + (task.price * task.completed), 0),
-      totalParticipants: myTasks.reduce((sum, task) => sum + task.participants, 0)
-    };
-
-    // 模拟不同时间范围的数据
-    const multipliers = {
-      today: { tasks: 0.2, spent: 0.15, participants: 0.3 },
-      yesterday: { tasks: 0.3, spent: 0.25, participants: 0.4 },
-      week: { tasks: 0.8, spent: 0.7, participants: 0.85 },
-      month: { tasks: 1, spent: 1, participants: 1 }
-    };
-
-    const multiplier = multipliers[range as keyof typeof multipliers] || multipliers.today;
-    
-    return {
-      totalTasks: Math.ceil(baseStats.totalTasks * multiplier.tasks),
-      activeTasks: Math.ceil(baseStats.activeTasks * multiplier.tasks),
-      completedTasks: Math.ceil(baseStats.completedTasks * multiplier.tasks),
-      totalSpent: baseStats.totalSpent * multiplier.spent,
-      totalParticipants: Math.ceil(baseStats.totalParticipants * multiplier.participants)
-    };
+    // 这个函数现在主要用于初始化，实际数据从API获取
+    return stats;
   };
-
-  const stats = getStatsByTimeRange(statsTimeRange);
-
-  // 派发的任务列表（替换最近活动）
-  const dispatchedTasks = [
-    { id: 1, title: '美食探店推广', status: 'active', statusText: '进行中', participants: 12, maxParticipants: 20, time: '2小时前' },
-    { id: 2, title: '护肤产品体验', status: 'active', statusText: '进行中', participants: 8, maxParticipants: 15, time: '4小时前' },
-    { id: 3, title: '科技产品评测', status: 'review', statusText: '待审核', participants: 10, maxParticipants: 10, time: '1天前' },
-    { id: 4, title: '旅游景点推荐', status: 'completed', statusText: '已完成', participants: 15, maxParticipants: 15, time: '2天前' },
-    { id: 5, title: '电影观后感', status: 'paused', statusText: '已暂停', participants: 3, maxParticipants: 20, time: '3天前' }
-  ];
 
   const getTasksByStatus = (status: string) => {
     return myTasks.filter(task => task.status === status);
   };
 
-  const sortTasks = (tasks: any[]) => {
+  const sortTasks = (tasks: Task[]) => {
     return [...tasks].sort((a, b) => {
       if (sortBy === 'time') {
         return new Date(b.publishTime).getTime() - new Date(a.publishTime).getTime();
@@ -189,14 +125,23 @@ export default function PublisherDashboardPage() {
     });
   };
 
-  const handleTaskAction = (taskId: number, action: string) => {
+  const handleTaskAction = (taskId: string, action: string) => {
     alert(`对任务 ${taskId} 执行 ${action} 操作`);
   };
 
-  const handleOrderReview = (orderId: number, action: 'approve' | 'reject') => {
+  const handleOrderReview = (orderId: string, action: 'approve' | 'reject') => {
     const actionText = action === 'approve' ? '通过' : '驳回';
     alert(`${actionText}订单 ${orderId}`);
   };
+
+  // 显示加载状态
+  if (loading) {
+    return (
+      <div className="pb-20 flex items-center justify-center h-64">
+        <div className="text-gray-500">加载中...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="pb-20">
@@ -325,7 +270,7 @@ export default function PublisherDashboardPage() {
                           </span>
                         </div>
                         <div className="text-xs text-gray-600 mb-2">
-                          参与: {task.participants}/{task.maxParticipants} 人 · {task.time}
+                          完成: {task.completed} | 进行中: {task.inProgress} | 待抢单: {task.pending} | 总计: {task.maxParticipants} 条 · {task.time}
                         </div>
                         <div className="bg-gray-200 h-1 rounded">
                           <div 

@@ -58,7 +58,7 @@ export default function HomePage() {
               </div>
             </div>
             <div className="flex space-x-2">
-              <a href="/auth/login" className="flex-1 py-3 px-4 bg-blue-500 text-white rounded-lg text-center text-sm font-medium hover:bg-blue-600 transition-colors">
+              <a href="/auth/login/publisherlogin" className="flex-1 py-3 px-4 bg-blue-500 text-white rounded-lg text-center text-sm font-medium hover:bg-blue-600 transition-colors">
                 登录
               </a>
               <a href="/auth/register/publisher" className="flex-1 py-3 px-4 bg-blue-100 text-blue-700 rounded-lg text-center text-sm font-medium hover:bg-blue-200 transition-colors">
@@ -94,7 +94,7 @@ export default function HomePage() {
               </div>
             </div>
             <div className="flex space-x-2">
-              <a href="/auth/login" className="flex-1 py-3 px-4 bg-green-500 text-white rounded-lg text-center text-sm font-medium hover:bg-green-600 transition-colors">
+              <a href="/auth/login/commenterlogin" className="flex-1 py-3 px-4 bg-green-500 text-white rounded-lg text-center text-sm font-medium hover:bg-green-600 transition-colors">
                 登录
               </a>
               <a href="/auth/register/commenter" className="flex-1 py-3 px-4 bg-green-100 text-green-700 rounded-lg text-center text-sm font-medium hover:bg-green-200 transition-colors">
@@ -129,7 +129,7 @@ export default function HomePage() {
                 <span className="mr-2">✓</span>收益实时统计
               </div>
             </div>
-            <a href="/auth/login" className="block w-full py-3 px-4 bg-purple-500 text-white rounded-lg text-center text-sm font-medium hover:bg-purple-600 transition-colors">
+            <a href="/auth/login/commenterlogin" className="block w-full py-3 px-4 bg-purple-500 text-white rounded-lg text-center text-sm font-medium hover:bg-purple-600 transition-colors">
               立即登录 →
             </a>
           </div>
@@ -160,7 +160,7 @@ export default function HomePage() {
                 <span className="mr-2">✓</span>主程配置管理
               </div>
             </div>
-            <a href="/auth/login" className="block w-full py-3 px-4 bg-red-500 text-white rounded-lg text-center text-sm font-medium hover:bg-red-600 transition-colors">
+            <a href="/auth/login/adminlogin" className="block w-full py-3 px-4 bg-red-500 text-white rounded-lg text-center text-sm font-medium hover:bg-red-600 transition-colors">
               管理员登录 →
             </a>
           </div>
