@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { SimpleStorage } from '@/lib/simple-auth';
 
@@ -10,7 +10,7 @@ export default function AdminLoginPage() {
     password: '',
     captcha: ''
   });
-  const [captchaCode, setCaptchaCode] = useState(generateCaptcha());
+  const [captchaCode, setCaptchaCode] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const router = useRouter();
@@ -24,6 +24,11 @@ export default function AdminLoginPage() {
     }
     return result;
   }
+
+  // 初始化验证码
+  useEffect(() => {
+    setCaptchaCode(generateCaptcha());
+  }, []);
 
   // 刷新验证码
   const refreshCaptcha = () => {
@@ -152,6 +157,7 @@ export default function AdminLoginPage() {
                 <input
                   type="password"
                   placeholder="请输入密码"
+                  autoComplete="current-password"
                   value={formData.password}
                   onChange={(e) => setFormData({...formData, password: e.target.value})}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"

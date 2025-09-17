@@ -11,7 +11,6 @@ const inter = Inter({
 export const metadata = {
   title: '抖音评论派单系统',
   description: 'H5移动端优先的评论任务平台',
-  manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
@@ -19,7 +18,7 @@ export const metadata = {
   },
   other: {
     'format-detection': 'telephone=no',
-    'apple-mobile-web-app-capable': 'yes',
+    'mobile-web-app-capable': 'yes',
     'apple-mobile-web-app-status-bar-style': 'default',
     'apple-touch-fullscreen': 'yes',
   },

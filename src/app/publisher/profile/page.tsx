@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 export default function PublisherProfilePage() {
   const [activeTab, setActiveTab] = useState('profile');
@@ -14,6 +15,7 @@ export default function PublisherProfilePage() {
     businessType: '餐饮',
     description: '专注美食推广，为用户提供优质的探店体验任务。'
   });
+  const router = useRouter();
 
   // 统计数据
   const statsData = {
@@ -55,6 +57,16 @@ export default function PublisherProfilePage() {
   const toggleSetting = (settingId: string) => {
     // 这里可以实现具体的设置切换逻辑
     alert(`切换${settingId}设置`);
+  };
+
+  // 退出登录处理
+  const handleLogout = () => {
+    // 清除本地存储的用户信息
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('current_user');
+    }
+    // 跳转到派单员登录页面
+    router.push('/auth/login/publisherlogin');
   };
 
   return (
@@ -343,7 +355,9 @@ export default function PublisherProfilePage() {
 
           {/* 退出登录 */}
           <div className="mx-4 mt-6">
-            <button className="w-full bg-red-500 text-white py-3 rounded-lg font-medium hover:bg-red-600 transition-colors">
+            <button 
+              onClick={handleLogout}
+              className="w-full bg-red-500 text-white py-3 rounded-lg font-medium hover:bg-red-600 transition-colors">
               退出登录
             </button>
           </div>

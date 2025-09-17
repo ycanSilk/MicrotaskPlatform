@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
+import { validateToken } from '@/lib/auth'; // 导入验证token的函数
 
 // 读取评论订单数据文件
 const getCommentOrders = () => {
@@ -11,16 +12,13 @@ const getCommentOrders = () => {
 
 // 获取统计数据
 const getStatsData = (orders: any[], timeRange: string) => {
-  // 过滤当前发布者的订单（这里简化处理，实际应该根据发布者ID过滤）
-  const publisherOrders = orders;
-  
-  // 根据时间范围过滤订单（如果时间范围是'month'或'all'，则不过滤）
-  const filteredOrders = (timeRange === 'month' || timeRange === 'all') ? publisherOrders : filterOrdersByTimeRange(publisherOrders, timeRange);
+  // 根据时间范围过滤订单
+  const filteredOrders = filterOrdersByTimeRange(orders, timeRange);
   
   // 计算统计数据
   const totalTasks = filteredOrders.length;
-  const activeTasks = filteredOrders.filter(order => order.status === '已发布' || order.status === '进行中').length;
-  const completedTasks = filteredOrders.filter(order => order.status === '已完成').length;
+  const activeTasks = filteredOrders.filter(order => order.status === 'in_progress').length;
+  const completedTasks = filteredOrders.filter(order => order.status === 'completed').length;
   const totalSpent = filteredOrders.reduce((sum, order) => sum + (order.unitPrice * order.quantity), 0);
   const totalParticipants = filteredOrders.reduce((sum, order) => sum + order.completedQuantity, 0);
   
@@ -35,6 +33,11 @@ const getStatsData = (orders: any[], timeRange: string) => {
 
 // 根据时间范围过滤订单
 const filterOrdersByTimeRange = (orders: any[], timeRange: string) => {
+  // 如果时间范围是'all'，则不过滤
+  if (timeRange === 'all') {
+    return orders;
+  }
+  
   // 使用本地时间而不是UTC时间
   const now = new Date();
   console.log(`当前时间: ${now.toString()}`);
@@ -87,18 +90,17 @@ const transformOrdersToTasks = (orders: any[]) => {
     // 确定任务状态
     let status, statusText, statusColor;
     switch (order.status) {
-      case '已发布':
-      case '进行中':
+      case 'in_progress':
         status = 'active';
         statusText = '进行中';
         statusColor = 'bg-green-100 text-green-600';
         break;
-      case '待审核':
+      case 'pending_review':
         status = 'review';
         statusText = '待审核';
         statusColor = 'bg-orange-100 text-orange-600';
         break;
-      case '已完成':
+      case 'completed':
         status = 'completed';
         statusText = '已完成';
         statusColor = 'bg-green-100 text-green-600';
@@ -114,8 +116,8 @@ const transformOrdersToTasks = (orders: any[]) => {
     let pending = 0;
     
     if (order.subOrders && Array.isArray(order.subOrders)) {
-      inProgress = order.subOrders.filter((subOrder: any) => subOrder.status === '审核中').length;
-      pending = order.subOrders.filter((subOrder: any) => subOrder.status === '待领取').length;
+      inProgress = order.subOrders.filter((subOrder: any) => subOrder.status === 'pending_review').length;
+      pending = order.subOrders.filter((subOrder: any) => subOrder.status === 'pending').length;
     }
     
     return {
@@ -139,61 +141,103 @@ const transformOrdersToTasks = (orders: any[]) => {
 };
 
 // 获取待审核的订单
-const getPendingOrders = (orders: any[]) => {
-  // 查找所有状态为"待审核"的子订单
+const getPendingOrders = (orders: any[], currentUserId: string) => {
+  // 查找所有状态为"审核中"的子订单，并且主任务属于当前用户
   const pendingSubOrders: any[] = [];
   
   orders.forEach(order => {
-    const pendingSubs = order.subOrders.filter((subOrder: any) => subOrder.status === '审核中');
-    pendingSubs.forEach((subOrder: any) => {
-      pendingSubOrders.push({
-        id: subOrder.id,
-        taskTitle: order.taskRequirements.substring(0, 20) + (order.taskRequirements.length > 20 ? '...' : ''),
-        commenterName: subOrder.commenterName || '未知评论员',
-        submitTime: subOrder.commentTime ? new Date(subOrder.commentTime).toLocaleString('zh-CN') : '未知时间',
-        content: subOrder.commentContent || '无内容',
-        images: subOrder.screenshotUrl ? [subOrder.screenshotUrl] : []
-      });
-    });
+    // 只处理当前用户的订单（确保订单属于当前用户）
+    if (order.userId === currentUserId) {
+      // 确保subOrders存在且为数组
+      if (order.subOrders && Array.isArray(order.subOrders)) {
+        const pendingSubs = order.subOrders.filter((subOrder: any) => subOrder.status === 'pending_review');
+        pendingSubs.forEach((subOrder: any) => {
+          pendingSubOrders.push({
+            id: subOrder.id,
+            taskTitle: order.taskRequirements.substring(0, 20) + (order.taskRequirements.length > 20 ? '...' : ''),
+            commenterName: subOrder.commenterName || '未知评论员',
+            submitTime: subOrder.commentTime ? new Date(subOrder.commentTime).toLocaleString('zh-CN') : '未知时间',
+            content: subOrder.commentContent || '无内容',
+            images: subOrder.screenshotUrl ? [subOrder.screenshotUrl] : []
+          });
+        });
+      }
+    }
   });
   
   return pendingSubOrders;
 };
 
+// 过滤订单以匹配当前用户
+const filterOrdersByUser = (orders: any[], userId: string) => {
+  return orders.filter(order => order.userId === userId);
+};
+
 export async function GET(request: Request) {
   try {
+    // 从请求头中获取认证token并解析用户ID
+    const authHeader = request.headers.get('authorization');
+    let currentUserId = null;
+    
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.substring(7); // 移除 'Bearer ' 前缀
+      // 使用认证系统的验证函数来解析token
+      const user = validateToken(token);
+      console.log('解析token结果:', user);
+      if (user && user.role === 'publisher') {
+        currentUserId = user.id;
+      }
+    }
+    
+    // 如果没有有效的用户ID，返回错误
+    if (!currentUserId) {
+      console.log('未找到有效的用户ID');
+      return NextResponse.json(
+        { success: false, message: '未授权访问' },
+        { status: 401 }
+      );
+    }
+    
+    console.log(`当前用户ID: ${currentUserId}`);
+
     const url = new URL(request.url);
-    const timeRange = url.searchParams.get('timeRange') || 'today';
+    const timeRange = url.searchParams.get('timeRange') || 'all'; // 默认使用'all'而不是'today'
     
     // 读取订单数据
     const orderData = getCommentOrders();
-    const orders = orderData.orders;
+    const allOrders = orderData.orders;
+    
+    // 过滤当前用户的订单
+    const userOrders = filterOrdersByUser(allOrders, currentUserId);
+    console.log(`用户${currentUserId}的订单数量:`, userOrders.length);
     
     // 获取统计数据
-    const stats = getStatsData(orders, timeRange);
+    const stats = getStatsData(userOrders, timeRange);
     
     // 获取任务列表
-    const allTasks = transformOrdersToTasks(orders);
+    const allTasks = transformOrdersToTasks(userOrders);
     
     // 分类任务
     const activeTasks = allTasks.filter(task => task.status === 'active');
     const completedTasks = allTasks.filter(task => task.status === 'completed');
     
-    // 获取待审核订单
-    const pendingOrders = getPendingOrders(orders);
+    // 获取待审核订单（只获取当前用户的）
+    const pendingOrders = getPendingOrders(allOrders, currentUserId); // 修复：使用allOrders以确保能查找到所有用户的订单
+    console.log(`用户${currentUserId}的待审核订单数量:`, pendingOrders.length);
     
-    // 获取派发的任务列表（最近5个）
-    const dispatchedTasks = allTasks.slice(0, 5).map(task => ({
+    // 获取派发的任务列表（最近10个）
+    const dispatchedTasks = allTasks.slice(0, 10).map(task => ({
       id: task.id,
       title: task.title,
       status: task.status,
       statusText: task.statusText,
       participants: task.participants,
       maxParticipants: task.maxParticipants,
-      time: getTimeAgo(task.publishTime),
+      time: task.publishTime, // 直接使用发布时间而不是计算时间差
       completed: task.completed,
       inProgress: task.inProgress, // 添加进行中的数量
-      pending: task.pending // 添加待抢单的数量
+      pending: task.pending, // 添加待抢单的数量
+      price: task.price // 添加单价字段
     }));
     
     return NextResponse.json({

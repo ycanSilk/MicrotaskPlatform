@@ -1,9 +1,21 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 export default function CommenterProfilePage() {
   const [activeSection, setActiveSection] = useState('profile');
+  const router = useRouter();
+
+  // 退出登录处理
+  const handleLogout = () => {
+    // 清除本地存储的用户信息
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('current_user');
+    }
+    // 跳转到评论员登录页面
+    router.push('/auth/login/commenterlogin');
+  };
 
   return (
     <div className="pb-20">
@@ -275,7 +287,9 @@ export default function CommenterProfilePage() {
 
       {/* 退出登录 */}
       <div className="mx-4 mt-6">
-        <button className="w-full bg-red-500 text-white py-3 rounded-lg font-medium">
+        <button 
+          onClick={handleLogout}
+          className="w-full bg-red-500 text-white py-3 rounded-lg font-medium">
           退出登录
         </button>
       </div>

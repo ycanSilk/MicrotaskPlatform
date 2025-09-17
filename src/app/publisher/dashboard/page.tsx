@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
 // 定义数据类型
 interface Task {
@@ -39,6 +40,7 @@ interface DispatchedTask {
   completed: number;
   inProgress: number; // 添加进行中的数量
   pending: number; // 添加待抢单的数量
+  price: number; // 添加单价字段
 }
 
 interface Stats {
@@ -50,9 +52,10 @@ interface Stats {
 }
 
 export default function PublisherDashboardPage() {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState('overview');
   const [sortBy, setSortBy] = useState('time'); // 'time' | 'status' | 'price'
-  const [statsTimeRange, setStatsTimeRange] = useState('today'); // 'today' | 'yesterday' | 'week' | 'month'
+  const [statsTimeRange, setStatsTimeRange] = useState('all'); // 'today' | 'yesterday' | 'week' | 'month' | 'all'
   
   // 状态管理
   const [loading, setLoading] = useState(true);
@@ -66,6 +69,10 @@ export default function PublisherDashboardPage() {
   const [myTasks, setMyTasks] = useState<Task[]>([]);
   const [pendingOrders, setPendingOrders] = useState<PendingOrder[]>([]);
   const [dispatchedTasks, setDispatchedTasks] = useState<DispatchedTask[]>([]);
+  
+  // 图片查看器状态
+  const [imageViewerOpen, setImageViewerOpen] = useState(false);
+  const [currentImage, setCurrentImage] = useState('');
 
   // 获取仪表板数据
   useEffect(() => {
@@ -73,7 +80,36 @@ export default function PublisherDashboardPage() {
       try {
         setLoading(true);
         console.log(`正在获取仪表板数据，时间范围: ${statsTimeRange}`);
-        const response = await fetch(`/api/publisher/dashboard?timeRange=${statsTimeRange}`);
+        
+        // 获取认证token
+        let authToken = null;
+        if (typeof window !== 'undefined') {
+          try {
+            const token = localStorage.getItem('auth_token');
+            if (token) {
+              authToken = token;
+              console.log('获取到认证token:', token);
+            } else {
+              console.log('未找到认证token');
+            }
+          } catch (e) {
+            console.log('获取认证token失败:', e);
+          }
+        }
+        
+        // 构建请求头
+        const headers: Record<string, string> = {
+          'Content-Type': 'application/json',
+        };
+        
+        if (authToken) {
+          headers['Authorization'] = `Bearer ${authToken}`;
+          console.log('设置Authorization头:', headers['Authorization']);
+        }
+        
+        const response = await fetch(`/api/publisher/dashboard?timeRange=${statsTimeRange}`, {
+          headers
+        });
         const result = await response.json();
         console.log('API响应:', result);
         
@@ -83,6 +119,12 @@ export default function PublisherDashboardPage() {
           console.log('已完成任务数量:', result.data.completedTasks.length);
           console.log('待审核订单数量:', result.data.pendingOrders.length);
           console.log('派发任务数量:', result.data.dispatchedTasks.length);
+          console.log('派发任务详情:', result.data.dispatchedTasks); // 添加这行来查看派发任务的详细信息
+          
+          // 检查派发任务中的价格信息
+          result.data.dispatchedTasks.forEach((task: any, index: number) => {
+            console.log(`派发任务[${index}] ID: ${task.id}, 价格: ${task.price}, 数量: ${task.maxParticipants}`);
+          });
           
           setStats(result.data.stats);
           setMyTasks([...result.data.activeTasks, ...result.data.completedTasks]);
@@ -126,12 +168,84 @@ export default function PublisherDashboardPage() {
   };
 
   const handleTaskAction = (taskId: string, action: string) => {
-    alert(`对任务 ${taskId} 执行 ${action} 操作`);
+    console.log('handleTaskAction called with:', { taskId, action });
+    if (action === '查看详情') {
+      // 添加额外的调试信息
+      console.log('Task ID type:', typeof taskId);
+      console.log('Task ID value:', taskId);
+      
+      // 确保taskId是字符串且不为空
+      if (!taskId || typeof taskId !== 'string') {
+        console.error('Invalid taskId:', taskId);
+        return;
+      }
+      
+      const url = `/publisher/dashboard/task-detail?id=${encodeURIComponent(taskId)}`;
+      console.log('Full URL to navigate to:', url);
+      console.log('Router object:', router);
+      
+      try {
+        router.push(url);
+        console.log('Navigation initiated successfully');
+      } catch (error) {
+        console.error('Navigation failed:', error);
+      }
+    } else {
+      alert(`对任务 ${taskId} 执行 ${action} 操作`);
+    }
   };
 
-  const handleOrderReview = (orderId: string, action: 'approve' | 'reject') => {
-    const actionText = action === 'approve' ? '通过' : '驳回';
-    alert(`${actionText}订单 ${orderId}`);
+  const handleOrderReview = async (orderId: string, action: 'approve' | 'reject') => {
+    console.log(`开始处理订单审核: orderId=${orderId}, action=${action}`);
+    
+    try {
+      const response = await fetch('/api/publisher/review', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ orderId, action }),
+      });
+      
+      console.log('API调用完成，状态码:', response.status);
+      const result = await response.json();
+      console.log('API返回结果:', result);
+      
+      if (result.success) {
+        // 显示成功消息
+        alert(result.message);
+        console.log('审核操作成功');
+        
+        // 重新加载数据以反映状态更改
+        console.log('开始重新加载仪表板数据');
+        const dashboardResponse = await fetch(`/api/publisher/dashboard?timeRange=${statsTimeRange}`);
+        const dashboardResult = await dashboardResponse.json();
+        console.log('仪表板数据加载完成:', dashboardResult);
+        
+        if (dashboardResult.success) {
+          setPendingOrders(dashboardResult.data.pendingOrders);
+          setDispatchedTasks(dashboardResult.data.dispatchedTasks);
+          console.log('状态已更新');
+        }
+      } else {
+        console.error('审核操作失败:', result.message);
+        alert(`操作失败: ${result.message}`);
+      }
+    } catch (error) {
+      console.error('审核订单失败:', error);
+      alert('审核订单时发生错误');
+    }
+  };
+
+  // 图片查看功能
+  const openImageViewer = (imageUrl: string) => {
+    setCurrentImage(imageUrl);
+    setImageViewerOpen(true);
+  };
+
+  const closeImageViewer = () => {
+    setImageViewerOpen(false);
+    setCurrentImage('');
   };
 
   // 显示加载状态
@@ -249,14 +363,22 @@ export default function PublisherDashboardPage() {
           <div className="mx-4 mt-6">
             <div className="bg-white rounded-lg shadow-sm">
               <div className="p-4 border-b">
-                <h3 className="font-bold text-gray-800">派发的任务</h3>
+                <div className="flex items-center justify-between">
+                  <h3 className="font-bold text-gray-800">派发的任务</h3>
+                  <button 
+                    onClick={() => router.push('/publisher/tasks/history')}
+                    className="text-sm text-blue-500 hover:text-blue-700"
+                  >
+                    查看全部历史订单 →
+                  </button>
+                </div>
               </div>
-              <div className="divide-y max-h-64 overflow-y-auto">
-                {dispatchedTasks.map((task) => (
-                  <div key={task.id} className="p-3">
+              <div className="space-y-4 max-h-96 overflow-y-auto p-4">
+                {dispatchedTasks.slice(0, 10).map((task) => (
+                  <div key={task.id} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
-                        <div className="flex items-center space-x-2 mb-1">
+                        <div className="flex items-center space-x-2 mb-2">
                           <div className="text-sm font-medium text-gray-800">
                             {task.title}
                           </div>
@@ -269,13 +391,25 @@ export default function PublisherDashboardPage() {
                             {task.statusText}
                           </span>
                         </div>
-                        <div className="text-xs text-gray-600 mb-2">
-                          完成: {task.completed} | 进行中: {task.inProgress} | 待抢单: {task.pending} | 总计: {task.maxParticipants} 条 · {task.time}
+                        <div className="text-xs text-gray-600 mb-3">
+                          完成: {task.completed} | 进行中: {task.inProgress} | 待抢单: {task.pending} | 总计: {task.maxParticipants} 条 · {new Date(task.time).toLocaleString('zh-CN')}
                         </div>
-                        <div className="bg-gray-200 h-1 rounded">
+                        <div className="flex justify-between items-center mb-2">
+                          <div className="text-sm">
+                            <span className="text-gray-600">子订单单价:</span>
+                            <span className="font-medium text-gray-800"> ¥{typeof task.price === 'number' ? task.price.toFixed(2) : '0.00'}</span>
+                          </div>
+                          <div className="text-sm">
+                            <span className="text-gray-600">总金额:</span>
+                            <span className="font-medium text-gray-800"> 
+                              ¥{typeof task.price === 'number' && typeof task.maxParticipants === 'number' ? (task.price * task.maxParticipants).toFixed(2) : '0.00'}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="bg-gray-200 h-2 rounded">
                           <div 
-                            className="bg-green-500 h-1 rounded" 
-                            style={{width: `${(task.participants / task.maxParticipants) * 100}%`}}
+                            className="bg-green-500 h-2 rounded" 
+                            style={{width: `${task.maxParticipants > 0 ? (task.participants / task.maxParticipants) * 100 : 0}%`}}
                           ></div>
                         </div>
                       </div>
@@ -347,8 +481,20 @@ export default function PublisherDashboardPage() {
                       <h5 className="text-sm font-medium text-gray-700 mb-2">图片附件:</h5>
                       <div className="flex space-x-2">
                         {order.images.map((image, index) => (
-                          <div key={index} className="w-16 h-16 bg-gray-200 rounded flex items-center justify-center text-xs text-gray-500">
-                            🖼️
+                          <div 
+                            key={index} 
+                            className="w-16 h-16 bg-gray-200 rounded flex items-center justify-center text-xs text-gray-500 cursor-pointer hover:bg-gray-300 transition-colors overflow-hidden"
+                            onClick={() => openImageViewer(image)}
+                          >
+                            <img 
+                              src={image} 
+                              alt={`附件图片 ${index + 1}`} 
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                const target = e.target as HTMLImageElement;
+                                target.src = '/images/20250916161008.png';
+                              }}
+                            />
                           </div>
                         ))}
                       </div>
@@ -450,20 +596,12 @@ export default function PublisherDashboardPage() {
                   {/* 操作按钮 */}
                   <div className="flex space-x-2">
                     {task.status === 'active' && (
-                      <>
-                        <button
-                          onClick={() => handleTaskAction(task.id, '暂停')}
-                          className="flex-1 bg-orange-500 text-white py-2 rounded font-medium hover:bg-orange-600 transition-colors text-sm"
-                        >
-                          暂停任务
-                        </button>
-                        <button
-                          onClick={() => handleTaskAction(task.id, '编辑')}
-                          className="flex-1 bg-blue-500 text-white py-2 rounded font-medium hover:bg-blue-600 transition-colors text-sm"
-                        >
-                          编辑任务
-                        </button>
-                      </>
+                      <button
+                        onClick={() => handleTaskAction(task.id, '查看详情')}
+                        className="flex-1 bg-green-500 text-white py-2 rounded font-medium hover:bg-green-600 transition-colors text-sm"
+                      >
+                        查看详情
+                      </button>
                     )}
                     {task.status === 'completed' && (
                       <>
@@ -487,6 +625,25 @@ export default function PublisherDashboardPage() {
             </div>
           </div>
         </>
+      )}
+      
+      {/* 图片查看器模态框 */}
+      {imageViewerOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+          <div className="relative max-w-4xl max-h-full">
+            <button
+              onClick={closeImageViewer}
+              className="absolute -top-10 right-0 text-white text-2xl hover:text-gray-300"
+            >
+              ✕
+            </button>
+            <img 
+              src={currentImage} 
+              alt="查看图片" 
+              className="max-w-full max-h-full object-contain"
+            />
+          </div>
+        </div>
       )}
     </div>
   );

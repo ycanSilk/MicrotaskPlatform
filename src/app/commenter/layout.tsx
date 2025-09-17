@@ -18,7 +18,7 @@ export default function CommenterLayout({
   useEffect(() => {
     const currentUser = SimpleStorage.getUser();
     if (!currentUser || currentUser.role !== 'commenter') {
-      router.push('/auth/login');
+      router.push('/auth/login/commenterlogin');
       return;
     }
     setUser(currentUser);
@@ -27,7 +27,7 @@ export default function CommenterLayout({
 
   const handleLogout = () => {
     SimpleStorage.clearUser();
-    router.push('/auth/login');
+    router.push('/auth/login/commenterlogin');
   };
 
   // 获取当前页面标题

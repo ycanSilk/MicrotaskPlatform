@@ -18,7 +18,7 @@ export default function AdminLayout({
   useEffect(() => {
     const currentUser = SimpleStorage.getUser();
     if (!currentUser || currentUser.role !== 'admin') {
-      router.push('/auth/login');
+      router.push('/auth/login/adminlogin');
       return;
     }
     setUser(currentUser);
@@ -27,7 +27,7 @@ export default function AdminLayout({
 
   const handleLogout = () => {
     SimpleStorage.clearUser();
-    router.push('/auth/login');
+    router.push('/auth/login/adminlogin');
   };
 
   // 获取当前页面标题

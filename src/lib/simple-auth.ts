@@ -1,12 +1,14 @@
 // 简化的认证系统，用于演示
-import usersData from '@/data/users.json';
+import publisherUsersData from '@/data/publisheruser/publisheruser.json';
 
 export interface SimpleUser {
   id: string;
   username: string;
   role: string;
-  nickname?: string;
-  balance: number;
+  phone?: string;
+  balance?: number;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface LoginCredentials {
@@ -28,14 +30,14 @@ export const authenticateUser = async (credentials: LoginCredentials): Promise<L
   await new Promise(resolve => setTimeout(resolve, 500));
   
   // 查找用户
-  const user = usersData.users.find(u => 
-    u.username === username && u.status === 'active'
+  const user = publisherUsersData.users.find(u => 
+    u.username === username
   );
   
   if (!user) {
     return {
       success: false,
-      message: '用户名不存在或账户已被禁用'
+      message: '用户名不存在'
     };
   }
   
@@ -52,8 +54,10 @@ export const authenticateUser = async (credentials: LoginCredentials): Promise<L
     id: user.id,
     username: user.username,
     role: user.role,
-    nickname: user.nickname,
-    balance: user.balance
+    phone: user.phone,
+    balance: user.balance || 0,
+    createdAt: user.createdAt,
+    updatedAt: user.updatedAt
   };
   
   return {

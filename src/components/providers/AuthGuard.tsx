@@ -14,7 +14,9 @@ interface AuthGuardProps {
 
 // 公开路由（不需要登录）
 const publicRoutes = [
-  '/auth/login',
+  '/auth/login/adminlogin',
+  '/auth/login/publisherlogin',
+  '/auth/login/commenterlogin',
   '/auth/register',
   '/auth/forgot-password',
   '/', // 首页
@@ -43,12 +45,25 @@ export const AuthGuard = ({ children, requiredRole, allowedRoles }: AuthGuardPro
 
     // 如果用户未登录且不是公开路由，重定向到登录页
     if (!isAuthenticated && !isPublicRoute) {
-      router.push('/auth/login' as any);
+      // 根据路径判断应该跳转到哪个登录页面
+      if (pathname.startsWith('/admin')) {
+        router.push('/auth/login/adminlogin');
+      } else if (pathname.startsWith('/publisher')) {
+        router.push('/auth/login/publisherlogin');
+      } else if (pathname.startsWith('/commenter')) {
+        router.push('/auth/login/commenterlogin');
+      } else {
+        router.push('/auth/login/publisherlogin'); // 默认跳转到派单员登录页
+      }
       return;
     }
 
     // 如果用户已登录且在登录页，重定向到对应角色首页
-    if (isAuthenticated && user && pathname === '/auth/login') {
+    if (isAuthenticated && user && (
+      pathname === '/auth/login/adminlogin' || 
+      pathname === '/auth/login/publisherlogin' || 
+      pathname === '/auth/login/commenterlogin'
+    )) {
       const homePath = getRoleHomePath(user.role);
       router.push(homePath as any);
       return;

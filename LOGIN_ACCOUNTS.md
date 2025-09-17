@@ -60,14 +60,15 @@
 
 ## 🚀 快速体验步骤
 
-1. 访问登录页面：`http://localhost:3000/auth/login`
-2. 在"演示账号"区域点击任意角色账号进行快速登录
-3. 或者手动输入上述账号信息
-4. 登录成功后将根据角色自动跳转到对应的工作台
+1. 访问派单员登录页面：`http://localhost:3000/auth/login/publisherlogin`
+2. 访问评论员登录页面：`http://localhost:3000/auth/login/commenterlogin`
+3. 访问管理员登录页面：`http://localhost:3000/auth/login/adminlogin`
+4. 在对应页面输入上述账号信息
+5. 登录成功后将根据角色自动跳转到对应的工作台
 
 ## 🔧 技术实现
 
-- **数据存储**: 本地JSON文件 (`src/data/users.json`)
+- **数据存储**: 本地JSON文件 (`src/data/publisheruser/publisheruser.json`)
 - **身份验证**: 基于localStorage的Session管理
 - **路由守卫**: 自动角色权限检查和重定向
 - **安全性**: 简单的Token机制（仅用于演示）

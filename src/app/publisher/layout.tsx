@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { SimpleStorage, SimpleUser } from '@/lib/simple-auth';
+import { AuthStorage } from '@/lib/auth'; // 使用完整的认证系统
 import Link from 'next/link';
 
 export default function PublisherLayout({
@@ -10,7 +10,7 @@ export default function PublisherLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const [user, setUser] = useState<SimpleUser | null>(null);
+  const [user, setUser] = useState<any | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
   const pathname = usePathname();
@@ -23,34 +23,42 @@ export default function PublisherLayout({
       if (!isMounted) return;
       
       try {
-        const currentUser = SimpleStorage.getUser();
-        console.log('Publisher Layout: Current user:', currentUser); // 调试信息
+        console.log('Checking user authentication...');
+        const authSession = AuthStorage.getAuth();
+        console.log('Auth session from storage:', authSession);
+        console.log('Publisher Layout: Current user:', authSession?.user); // 调试信息
         
-        if (!currentUser) {
+        if (!authSession || !authSession.user) {
           console.log('Publisher Layout: No user found, redirecting to login'); // 调试信息
+          // 检查localStorage中是否有数据
+          const token = localStorage.getItem('auth_token');
+          const userInfo = localStorage.getItem('user_info');
+          console.log('Direct localStorage check - token:', token, 'user:', userInfo);
+          
           if (isMounted) {
-            router.push('/auth/login');
+            router.push('/auth/login/publisherlogin');
           }
           return;
         }
         
-        if (currentUser.role !== 'publisher') {
-          console.log('Publisher Layout: Wrong role, redirecting to login. Role:', currentUser.role); // 调试信息
+        console.log('User role:', authSession.user.role);
+        if (authSession.user.role !== 'publisher') {
+          console.log('Publisher Layout: Wrong role, redirecting to login. Role:', authSession.user.role); // 调试信息
           if (isMounted) {
-            router.push('/auth/login');
+            router.push('/auth/login/publisherlogin');
           }
           return;
         }
         
         console.log('Publisher Layout: User authorized, setting user data'); // 调试信息
         if (isMounted) {
-          setUser(currentUser);
+          setUser(authSession.user);
           setIsLoading(false);
         }
       } catch (error) {
         console.error('Publisher Layout: Error checking user:', error);
         if (isMounted) {
-          router.push('/auth/login');
+          router.push('/auth/login/publisherlogin');
         }
       }
     };
@@ -70,8 +78,9 @@ export default function PublisherLayout({
   }, [router]); // 只依赖router，避免无限循环
 
   const handleLogout = () => {
-    SimpleStorage.clearUser();
-    router.push('/auth/login');
+    console.log('Logging out user');
+    AuthStorage.clearAuth();
+    router.push('/auth/login/publisherlogin');
   };
 
   // 获取当前页面标题
@@ -90,6 +99,7 @@ export default function PublisherLayout({
   };
 
   if (isLoading) {
+    console.log('Layout is loading...');
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
@@ -105,6 +115,7 @@ export default function PublisherLayout({
 
   // 如果没有用户数据，显示请登录提示
   if (!user) {
+    console.log('No user data, showing login prompt');
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
@@ -114,7 +125,7 @@ export default function PublisherLayout({
             您需要以派单员身份登录才能访问此页面
           </div>
           <button 
-            onClick={() => router.push('/auth/login')}
+            onClick={() => router.push('/auth/login/publisherlogin')}
             className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
           >
             去登录
@@ -123,6 +134,8 @@ export default function PublisherLayout({
       </div>
     );
   }
+
+  console.log('Rendering layout with user:', user);
 
   return (
     <div className="min-h-screen bg-gray-50">

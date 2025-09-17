@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { SimpleStorage } from '@/lib/simple-auth';
+import { AuthStorage } from '@/lib/auth'; // 使用完整的认证存储
 
 export default function PublisherLoginPage() {
   const [formData, setFormData] = useState({
@@ -10,7 +10,7 @@ export default function PublisherLoginPage() {
     password: '',
     captcha: ''
   });
-  const [captchaCode, setCaptchaCode] = useState(generateCaptcha());
+  const [captchaCode, setCaptchaCode] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const router = useRouter();
@@ -25,33 +25,45 @@ export default function PublisherLoginPage() {
     return result;
   }
 
+  // 初始化验证码
+  useEffect(() => {
+    console.log('Initializing captcha');
+    setCaptchaCode(generateCaptcha());
+  }, []);
+
   // 刷新验证码
   const refreshCaptcha = () => {
+    console.log('Refreshing captcha');
     setCaptchaCode(generateCaptcha());
     setFormData({ ...formData, captcha: '' });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('Login form submitted with data:', formData);
     setErrorMessage('');
     
     // 验证表单
     if (!formData.username.trim()) {
+      console.log('Username is empty');
       setErrorMessage('请输入用户名');
       return;
     }
     
     if (!formData.password.trim()) {
+      console.log('Password is empty');
       setErrorMessage('请输入密码');
       return;
     }
     
     if (!formData.captcha.trim()) {
+      console.log('Captcha is empty');
       setErrorMessage('请输入验证码');
       return;
     }
     
     if (formData.captcha.toUpperCase() !== captchaCode.toUpperCase()) {
+      console.log('Captcha incorrect');
       setErrorMessage('验证码错误');
       refreshCaptcha();
       return;
@@ -60,7 +72,20 @@ export default function PublisherLoginPage() {
     setIsLoading(true);
     
     try {
+      console.log('Calling publisher login API');
       // 调用发布者登录API
+      console.log('Fetch URL:', '/api/publisher');
+      console.log('Fetch options:', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          username: formData.username,
+          password: formData.password
+        }),
+      });
+      
       const response = await fetch('/api/publisher', {
         method: 'POST',
         headers: {
@@ -72,26 +97,46 @@ export default function PublisherLoginPage() {
         }),
       });
 
-      const result = await response.json();
+      console.log('API response status:', response.status);
+      console.log('API response headers:', Array.from(response.headers.entries()));
       
-      if (result.success && result.user) {
-        // 构造简化的用户信息
-        const simpleUser = {
-          id: result.user.id,
-          username: result.user.username,
-          role: result.user.role,
-          balance: result.user.balance || 0, // 发布者用户数据中包含余额字段
-        };
+      const result = await response.json();
+      console.log('API response data:', result);
+      
+      if (result.success && result.user && result.token) {
+        console.log('Login successful, saving auth info');
+        // 保存认证信息（包括token）
+        AuthStorage.saveAuth({
+          user: {
+            id: result.user.id,
+            username: result.user.username,
+            role: result.user.role,
+            phone: result.user.phone,
+            balance: result.user.balance || 0,
+            status: 'active',
+            createdAt: result.user.createdAt,
+            updatedAt: result.user.updatedAt,
+            lastLoginAt: new Date().toISOString()
+          },
+          token: result.token,
+          expiresAt: Date.now() + (24 * 60 * 60 * 1000) // 24小时过期
+        });
         
-        // 保存用户信息
-        SimpleStorage.saveUser(simpleUser);
+        console.log('Auth info saved, checking localStorage');
+        // 验证保存是否成功
+        const savedToken = localStorage.getItem('auth_token');
+        const savedUser = localStorage.getItem('user_info');
+        console.log('Saved token:', savedToken);
+        console.log('Saved user:', savedUser);
         
         // 显示成功消息
         alert(`发布者登录成功！欢迎 ${result.user.username}`);
         
         // 跳转到发布者首页
+        console.log('Redirecting to dashboard');
         router.replace('/publisher/dashboard');
       } else {
+        console.log('Login failed:', result.message || 'Unknown error');
         setErrorMessage(result.message || '登录失败');
         refreshCaptcha();
       }
@@ -152,6 +197,7 @@ export default function PublisherLoginPage() {
                 <input
                   type="password"
                   placeholder="请输入密码"
+                  autoComplete="current-password"
                   value={formData.password}
                   onChange={(e) => setFormData({...formData, password: e.target.value})}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
