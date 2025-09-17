@@ -181,11 +181,9 @@ export default function PublisherDashboardPage() {
       }
       
       const url = `/publisher/dashboard/task-detail?id=${encodeURIComponent(taskId)}`;
-      console.log('Full URL to navigate to:', url);
-      console.log('Router object:', router);
-      
       try {
-        router.push(url);
+        // Using type assertion to fix Next.js 14 router push type issue
+        router.push(url as unknown as never);
         console.log('Navigation initiated successfully');
       } catch (error) {
         console.error('Navigation failed:', error);

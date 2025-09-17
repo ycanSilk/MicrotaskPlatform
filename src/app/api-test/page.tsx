@@ -26,7 +26,9 @@ export default function ApiTestPage() {
       setResponse(data);
     } catch (error) {
       console.error('API test error:', error);
-      setResponse({ error: error.message });
+      setResponse({ 
+        error: error instanceof Error ? error.message : 'An unknown error occurred'
+      });
     } finally {
       setLoading(false);
     }

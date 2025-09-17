@@ -26,6 +26,10 @@ export async function GET() {
     }
   } catch (error) {
     console.error('File test error:', error);
-    return NextResponse.json({ success: false, message: '文件测试失败', error: error.message });
+    return NextResponse.json({ 
+      success: false, 
+      message: '文件测试失败', 
+      error: error instanceof Error ? error.message : '未知错误'
+    });
   }
 }

@@ -100,7 +100,8 @@ export default function TaskHistoryPage() {
     if (action === '查看详情') {
       const url = `/publisher/dashboard/task-detail?id=${encodeURIComponent(taskId)}`;
       console.log('Full URL to navigate to:', url);
-      router.push(url);
+      // 使用类型断言修复Next.js 14 router push类型问题
+      router.push(url as unknown as never);
     } else {
       alert(`对任务 ${taskId} 执行 ${action} 操作`);
     }
