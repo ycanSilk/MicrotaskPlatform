@@ -42,7 +42,7 @@ export interface Task {
   requirements: TaskRequirement[];
   category: string;
   difficulty: 1 | 2 | 3;
-  status: 'active' | 'paused' | 'completed' | 'cancelled';
+  status: 'active' | 'completed'; // 根据规范，主任务只有进行中和已完成两种状态
   publisherId: string;
   deadline: string;
   isHot?: boolean;

@@ -77,22 +77,18 @@ export function formatRelativeTime(timestamp: string | number): string {
 export function getTaskStatusColor(status: string): string {
   const colors = {
     active: 'text-green-600 bg-green-100',
-    paused: 'text-yellow-600 bg-yellow-100',
     completed: 'text-blue-600 bg-blue-100',
-    cancelled: 'text-red-600 bg-red-100',
   };
-  return colors[status as keyof typeof colors] || 'text-gray-600 bg-gray-100';
+  return colors[status as keyof typeof colors] || 'text-green-600 bg-green-100'; // 默认为进行中状态
 }
 
 // 任务状态文本
 export function getTaskStatusText(status: string): string {
   const texts = {
     active: '进行中',
-    paused: '已暂停',
     completed: '已完成',
-    cancelled: '已取消',
   };
-  return texts[status as keyof typeof texts] || '未知';
+  return texts[status as keyof typeof texts] || '进行中'; // 默认为进行中状态
 }
 
 // 难度星级

@@ -20,14 +20,35 @@ const getStatsData = (orders: any[], timeRange: string) => {
   const activeTasks = filteredOrders.filter(order => order.status === 'in_progress').length;
   const completedTasks = filteredOrders.filter(order => order.status === 'completed').length;
   const totalSpent = filteredOrders.reduce((sum, order) => sum + (order.unitPrice * order.quantity), 0);
-  const totalParticipants = filteredOrders.reduce((sum, order) => sum + order.completedQuantity, 0);
+  
+  // 计算子订单统计数据
+  let totalInProgressSubOrders = 0;
+  let totalCompletedSubOrders = 0;
+  let totalPendingReviewSubOrders = 0;
+  let totalPendingSubOrders = 0;
+  
+  filteredOrders.forEach(order => {
+    if (order.subOrders && Array.isArray(order.subOrders)) {
+      totalInProgressSubOrders += order.subOrders.filter((subOrder: any) => subOrder.status === 'in_progress').length;
+      totalCompletedSubOrders += order.subOrders.filter((subOrder: any) => subOrder.status === 'completed').length;
+      totalPendingReviewSubOrders += order.subOrders.filter((subOrder: any) => subOrder.status === 'pending_review').length;
+      totalPendingSubOrders += order.subOrders.filter((subOrder: any) => subOrder.status === 'pending').length;
+    }
+  });
+  
+  // 计算平均客单价
+  const averageOrderValue = totalTasks > 0 ? totalSpent / totalTasks : 0;
   
   return {
     totalTasks,
     activeTasks,
     completedTasks,
     totalSpent,
-    totalParticipants
+    totalInProgressSubOrders,
+    totalCompletedSubOrders,
+    totalPendingReviewSubOrders,
+    totalPendingSubOrders,
+    averageOrderValue
   };
 };
 
@@ -95,29 +116,31 @@ const transformOrdersToTasks = (orders: any[]) => {
         statusText = '进行中';
         statusColor = 'bg-green-100 text-green-600';
         break;
-      case 'pending_review':
-        status = 'review';
-        statusText = '待审核';
-        statusColor = 'bg-orange-100 text-orange-600';
-        break;
       case 'completed':
         status = 'completed';
         statusText = '已完成';
         statusColor = 'bg-green-100 text-green-600';
         break;
       default:
-        status = 'paused';
-        statusText = '已暂停';
-        statusColor = 'bg-gray-100 text-gray-600';
+        // 根据规范，主任务只有进行中和已完成两种状态
+        // 如果状态不是这两个之一，默认设为进行中
+        console.log(`警告：发现未知状态 "${order.status}" 的订单 ${order.id}，将默认设为进行中`);
+        status = 'active';
+        statusText = '进行中';
+        statusColor = 'bg-green-100 text-green-600';
     }
     
-    // 计算进行中和待抢单的数量
+    // 计算进行中、待抢单和已完成的数量
     let inProgress = 0;
     let pending = 0;
+    let completed = 0;
+    let pendingReview = 0; // 添加待审核的数量
     
     if (order.subOrders && Array.isArray(order.subOrders)) {
-      inProgress = order.subOrders.filter((subOrder: any) => subOrder.status === 'pending_review').length;
+      inProgress = order.subOrders.filter((subOrder: any) => subOrder.status === 'in_progress').length;
       pending = order.subOrders.filter((subOrder: any) => subOrder.status === 'pending').length;
+      completed = order.subOrders.filter((subOrder: any) => subOrder.status === 'completed').length;
+      pendingReview = order.subOrders.filter((subOrder: any) => subOrder.status === 'pending_review').length; // 计算待审核的数量
     }
     
     return {
@@ -130,9 +153,10 @@ const transformOrdersToTasks = (orders: any[]) => {
       statusColor,
       participants: order.completedQuantity,
       maxParticipants: order.quantity,
-      completed: order.completedQuantity,
-      inProgress, // 进行中的数量
-      pending, // 待抢单的数量
+      completed: completed,
+      inProgress: inProgress, // 进行中的数量
+      pending: pending, // 待抢单的数量
+      pendingReview: pendingReview, // 待审核的数量
       publishTime: new Date(order.publishTime).toLocaleString('zh-CN'),
       deadline: new Date(order.deadline).toLocaleString('zh-CN'),
       description: order.taskRequirements
@@ -145,26 +169,40 @@ const getPendingOrders = (orders: any[], currentUserId: string) => {
   // 查找所有状态为"审核中"的子订单，并且主任务属于当前用户
   const pendingSubOrders: any[] = [];
   
+  console.log(`开始过滤用户 ${currentUserId} 的待审核订单`);
+  console.log(`总订单数: ${orders.length}`);
+  
   orders.forEach(order => {
     // 只处理当前用户的订单（确保订单属于当前用户）
     if (order.userId === currentUserId) {
+      console.log(`检查订单 ${order.id} 的子订单`);
       // 确保subOrders存在且为数组
       if (order.subOrders && Array.isArray(order.subOrders)) {
-        const pendingSubs = order.subOrders.filter((subOrder: any) => subOrder.status === 'pending_review');
+        const pendingSubs = order.subOrders.filter((subOrder: any) => {
+          const isPendingReview = subOrder.status === 'pending_review';
+          console.log(`子订单 ${subOrder.id} 状态: ${subOrder.status}, 是否为pending_review: ${isPendingReview}`);
+          return isPendingReview;
+        });
+        
+        console.log(`订单 ${order.id} 找到 ${pendingSubs.length} 个pending_review子订单`);
+        
         pendingSubs.forEach((subOrder: any) => {
-          pendingSubOrders.push({
+          const pendingOrder = {
             id: subOrder.id,
             taskTitle: order.taskRequirements.substring(0, 20) + (order.taskRequirements.length > 20 ? '...' : ''),
             commenterName: subOrder.commenterName || '未知评论员',
             submitTime: subOrder.commentTime ? new Date(subOrder.commentTime).toLocaleString('zh-CN') : '未知时间',
             content: subOrder.commentContent || '无内容',
             images: subOrder.screenshotUrl ? [subOrder.screenshotUrl] : []
-          });
+          };
+          console.log(`添加待审核订单:`, pendingOrder);
+          pendingSubOrders.push(pendingOrder);
         });
       }
     }
   });
   
+  console.log(`总共找到 ${pendingSubOrders.length} 个待审核订单:`, pendingSubOrders.map(order => order.id));
   return pendingSubOrders;
 };
 
@@ -175,6 +213,13 @@ const filterOrdersByUser = (orders: any[], userId: string) => {
 
 export async function GET(request: Request) {
   try {
+    // 添加no-cache头来避免缓存
+    const headers = {
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0'
+    };
+    
     // 从请求头中获取认证token并解析用户ID
     const authHeader = request.headers.get('authorization');
     let currentUserId = null;
@@ -194,7 +239,7 @@ export async function GET(request: Request) {
       console.log('未找到有效的用户ID');
       return NextResponse.json(
         { success: false, message: '未授权访问' },
-        { status: 401 }
+        { status: 401, headers }
       );
     }
     
@@ -216,6 +261,7 @@ export async function GET(request: Request) {
     
     // 获取任务列表
     const allTasks = transformOrdersToTasks(userOrders);
+    console.log(`转换后的任务列表:`, allTasks.map(task => ({id: task.id, status: task.status, statusText: task.statusText})));
     
     // 分类任务
     const activeTasks = allTasks.filter(task => task.status === 'active');
@@ -237,8 +283,11 @@ export async function GET(request: Request) {
       completed: task.completed,
       inProgress: task.inProgress, // 添加进行中的数量
       pending: task.pending, // 添加待抢单的数量
+      pendingReview: task.pendingReview, // 添加待审核的数量
       price: task.price // 添加单价字段
     }));
+    
+    console.log(`派发的任务列表:`, dispatchedTasks.map(task => ({id: task.id, status: task.status, statusText: task.statusText})));
     
     return NextResponse.json({
       success: true,
@@ -249,7 +298,7 @@ export async function GET(request: Request) {
         pendingOrders,
         dispatchedTasks
       }
-    });
+    }, { headers });
   } catch (error) {
     console.error('Dashboard data fetch error:', error);
     return NextResponse.json(

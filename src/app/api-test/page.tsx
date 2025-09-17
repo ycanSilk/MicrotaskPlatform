@@ -16,8 +16,8 @@ export default function ApiTestPage() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          username: 'test12',
-          password: '123456'
+          username: 'padmin',
+          password: 'p123456'
         }),
       });
       

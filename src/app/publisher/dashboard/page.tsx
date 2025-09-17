@@ -9,12 +9,14 @@ interface Task {
   title: string;
   category: string;
   price: number;
-  status: string;
-  statusText: string;
+  status: string; // 现在直接使用JSON文件中的状态值
+  statusText: string; // 用于显示中文状态
   statusColor: string;
   participants: number;
   maxParticipants: number;
   completed: number;
+  inProgress: number; // 添加进行中的数量
+  pending: number; // 添加待抢单的数量
   publishTime: string;
   deadline: string;
   description: string;
@@ -27,6 +29,7 @@ interface PendingOrder {
   submitTime: string;
   content: string;
   images: string[];
+  status: string; // 添加状态字段
 }
 
 interface DispatchedTask {
@@ -40,6 +43,7 @@ interface DispatchedTask {
   completed: number;
   inProgress: number; // 添加进行中的数量
   pending: number; // 添加待抢单的数量
+  pendingReview?: number; // 添加待审核的数量
   price: number; // 添加单价字段
 }
 
@@ -48,7 +52,11 @@ interface Stats {
   activeTasks: number;
   completedTasks: number;
   totalSpent: number;
-  totalParticipants: number;
+  totalInProgressSubOrders: number; // 进行中的子订单总数量
+  totalCompletedSubOrders: number; // 已完成的子订单数量
+  totalPendingReviewSubOrders: number; // 待审核的子订单数量
+  totalPendingSubOrders: number; // 待抢单的子订单数量
+  averageOrderValue: number; // 平均客单价
 }
 
 export default function PublisherDashboardPage() {
@@ -56,6 +64,7 @@ export default function PublisherDashboardPage() {
   const [activeTab, setActiveTab] = useState('overview');
   const [sortBy, setSortBy] = useState('time'); // 'time' | 'status' | 'price'
   const [statsTimeRange, setStatsTimeRange] = useState('all'); // 'today' | 'yesterday' | 'week' | 'month' | 'all'
+  const [refreshFlag, setRefreshFlag] = useState(0); // 用于触发数据刷新的状态变量
   
   // 状态管理
   const [loading, setLoading] = useState(true);
@@ -64,11 +73,17 @@ export default function PublisherDashboardPage() {
     activeTasks: 0,
     completedTasks: 0,
     totalSpent: 0,
-    totalParticipants: 0
+    totalInProgressSubOrders: 0, // 进行中的子订单总数量
+    totalCompletedSubOrders: 0, // 已完成的子订单数量
+    totalPendingReviewSubOrders: 0, // 待审核的子订单数量
+    totalPendingSubOrders: 0, // 待抢单的子订单数量
+    averageOrderValue: 0 // 平均客单价
   });
   const [myTasks, setMyTasks] = useState<Task[]>([]);
   const [pendingOrders, setPendingOrders] = useState<PendingOrder[]>([]);
   const [dispatchedTasks, setDispatchedTasks] = useState<DispatchedTask[]>([]);
+  const [activeTasks, setActiveTasks] = useState<Task[]>([]); // 进行中的任务
+  const [completedTasks, setCompletedTasks] = useState<Task[]>([]); // 已完成的任务
   
   // 图片查看器状态
   const [imageViewerOpen, setImageViewerOpen] = useState(false);
@@ -107,8 +122,12 @@ export default function PublisherDashboardPage() {
           console.log('设置Authorization头:', headers['Authorization']);
         }
         
+        // 获取仪表板数据
         const response = await fetch(`/api/publisher/dashboard?timeRange=${statsTimeRange}`, {
-          headers
+          headers,
+          // 添加缓存控制选项
+          cache: 'no-store',
+          next: { revalidate: 0 }
         });
         const result = await response.json();
         console.log('API响应:', result);
@@ -130,6 +149,11 @@ export default function PublisherDashboardPage() {
           setMyTasks([...result.data.activeTasks, ...result.data.completedTasks]);
           setPendingOrders(result.data.pendingOrders);
           setDispatchedTasks(result.data.dispatchedTasks);
+          
+          // 设置进行中和已完成的任务
+          setActiveTasks(result.data.activeTasks);
+          setCompletedTasks(result.data.completedTasks);
+          
           console.log('数据更新完成');
         } else {
           console.error('API返回错误:', result.message);
@@ -142,7 +166,7 @@ export default function PublisherDashboardPage() {
     };
 
     fetchDashboardData();
-  }, [statsTimeRange]);
+  }, [statsTimeRange, activeTab, refreshFlag]); // 添加refreshFlag到依赖数组
 
   // 根据时间范围获取统计数据
   const getStatsByTimeRange = (range: string) => {
@@ -151,6 +175,11 @@ export default function PublisherDashboardPage() {
   };
 
   const getTasksByStatus = (status: string) => {
+    if (status === 'active') {
+      return activeTasks;
+    } else if (status === 'completed') {
+      return completedTasks;
+    }
     return myTasks.filter(task => task.status === status);
   };
 
@@ -196,7 +225,18 @@ export default function PublisherDashboardPage() {
   const handleOrderReview = async (orderId: string, action: 'approve' | 'reject') => {
     console.log(`开始处理订单审核: orderId=${orderId}, action=${action}`);
     
+    // 弹出确认提示
+    const actionText = action === 'approve' ? '通过审核' : '驳回订单';
+    const confirmed = window.confirm(`确定要${actionText}这个订单吗？`);
+    
+    // 如果用户点击取消，则不执行操作
+    if (!confirmed) {
+      console.log(`用户取消了${actionText}操作`);
+      return;
+    }
+    
     try {
+      console.log(`用户确认${actionText}操作，开始发送API请求`);
       const response = await fetch('/api/publisher/review', {
         method: 'POST',
         headers: {
@@ -214,17 +254,8 @@ export default function PublisherDashboardPage() {
         alert(result.message);
         console.log('审核操作成功');
         
-        // 重新加载数据以反映状态更改
-        console.log('开始重新加载仪表板数据');
-        const dashboardResponse = await fetch(`/api/publisher/dashboard?timeRange=${statsTimeRange}`);
-        const dashboardResult = await dashboardResponse.json();
-        console.log('仪表板数据加载完成:', dashboardResult);
-        
-        if (dashboardResult.success) {
-          setPendingOrders(dashboardResult.data.pendingOrders);
-          setDispatchedTasks(dashboardResult.data.dispatchedTasks);
-          console.log('状态已更新');
-        }
+        // 触发数据重新加载
+        setRefreshFlag(prev => prev + 1);
       } else {
         console.error('审核操作失败:', result.message);
         alert(`操作失败: ${result.message}`);
@@ -350,8 +381,33 @@ export default function PublisherDashboardPage() {
                   <div className="text-xs text-orange-700">总投入</div>
                 </div>
                 <div className="bg-purple-50 border border-purple-100 rounded-lg p-3 text-center">
-                  <div className="text-lg font-bold text-purple-600">{stats.totalParticipants}</div>
-                  <div className="text-xs text-purple-700">参与人数</div>
+                  <div className="text-lg font-bold text-purple-600">¥{stats.averageOrderValue.toFixed(2)}</div>
+                  <div className="text-xs text-purple-700">平均客单价</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* 新增的子订单统计数据 */}
+          <div className="mx-4 mt-6">
+            <div className="bg-white rounded-lg p-4 shadow-sm">
+              <h3 className="font-bold text-gray-800 mb-3">子订单统计</h3>
+              <div className="grid grid-cols-4 gap-3">
+                <div className="bg-blue-50 border border-blue-100 rounded-lg p-3 text-center">
+                  <div className="text-lg font-bold text-blue-600">{stats.totalInProgressSubOrders}</div>
+                  <div className="text-xs text-blue-700">进行中</div>
+                </div>
+                <div className="bg-green-50 border border-green-100 rounded-lg p-3 text-center">
+                  <div className="text-lg font-bold text-green-600">{stats.totalCompletedSubOrders}</div>
+                  <div className="text-xs text-green-700">已完成</div>
+                </div>
+                <div className="bg-orange-50 border border-orange-100 rounded-lg p-3 text-center">
+                  <div className="text-lg font-bold text-orange-600">{stats.totalPendingReviewSubOrders}</div>
+                  <div className="text-xs text-orange-700">待审核</div>
+                </div>
+                <div className="bg-yellow-50 border border-yellow-100 rounded-lg p-3 text-center">
+                  <div className="text-lg font-bold text-yellow-600">{stats.totalPendingSubOrders || 0}</div>
+                  <div className="text-xs text-yellow-700">待抢单</div>
                 </div>
               </div>
             </div>
@@ -381,16 +437,15 @@ export default function PublisherDashboardPage() {
                             {task.title}
                           </div>
                           <span className={`px-2 py-1 rounded text-xs ${
-                            task.status === 'active' ? 'bg-green-100 text-green-600' :
-                            task.status === 'review' ? 'bg-orange-100 text-orange-600' :
-                            task.status === 'completed' ? 'bg-blue-100 text-blue-600' :
-                            'bg-gray-100 text-gray-600'
+                            task.status === 'in_progress' ? 'bg-green-100 text-green-600' :
+                            task.status === 'completed' ? 'bg-green-100 text-green-600' :
+                            'bg-green-100 text-green-600' // 默认状态也设为进行中
                           }`}>
                             {task.statusText}
                           </span>
                         </div>
                         <div className="text-xs text-gray-600 mb-3">
-                          完成: {task.completed} | 进行中: {task.inProgress} | 待抢单: {task.pending} | 总计: {task.maxParticipants} 条 · {new Date(task.time).toLocaleString('zh-CN')}
+                          完成: {task.completed} | 进行中: {task.inProgress} | 待抢单: {task.pending} | 待审核: {task.pendingReview || 0} | 总计: {task.maxParticipants} 条 · {new Date(task.time).toLocaleString('zh-CN')}
                         </div>
                         <div className="flex justify-between items-center mb-2">
                           <div className="text-sm">
@@ -503,13 +558,23 @@ export default function PublisherDashboardPage() {
                   <div className="flex space-x-3">
                     <button
                       onClick={() => handleOrderReview(order.id, 'approve')}
-                      className="flex-1 bg-green-500 text-white py-2 rounded font-medium hover:bg-green-600 transition-colors text-sm"
+                      className={`flex-1 py-2 rounded font-medium transition-colors text-sm ${
+                        order.status === 'completed' || order.status === 'approved' 
+                          ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
+                          : 'bg-green-500 text-white hover:bg-green-600'
+                      }`}
+                      disabled={order.status === 'completed' || order.status === 'approved'}
                     >
                       ✅ 通过审核
                     </button>
                     <button
                       onClick={() => handleOrderReview(order.id, 'reject')}
-                      className="flex-1 bg-red-500 text-white py-2 rounded font-medium hover:bg-red-600 transition-colors text-sm"
+                      className={`flex-1 py-2 rounded font-medium transition-colors text-sm ${
+                        order.status === 'completed' || order.status === 'approved' 
+                          ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
+                          : 'bg-red-500 text-white hover:bg-red-600'
+                      }`}
+                      disabled={order.status === 'completed' || order.status === 'approved'}
                     >
                       ❌ 驳回订单
                     </button>
@@ -593,7 +658,7 @@ export default function PublisherDashboardPage() {
 
                   {/* 操作按钮 */}
                   <div className="flex space-x-2">
-                    {task.status === 'active' && (
+                    {task.status === 'in_progress' && (
                       <button
                         onClick={() => handleTaskAction(task.id, '查看详情')}
                         className="flex-1 bg-green-500 text-white py-2 rounded font-medium hover:bg-green-600 transition-colors text-sm"

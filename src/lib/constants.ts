@@ -22,9 +22,8 @@ export const USER_ROLES = {
 // 任务状态常量
 export const TASK_STATUS = {
   ACTIVE: 'active',
-  PAUSED: 'paused', 
   COMPLETED: 'completed',
-  CANCELLED: 'cancelled',
+  // 根据规范，主任务只有进行中和已完成两种状态，移除PAUSED状态
 } as const;
 
 // 任务执行状态
