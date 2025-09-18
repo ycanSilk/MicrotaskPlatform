@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { AuthStorage } from '@/lib/auth'; // 使用完整的认证存储
+import { authenticatePublisher, PublisherAuthStorage, getPublisherHomePath } from '@/auth';
 
 export default function PublisherLoginPage() {
   const [formData, setFormData] = useState({
@@ -72,72 +72,33 @@ export default function PublisherLoginPage() {
     setIsLoading(true);
     
     try {
-      console.log('Calling publisher login API');
-      // 调用发布者登录API
-      console.log('Fetch URL:', '/api/publisher');
-      console.log('Fetch options:', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          username: formData.username,
-          password: formData.password
-        }),
-      });
-      
-      const response = await fetch('/api/publisher', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          username: formData.username,
-          password: formData.password
-        }),
+      console.log('Using new publisher authentication system');
+      // 使用新的认证系统
+      const result = await authenticatePublisher({
+        username: formData.username,
+        password: formData.password
       });
 
-      console.log('API response status:', response.status);
-      console.log('API response headers:', Array.from(response.headers.entries()));
-      
-      const result = await response.json();
-      console.log('API response data:', result);
-      
+      // 处理认证结果
       if (result.success && result.user && result.token) {
-        console.log('Login successful, saving auth info');
-        // 保存认证信息（包括token）
-        AuthStorage.saveAuth({
-          user: {
-            id: result.user.id,
-            username: result.user.username,
-            role: result.user.role,
-            phone: result.user.phone,
-            balance: result.user.balance || 0,
-            status: 'active',
-            createdAt: result.user.createdAt,
-            updatedAt: result.user.updatedAt,
-            lastLoginAt: new Date().toISOString()
-          },
+        // 构造认证会话
+        const authSession = {
+          user: result.user,
           token: result.token,
           expiresAt: Date.now() + (24 * 60 * 60 * 1000) // 24小时过期
-        });
+        };
         
-        console.log('Auth info saved, checking localStorage');
-        // 验证保存是否成功
-        const savedToken = localStorage.getItem('auth_token');
-        const savedUser = localStorage.getItem('user_info');
-        console.log('Saved token:', savedToken);
-        console.log('Saved user:', savedUser);
+        // 保存认证信息
+        PublisherAuthStorage.saveAuth(authSession);
         
         // 显示成功消息
         alert(`发布者登录成功！欢迎 ${result.user.username}`);
         
         // 跳转到发布者首页
-        console.log('Redirecting to dashboard');
-        router.replace('/publisher/dashboard');
+        router.replace(getPublisherHomePath() as any);
       } else {
-        console.log('Login failed:', result.message || 'Unknown error');
-        setErrorMessage(result.message || '登录失败');
+        console.log('Login failed with message:', result?.message);
+        setErrorMessage(result?.message || '登录失败');
         refreshCaptcha();
       }
     } catch (error) {

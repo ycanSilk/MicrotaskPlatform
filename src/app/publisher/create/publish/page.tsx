@@ -3,6 +3,7 @@
 import { Button, Input } from '@/components/ui';
 import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { PublisherAuthStorage } from '@/auth';
 
 export default function PublishTaskPage() {
   const router = useRouter();
@@ -36,16 +37,88 @@ export default function PublishTaskPage() {
     setMentions(mentions.filter(m => m !== mention));
   };
 
-  const handlePublish = () => {
-    console.log('发布任务:', {
-      taskType: taskId,
-      taskTitle,
-      taskPrice,
-      ...formData,
-      mentions
-    });
-    alert('任务发布成功！');
-    router.push('/publisher/dashboard');
+  const [isPublishing, setIsPublishing] = useState(false);
+
+  // 发布任务
+  const handlePublish = async () => {
+    // 表单验证 - 完整验证逻辑
+    if (!formData.videoUrl) {
+      alert('请输入视频链接');
+      return;
+    }
+    
+    if (!formData.requirements || formData.requirements.trim().length < 10) {
+      alert('请输入任务要求，至少10个字符');
+      return;
+    }
+    
+    if (formData.quantity < 1) {
+      alert('任务数量必须大于0');
+      return;
+    }
+
+    // 显示加载状态
+    setIsPublishing(true);
+    console.log('开始发布任务...');
+    console.log('表单数据:', formData);
+    console.log('任务ID:', taskId);
+
+    try {
+      // 使用PublisherAuthStorage获取认证token和用户信息
+      const auth = PublisherAuthStorage.getAuth();
+      const token = auth?.token;
+      const userInfo = PublisherAuthStorage.getCurrentUser();
+      
+      console.log('[任务发布] 认证信息:', { token: token ? '存在' : '不存在', userInfo });
+      
+      if (!token || !userInfo) {
+        console.log('[任务发布] 认证失败: 用户未登录或会话已过期');
+        alert('用户未登录，请重新登录');
+        router.push('/publisher/login' as any);
+        return;
+      }
+
+      // 构建API请求体
+      const requestBody = {
+        taskId: taskId || '',
+        taskTitle,
+        taskPrice: taskPrice,
+        requirements: formData.requirements,
+        videoUrl: formData.videoUrl,
+        quantity: formData.quantity,
+        deadline: formData.deadline,
+        mentions: mentions
+      };
+
+      console.log('API请求体:', requestBody);
+      
+      // 调用API发布任务
+      const response = await fetch('/api/publisher/comment-order', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(requestBody)
+      });
+      
+      console.log('API响应状态:', response.status);
+
+      const result = await response.json();
+      console.log('API响应结果:', result);
+      
+      if (result.success) {
+        alert(`任务发布成功！订单号：${result.order?.orderNumber || ''}`);
+        router.push('/publisher/dashboard');
+      } else {
+        alert(`任务发布失败: ${result.message || '未知错误'}`);
+      }
+    } catch (error) {
+      console.error('发布任务时发生错误:', error);
+      alert('发布任务时发生错误，请稍后重试');
+    } finally {
+      setIsPublishing(false);
+    }
   };
 
   const totalCost = (taskPrice * formData.quantity * 1.05).toFixed(2);
@@ -141,6 +214,10 @@ export default function PublishTaskPage() {
               +
             </button>
           </div>
+          <div className="mt-2 text-sm text-gray-500">
+            {taskId === 'comment_top' && '上评任务单价为¥3.0'}
+            {taskId === 'comment_middle' && '中评任务单价为¥2.0'}
+          </div>
         </div>
 
         {/* @用户标记 */}
@@ -188,7 +265,11 @@ export default function PublishTaskPage() {
           <textarea
             className="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
             rows={4}
-            placeholder="请详细描述任务要求和注意事项..."
+            placeholder={
+              taskId === 'comment_top' 
+                ? "请详细描述上评任务要求，如：评论内容需要包含产品优点、使用体验等，不少于15字，包含表情符号..." 
+                : "请详细描述中评任务要求，如：评论内容需要真实有效，不少于10字..."
+            }
             value={formData.requirements}
             onChange={(e) => setFormData({...formData, requirements: e.target.value})}
           />

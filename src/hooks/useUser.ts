@@ -2,13 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import { User } from '@/types';
-import { AuthStorage, AuthSession, LoginCredentials, authenticateUser, logout as logoutUser } from '@/lib/auth';
+import { getCurrentLoggedInUser, isAnyUserLoggedIn, commonLogin, commonLogout, getAuthStorageByRole } from '@/auth/common';
 
 interface UseUserReturn {
   user: User | null;
   isLoading: boolean;
   isLoggedIn: boolean;
-  login: (credentials: LoginCredentials) => Promise<{ success: boolean; message: string }>;
+  login: (credentials: any) => Promise<{ success: boolean; message: string }>;
   logout: () => void;
   refreshUser: () => void;
   updateUser: (updatedUser: User) => void;
@@ -30,9 +30,9 @@ export function useUser(): UseUserReturn {
       }
 
       try {
-        const auth = AuthStorage.getAuth();
-        if (auth) {
-          setUser(auth.user);
+        const currentUser = getCurrentLoggedInUser();
+        if (currentUser) {
+          setUser(currentUser.user);
           setIsLoggedIn(true);
         }
       } catch (error) {
@@ -46,22 +46,13 @@ export function useUser(): UseUserReturn {
   }, []);
 
   // 登录函数
-  const handleLogin = async (credentials: LoginCredentials) => {
+  const handleLogin = async (credentials: any) => {
     setIsLoading(true);
     
     try {
-      const result = await authenticateUser(credentials);
+      const result = await commonLogin(credentials);
       
-      if (result.success && result.user && result.token) {
-        const session: AuthSession = {
-          user: result.user,
-          token: result.token,
-          expiresAt: Date.now() + (24 * 60 * 60 * 1000) // 24小时
-        };
-        
-        // 保存认证信息
-        AuthStorage.saveAuth(session);
-        
+      if (result.success && result.user) {
         // 更新状态
         setUser(result.user);
         setIsLoggedIn(true);
@@ -73,7 +64,7 @@ export function useUser(): UseUserReturn {
       } else {
         return {
           success: false,
-          message: result.message
+          message: result.message || '登录失败'
         };
       }
     } catch (error) {
@@ -88,19 +79,16 @@ export function useUser(): UseUserReturn {
 
   // 登出函数
   const handleLogout = () => {
-    AuthStorage.clearAuth();
+    commonLogout();
     setUser(null);
     setIsLoggedIn(false);
-    
-    // 触发全局登出
-    logoutUser();
   };
 
   // 刷新用户信息
   const refreshUser = () => {
-    const auth = AuthStorage.getAuth();
-    if (auth) {
-      setUser(auth.user);
+    const currentUser = getCurrentLoggedInUser();
+    if (currentUser) {
+      setUser(currentUser.user);
       setIsLoggedIn(true);
     } else {
       setUser(null);
@@ -113,13 +101,18 @@ export function useUser(): UseUserReturn {
     setUser(updatedUser);
     
     // 更新存储的用户信息
-    const auth = AuthStorage.getAuth();
-    if (auth) {
-      const updatedSession: AuthSession = {
-        ...auth,
-        user: updatedUser
-      };
-      AuthStorage.saveAuth(updatedSession);
+    if (updatedUser.role) {
+      const authStorage = getAuthStorageByRole(updatedUser.role);
+      if (authStorage) {
+        const currentSession = authStorage.getAuth();
+        if (currentSession) {
+          const updatedSession = {
+            ...currentSession,
+            user: updatedUser
+          };
+          authStorage.saveAuth(updatedSession);
+        }
+      }
     }
   };
 

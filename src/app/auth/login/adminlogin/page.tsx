@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { SimpleStorage } from '@/lib/simple-auth';
+import { authenticateAdmin, AdminAuthStorage, getAdminHomePath } from '@/auth';
 
 export default function AdminLoginPage() {
   const [formData, setFormData] = useState({
@@ -65,40 +65,27 @@ export default function AdminLoginPage() {
     setIsLoading(true);
     
     try {
-      // 调用管理员登录API
-      const response = await fetch('/api/admin', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          username: formData.username,
-          password: formData.password
-        }),
+      // 使用新的认证系统
+      const result = await authenticateAdmin({
+        username: formData.username,
+        password: formData.password
       });
-
-      const result = await response.json();
       
-      if (result.success && result.user) {
-        // 构造简化的用户信息
-        const simpleUser = {
-          id: result.user.id,
-          username: result.user.username,
-          role: result.user.role,
-          balance: 0, // 管理员用户数据中没有余额字段，设置默认值
-        };
-        
-        // 保存用户信息
-        SimpleStorage.saveUser(simpleUser);
+      if (result.success && result.user && result.token) {
+        // 保存认证信息
+        AdminAuthStorage.saveAuth({
+          user: result.user,
+          token: result.token,
+          expiresAt: Date.now() + (24 * 60 * 60 * 1000) // 24小时过期
+        });
         
         // 显示成功消息
         alert(`管理员登录成功！欢迎 ${result.user.username}`);
         
         // 跳转到管理员首页
-        router.replace('/admin/dashboard');
+        router.replace(getAdminHomePath() as any);
       } else {
         setErrorMessage(result.message || '登录失败');
-        refreshCaptcha();
       }
     } catch (error) {
       console.error('Login error:', error);

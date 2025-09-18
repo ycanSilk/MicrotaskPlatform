@@ -145,6 +145,17 @@ export default function PublisherDashboardPage() {
             console.log(`派发任务[${index}] ID: ${task.id}, 价格: ${task.price}, 数量: ${task.maxParticipants}`);
           });
           
+          // 调试：检查活动任务和已完成任务的状态值
+          console.log('活动任务详情:', result.data.activeTasks);
+          result.data.activeTasks.forEach((task: any, index: number) => {
+            console.log(`活动任务[${index}] ID: ${task.id}, 状态: ${task.status}, 标题: ${task.title}`);
+          });
+          
+          console.log('已完成任务详情:', result.data.completedTasks);
+          result.data.completedTasks.forEach((task: any, index: number) => {
+            console.log(`已完成任务[${index}] ID: ${task.id}, 状态: ${task.status}, 标题: ${task.title}`);
+          });
+          
           setStats(result.data.stats);
           setMyTasks([...result.data.activeTasks, ...result.data.completedTasks]);
           setPendingOrders(result.data.pendingOrders);
@@ -669,16 +680,10 @@ export default function PublisherDashboardPage() {
                     {task.status === 'completed' && (
                       <>
                         <button
-                          onClick={() => handleTaskAction(task.id, '查看报告')}
+                          onClick={() => handleTaskAction(task.id, '查看详情')}
                           className="flex-1 bg-green-500 text-white py-2 rounded font-medium hover:bg-green-600 transition-colors text-sm"
                         >
-                          查看报告
-                        </button>
-                        <button
-                          onClick={() => handleTaskAction(task.id, '复制任务')}
-                          className="flex-1 bg-gray-500 text-white py-2 rounded font-medium hover:bg-gray-600 transition-colors text-sm"
-                        >
-                          复制任务
+                          查看详情
                         </button>
                       </>
                     )}

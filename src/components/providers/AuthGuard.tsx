@@ -4,7 +4,7 @@ import { useEffect, ReactNode } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useUser } from '@/hooks/useUser';
 import { Loading } from '@/components/ui';
-import { getRoleHomePath } from '@/lib/auth';
+import { getRoleHomePath } from '@/auth/common';
 
 interface AuthGuardProps {
   children: ReactNode;

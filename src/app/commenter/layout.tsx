@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { SimpleStorage, SimpleUser } from '@/lib/simple-auth';
+import { getCurrentLoggedInUser, commonLogout } from '@/auth/common';
 import Link from 'next/link';
 
 export default function CommenterLayout({
@@ -10,23 +10,39 @@ export default function CommenterLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const [user, setUser] = useState<SimpleUser | null>(null);
+  const [user, setUser] = useState<any | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
   const pathname = usePathname();
 
   useEffect(() => {
-    const currentUser = SimpleStorage.getUser();
-    if (!currentUser || currentUser.role !== 'commenter') {
-      router.push('/auth/login/commenterlogin');
-      return;
-    }
-    setUser(currentUser);
-    setIsLoading(false);
+    const initializeAuth = () => {
+      // 确保在客户端执行
+      if (typeof window === 'undefined') {
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        const currentUser = getCurrentLoggedInUser();
+        if (!currentUser || currentUser.role !== 'commenter') {
+          router.push('/auth/login/commenterlogin');
+          return;
+        }
+        setUser(currentUser);
+        setIsLoading(false);
+      } catch (error) {
+        console.error('Error initializing auth:', error);
+        router.push('/auth/login/commenterlogin');
+        setIsLoading(false);
+      }
+    };
+
+    initializeAuth();
   }, [router]);
 
   const handleLogout = () => {
-    SimpleStorage.clearUser();
+    commonLogout();
     router.push('/auth/login/commenterlogin');
   };
 

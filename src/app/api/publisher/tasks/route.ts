@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
-import { validateToken } from '@/lib/auth';
+import { validateTokenByRole } from '@/auth/common';
 
 // 读取评论订单数据文件
 const getCommentOrders = () => {
@@ -86,8 +86,8 @@ export async function GET(request: Request) {
     
     if (authHeader && authHeader.startsWith('Bearer ')) {
       const token = authHeader.substring(7); // 移除 'Bearer ' 前缀
-      // 使用认证系统的验证函数来解析token
-      const user = validateToken(token);
+      // 使用新认证系统的验证函数来解析token
+      const user = await validateTokenByRole(token, 'publisher');
       console.log('解析token结果:', user);
       if (user && user.role === 'publisher') {
         currentUserId = user.id;

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { SimpleStorage, SimpleUser } from '@/lib/simple-auth';
+import { getCurrentLoggedInUser, commonLogout } from '@/auth/common';
 import Link from 'next/link';
 
 export default function AdminLayout({
@@ -10,24 +10,48 @@ export default function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const [user, setUser] = useState<SimpleUser | null>(null);
+  const [user, setUser] = useState<any | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
   const pathname = usePathname();
 
   useEffect(() => {
-    const currentUser = SimpleStorage.getUser();
-    if (!currentUser || currentUser.role !== 'admin') {
-      router.push('/auth/login/adminlogin');
+    // 确保在客户端环境中执行
+    if (typeof window === 'undefined') {
+      setIsLoading(false);
       return;
     }
-    setUser(currentUser);
-    setIsLoading(false);
+
+    const initializeAuth = async () => {
+      try {
+        // 使用新认证系统获取当前登录用户
+        const currentUser = await getCurrentLoggedInUser();
+        
+        if (!currentUser || currentUser.role !== 'admin') {
+          router.push('/auth/login/adminlogin');
+          return;
+        }
+        
+        setUser(currentUser);
+        setIsLoading(false);
+      } catch (error) {
+        console.error('认证初始化失败:', error);
+        router.push('/auth/login/adminlogin');
+        setIsLoading(false);
+      }
+    };
+
+    initializeAuth();
   }, [router]);
 
-  const handleLogout = () => {
-    SimpleStorage.clearUser();
-    router.push('/auth/login/adminlogin');
+  const handleLogout = async () => {
+    try {
+      await commonLogout();
+    } catch (error) {
+      console.error('登出失败:', error);
+    } finally {
+      router.push('/auth/login/adminlogin');
+    }
   };
 
   // 获取当前页面标题

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { AuthStorage } from '@/lib/auth'; // 使用完整的认证系统
+import { getCurrentLoggedInUser, commonLogout } from '@/auth/common';
 import Link from 'next/link';
 
 export default function PublisherLayout({
@@ -18,69 +18,67 @@ export default function PublisherLayout({
   useEffect(() => {
     let isMounted = true; // 防止组件卸载后的状态更新
     
-    // 延迟检查用户状态以确保 localStorage 已经加载
-    const checkUser = () => {
+    // 确保在客户端环境中执行
+    if (typeof window === 'undefined') {
+      setIsLoading(false);
+      return;
+    }
+
+    const initializeAuth = async () => {
       if (!isMounted) return;
       
       try {
         console.log('Checking user authentication...');
-        const authSession = AuthStorage.getAuth();
-        console.log('Auth session from storage:', authSession);
-        console.log('Publisher Layout: Current user:', authSession?.user); // 调试信息
+        const currentUser = await getCurrentLoggedInUser();
         
-        if (!authSession || !authSession.user) {
-          console.log('Publisher Layout: No user found, redirecting to login'); // 调试信息
-          // 检查localStorage中是否有数据
-          const token = localStorage.getItem('auth_token');
-          const userInfo = localStorage.getItem('user_info');
-          console.log('Direct localStorage check - token:', token, 'user:', userInfo);
-          
+        if (!currentUser) {
+          console.log('Publisher Layout: No user found, redirecting to login');
           if (isMounted) {
             router.push('/auth/login/publisherlogin');
           }
           return;
         }
         
-        console.log('User role:', authSession.user.role);
-        if (authSession.user.role !== 'publisher') {
-          console.log('Publisher Layout: Wrong role, redirecting to login. Role:', authSession.user.role); // 调试信息
+        console.log('User role:', currentUser.role);
+        if (currentUser.role !== 'publisher') {
+          console.log('Publisher Layout: Wrong role, redirecting to login. Role:', currentUser.role);
           if (isMounted) {
             router.push('/auth/login/publisherlogin');
           }
           return;
         }
         
-        console.log('Publisher Layout: User authorized, setting user data'); // 调试信息
+        console.log('Publisher Layout: User authorized, setting user data');
         if (isMounted) {
-          setUser(authSession.user);
+          setUser(currentUser);
           setIsLoading(false);
         }
       } catch (error) {
         console.error('Publisher Layout: Error checking user:', error);
         if (isMounted) {
           router.push('/auth/login/publisherlogin');
+          setIsLoading(false);
         }
       }
     };
     
     // 立即检查一次
-    checkUser();
-    
-    // 设置重试机制，在一定时间后再次检查
-    const retryTimer = setTimeout(() => {
-      checkUser();
-    }, 500);
+    initializeAuth();
     
     return () => {
       isMounted = false;
-      clearTimeout(retryTimer);
     };
   }, [router]); // 只依赖router，避免无限循环
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     console.log('Logging out user');
-    AuthStorage.clearAuth();
-    router.push('/auth/login/publisherlogin');
+    try {
+      await commonLogout();
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      router.push('/auth/login/publisherlogin');
+    }
   };
 
   // 获取当前页面标题

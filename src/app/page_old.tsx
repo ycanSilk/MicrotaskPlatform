@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { useUser } from '@/hooks/useUser';
 import { useRouter } from 'next/navigation';
-import { getRoleHomePath } from '@/lib/auth';
+import { getRoleHomePath } from '@/auth/common';
 
 // 角色选择卡片组件
 const RoleCard = ({ 

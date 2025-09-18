@@ -3,66 +3,26 @@
 import { Card, Button, Input, Badge } from '@/components/ui';
 import { useRouter } from 'next/navigation';
 
-// 系统预设任务类型
+// 系统预设任务类型 - 只保留评论任务的两个选项
 const TASK_TYPES = [
   {
-    id: 'like',
-    title: '点赞任务',
-    icon: '❤️',
-    price: 0.3,
-    description: '为指定视频点赞',
-    requirements: '需要真实账号，保持点赞状态',
-    estimatedTime: '1分钟',
-    difficulty: '简单'
-  },
-  {
-    id: 'follow',
-    title: '关注任务',
-    icon: '👥',
-    price: 0.8,
-    description: '关注指定用户账号',
-    requirements: '需要保持关注状态至少7天',
-    estimatedTime: '1分钟',
-    difficulty: '简单'
-  },
-  {
-    id: 'comment',
-    title: '评论任务',
-    icon: '💬',
-    price: 1.5,
-    description: '为视频发布评论',
-    requirements: '评论内容需要真实有效，不少于10字',
-    estimatedTime: '3分钟',
+    id: 'comment_top',
+    title: '上评任务',
+    icon: '⭐',
+    price: 3.0,
+    description: '发布高质量评论，置顶展示',
+    requirements: '评论内容需要真实有效，不少于15字，包含表情符号',
+    estimatedTime: '5分钟',
     difficulty: '中等'
   },
   {
-    id: 'share',
-    title: '分享任务',
-    icon: '📤',
-    price: 1.0,
-    description: '分享视频到朋友圈或群聊',
-    requirements: '需要截图证明分享成功',
-    estimatedTime: '2分钟',
-    difficulty: '简单'
-  },
-  {
-    id: 'watch',
-    title: '观看任务',
-    icon: '👀',
-    price: 0.5,
-    description: '完整观看指定视频',
-    requirements: '需要观看完整视频，时长不少于30秒',
-    estimatedTime: '1-3分钟',
-    difficulty: '简单'
-  },
-  {
-    id: 'live_like',
-    title: '直播点赞',
-    icon: '🔴',
-    price: 0.4,
-    description: '进入直播间并点赞',
-    requirements: '需要在直播间停留并点赞',
-    estimatedTime: '2分钟',
+    id: 'comment_middle',
+    title: '中评任务',
+    icon: '💬',
+    price: 2.0,
+    description: '发布普通评论',
+    requirements: '评论内容需要真实有效，不少于10字',
+    estimatedTime: '3分钟',
     difficulty: '简单'
   }
 ];
@@ -143,8 +103,8 @@ export default function CreateTask() {
     <div className="space-y-6 pb-20">
       {/* 页面头部 */}
       <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-4 py-8 -mx-4 -mt-4">
-        <h1 className="text-2xl font-bold mb-2">发布任务</h1>
-        <p className="text-blue-100">选择任务类型，系统统一定价</p>
+        <h1 className="text-2xl font-bold mb-2">发布评论任务</h1>
+        <p className="text-blue-100">选择评论任务类型</p>
       </div>
 
       {/* 任务卡片列表 */}
@@ -164,10 +124,9 @@ export default function CreateTask() {
           <div className="flex items-start space-x-3">
             <span className="text-2xl">💡</span>
             <div>
-              <h3 className="font-medium text-blue-900 mb-1">系统定价说明</h3>
+              <h3 className="font-medium text-blue-900 mb-1">任务说明</h3>
               <p className="text-blue-700 text-sm leading-relaxed">
-                为了保证平台公平公正，所有任务类型的价格由系统统一设定。
-                价格会根据市场情况定期调整，请关注平台公告。
+                上评任务单价为¥3.0，中评任务单价为¥2.0。请根据您的需求选择合适的任务类型。
               </p>
             </div>
           </div>

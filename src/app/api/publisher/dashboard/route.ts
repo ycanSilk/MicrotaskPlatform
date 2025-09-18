@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
-import { validateToken } from '@/lib/auth'; // 导入验证token的函数
+import { validateTokenByRole } from '@/auth/common';
 
 // 读取评论订单数据文件
 const getCommentOrders = () => {
@@ -108,16 +108,16 @@ const filterOrdersByTimeRange = (orders: any[], timeRange: string) => {
 // 转换订单数据为任务列表格式
 const transformOrdersToTasks = (orders: any[]) => {
   return orders.map(order => {
-    // 确定任务状态
+    // 确定任务状态（使用原始状态值）
     let status, statusText, statusColor;
     switch (order.status) {
       case 'in_progress':
-        status = 'active';
+        status = 'in_progress';  // 保持原始状态值
         statusText = '进行中';
         statusColor = 'bg-green-100 text-green-600';
         break;
       case 'completed':
-        status = 'completed';
+        status = 'completed';  // 保持原始状态值
         statusText = '已完成';
         statusColor = 'bg-green-100 text-green-600';
         break;
@@ -125,7 +125,7 @@ const transformOrdersToTasks = (orders: any[]) => {
         // 根据规范，主任务只有进行中和已完成两种状态
         // 如果状态不是这两个之一，默认设为进行中
         console.log(`警告：发现未知状态 "${order.status}" 的订单 ${order.id}，将默认设为进行中`);
-        status = 'active';
+        status = 'in_progress';  // 保持原始状态值
         statusText = '进行中';
         statusColor = 'bg-green-100 text-green-600';
     }
@@ -226,8 +226,8 @@ export async function GET(request: Request) {
     
     if (authHeader && authHeader.startsWith('Bearer ')) {
       const token = authHeader.substring(7); // 移除 'Bearer ' 前缀
-      // 使用认证系统的验证函数来解析token
-      const user = validateToken(token);
+      // 使用新认证系统的验证函数来解析token
+      const user = await validateTokenByRole(token, 'publisher');
       console.log('解析token结果:', user);
       if (user && user.role === 'publisher') {
         currentUserId = user.id;
@@ -259,12 +259,11 @@ export async function GET(request: Request) {
     // 获取统计数据
     const stats = getStatsData(userOrders, timeRange);
     
-    // 获取任务列表
+    // 获取仪表板数据
     const allTasks = transformOrdersToTasks(userOrders);
-    console.log(`转换后的任务列表:`, allTasks.map(task => ({id: task.id, status: task.status, statusText: task.statusText})));
-    
-    // 分类任务
-    const activeTasks = allTasks.filter(task => task.status === 'active');
+  
+    // 分类任务（使用原始状态值）
+    const activeTasks = allTasks.filter(task => task.status === 'in_progress');
     const completedTasks = allTasks.filter(task => task.status === 'completed');
     
     // 获取待审核订单（只获取当前用户的）

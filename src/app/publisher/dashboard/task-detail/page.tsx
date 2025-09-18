@@ -157,9 +157,41 @@ export default function TaskDetailPage() {
 
   // 统计子任务状态
   const statusCounts = {
-    completed: task.subOrders.filter(sub => sub.status === '已完成').length,
-    pending: task.subOrders.filter(sub => sub.status === '待领取').length,
-    inReview: task.subOrders.filter(sub => sub.status === '审核中').length,
+    completed: task.subOrders.filter(sub => sub.status === 'completed').length,
+    pending: task.subOrders.filter(sub => sub.status === 'pending').length,
+    inReview: task.subOrders.filter(sub => sub.status === 'pending_review').length,
+  };
+
+  // 状态映射函数
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case 'completed':
+        return '已完成';
+      case 'in_progress':
+        return '进行中';
+      case 'pending':
+        return '待领取';
+      case 'pending_review':
+        return '审核中';
+      default:
+        return status;
+    }
+  };
+
+  // 状态样式映射函数
+  const getStatusStyle = (status: string) => {
+    switch (status) {
+      case 'completed':
+        return 'bg-green-100 text-green-800';
+      case 'in_progress':
+        return 'bg-blue-100 text-blue-800';
+      case 'pending':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'pending_review':
+        return 'bg-orange-100 text-orange-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
   };
 
   return (
@@ -183,12 +215,8 @@ export default function TaskDetailPage() {
         <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-bold text-gray-800">任务信息</h2>
-            <span className={`px-3 py-1 rounded-full text-sm ${
-              task.status === '进行中' ? 'bg-green-100 text-green-800' :
-              task.status === '已完成' ? 'bg-blue-100 text-blue-800' :
-              'bg-gray-100 text-gray-800'
-            }`}>
-              {task.status}
+            <span className={`px-3 py-1 rounded-full text-sm ${getStatusStyle(task.status)}`}>
+              {getStatusText(task.status)}
             </span>
           </div>
           
@@ -263,16 +291,11 @@ export default function TaskDetailPage() {
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center space-x-2">
                     <span className="font-medium">子任务 #{subTask.id}</span>
-                    <span className={`px-2 py-1 rounded text-xs ${
-                      subTask.status === '已完成' ? 'bg-green-100 text-green-800' :
-                      subTask.status === '审核中' ? 'bg-orange-100 text-orange-800' :
-                      subTask.status === '待领取' ? 'bg-blue-100 text-blue-800' :
-                      'bg-gray-100 text-gray-800'
-                    }`}>
-                      {subTask.status}
+                    <span className={`px-2 py-1 rounded text-xs ${getStatusStyle(subTask.status)}`}>
+                      {getStatusText(subTask.status)}
                     </span>
                   </div>
-                  {subTask.status === '审核中' && (
+                  {subTask.status === 'pending_review' && (
                     <div className="flex space-x-2">
                       <button
                         onClick={() => handleSubTaskAction(subTask.id, '通过')}
