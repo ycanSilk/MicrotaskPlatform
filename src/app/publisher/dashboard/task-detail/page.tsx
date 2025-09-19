@@ -7,7 +7,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 interface SubTask {
   id: string;
   parentId: string;
-  status: string;
+  status: 'sub_progress' | 'sub_completed' | 'sub_pending_review' | 'waiting_collect';
   commenterId: string;
   commenterName: string;
   commentContent: string;
@@ -21,7 +21,7 @@ interface Task {
   orderNumber: string;
   videoUrl: string;
   mention: string;
-  status: string;
+  status: 'main_progress' | 'main_completed';
   quantity: number;
   completedQuantity: number;
   unitPrice: number;
@@ -55,19 +55,69 @@ export default function TaskDetailPage() {
   const fetchTaskDetail = async (id: string) => {
     try {
       setLoading(true);
-      // 调用新的API获取任务详情
-      const response = await fetch(`/api/publisher/task-detail?taskId=${id}`);
+      console.log(`[任务详情调试] 开始获取任务ID: ${id} 的任务详情`);
+      
+      // 调用API获取任务详情
+      const startTime = Date.now();
+      const url = `/api/publisher/task-detail?taskId=${id}`;
+      console.log(`[任务详情调试] API请求URL: ${url}`);
+      
+      // 获取认证token（如果存在）
+      let authToken = null;
+      if (typeof window !== 'undefined') {
+        try {
+          authToken = localStorage.getItem('publisher_auth_token');
+          console.log(`[任务详情调试] 获取到认证token: ${authToken ? '存在' : '不存在'}`);
+        } catch (e) {
+          console.warn(`[任务详情调试] 获取认证token时出错: ${e}`);
+        }
+      }
+      
+      // 构建请求选项
+      const requestOptions = {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(authToken && { 'Authorization': `Bearer ${authToken}` })
+        },
+        cache: 'no-store'
+      };
+      
+      console.log(`[任务详情调试] 请求选项:`, {
+        headers: requestOptions.headers,
+        cache: requestOptions.cache
+      });
+      
+      // 发送请求
+      const response = await fetch(url, requestOptions);
+      const responseTime = Date.now() - startTime;
+      
+      console.log(`[任务详情调试] API响应状态码: ${response.status}, 响应时间: ${responseTime}ms`);
+      
+      // 检查响应是否成功
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`[任务详情调试] API请求失败: ${response.status} - ${errorText}`);
+        setError(`API请求失败: ${response.status}`);
+        return;
+      }
+      
+      // 解析响应数据
       const result = await response.json();
+      console.log(`[任务详情调试] API响应数据:`, result);
       
       if (result.success) {
+        console.log(`[任务详情调试] 成功获取任务详情，任务数据:`, result.data);
         setTask(result.data);
       } else {
+        console.error(`[任务详情调试] API返回错误:`, result.message || '获取任务详情失败');
         setError(result.message || '获取任务详情失败');
       }
     } catch (err) {
-      console.error('获取任务详情失败:', err);
-      setError('获取任务详情时发生错误');
+      console.error(`[任务详情调试] 获取任务详情时捕获异常:`, err);
+      setError(`获取任务详情时发生错误: ${err instanceof Error ? err.message : String(err)}`);
     } finally {
+      console.log(`[任务详情调试] 获取任务详情流程结束`);
       setLoading(false);
     }
   };
@@ -157,22 +207,29 @@ export default function TaskDetailPage() {
 
   // 统计子任务状态
   const statusCounts = {
-    completed: task.subOrders.filter(sub => sub.status === 'completed').length,
-    pending: task.subOrders.filter(sub => sub.status === 'pending').length,
-    inReview: task.subOrders.filter(sub => sub.status === 'pending_review').length,
+    completed: task.subOrders.filter(sub => sub.status === 'sub_completed').length,
+    waitingCollect: task.subOrders.filter(sub => sub.status === 'waiting_collect').length,
+    inReview: task.subOrders.filter(sub => sub.status === 'sub_pending_review').length,
+    inProgress: task.subOrders.filter(sub => sub.status === 'sub_progress').length,
   };
 
   // 状态映射函数
   const getStatusText = (status: string) => {
     switch (status) {
-      case 'completed':
-        return '已完成';
-      case 'in_progress':
+      // 主任务状态
+      case 'main_progress':
         return '进行中';
-      case 'pending':
+      case 'main_completed':
+        return '已完成';
+      // 子任务状态
+      case 'sub_completed':
+        return '已完成';
+      case 'sub_progress':
+        return '进行中';
+      case 'waiting_collect':
         return '待领取';
-      case 'pending_review':
-        return '审核中';
+      case 'sub_pending_review':
+        return '待审核';
       default:
         return status;
     }
@@ -181,13 +238,19 @@ export default function TaskDetailPage() {
   // 状态样式映射函数
   const getStatusStyle = (status: string) => {
     switch (status) {
-      case 'completed':
-        return 'bg-green-100 text-green-800';
-      case 'in_progress':
+      // 主任务状态
+      case 'main_progress':
         return 'bg-blue-100 text-blue-800';
-      case 'pending':
+      case 'main_completed':
+        return 'bg-green-100 text-green-800';
+      // 子任务状态
+      case 'sub_completed':
+        return 'bg-green-100 text-green-800';
+      case 'sub_progress':
+        return 'bg-blue-100 text-blue-800';
+      case 'waiting_collect':
         return 'bg-yellow-100 text-yellow-800';
-      case 'pending_review':
+      case 'sub_pending_review':
         return 'bg-orange-100 text-orange-800';
       default:
         return 'bg-gray-100 text-gray-800';
@@ -266,18 +329,22 @@ export default function TaskDetailPage() {
         {/* 子任务统计 */}
         <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
           <h2 className="text-lg font-bold text-gray-800 mb-4">子任务统计</h2>
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-4 gap-4">
             <div className="bg-green-50 border border-green-100 rounded-lg p-3 text-center">
               <div className="text-2xl font-bold text-green-600">{statusCounts.completed}</div>
               <div className="text-sm text-green-700">已完成</div>
             </div>
+            <div className="bg-blue-50 border border-blue-100 rounded-lg p-3 text-center">
+              <div className="text-2xl font-bold text-blue-600">{statusCounts.inProgress}</div>
+              <div className="text-sm text-blue-700">进行中</div>
+            </div>
             <div className="bg-orange-50 border border-orange-100 rounded-lg p-3 text-center">
               <div className="text-2xl font-bold text-orange-600">{statusCounts.inReview}</div>
-              <div className="text-sm text-orange-700">审核中</div>
+              <div className="text-sm text-orange-700">待审核</div>
             </div>
-            <div className="bg-blue-50 border border-blue-100 rounded-lg p-3 text-center">
-              <div className="text-2xl font-bold text-blue-600">{statusCounts.pending}</div>
-              <div className="text-sm text-blue-700">待领取</div>
+            <div className="bg-yellow-50 border border-yellow-100 rounded-lg p-3 text-center">
+              <div className="text-2xl font-bold text-yellow-600">{statusCounts.waitingCollect}</div>
+              <div className="text-sm text-yellow-700">待领取</div>
             </div>
           </div>
         </div>
@@ -295,7 +362,7 @@ export default function TaskDetailPage() {
                       {getStatusText(subTask.status)}
                     </span>
                   </div>
-                  {subTask.status === 'pending_review' && (
+                  {subTask.status === 'sub_pending_review' && (
                     <div className="flex space-x-2">
                       <button
                         onClick={() => handleSubTaskAction(subTask.id, '通过')}

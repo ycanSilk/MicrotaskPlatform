@@ -100,12 +100,12 @@ export default function PublisherDashboardPage() {
         let authToken = null;
         if (typeof window !== 'undefined') {
           try {
-            const token = localStorage.getItem('auth_token');
+            const token = localStorage.getItem('publisher_auth_token');
             if (token) {
               authToken = token;
-              console.log('获取到认证token:', token);
+              console.log('获取到发布者认证token:', token);
             } else {
-              console.log('未找到认证token');
+              console.log('未找到发布者认证token');
             }
           } catch (e) {
             console.log('获取认证token失败:', e);
@@ -208,29 +208,68 @@ export default function PublisherDashboardPage() {
   };
 
   const handleTaskAction = (taskId: string, action: string) => {
-    console.log('handleTaskAction called with:', { taskId, action });
+    console.log(`[仪表盘调试] 开始处理任务操作 - 任务ID: ${taskId}, 操作: ${action}`);
+    
     if (action === '查看详情') {
-      // 添加额外的调试信息
-      console.log('Task ID type:', typeof taskId);
-      console.log('Task ID value:', taskId);
+      console.log(`[仪表盘调试] 准备查看任务详情 - 当前活动标签: ${activeTab}`);
       
-      // 确保taskId是字符串且不为空
-      if (!taskId || typeof taskId !== 'string') {
-        console.error('Invalid taskId:', taskId);
+      // 详细记录任务ID信息
+      console.log(`[仪表盘调试] 任务ID类型: ${typeof taskId}`);
+      console.log(`[仪表盘调试] 任务ID值: ${taskId}`);
+      console.log(`[仪表盘调试] 任务ID长度: ${taskId.length}`);
+      console.log(`[仪表盘调试] 任务ID是否为空: ${!taskId}`);
+      
+      // 确保taskId是有效的字符串
+      if (!taskId || typeof taskId !== 'string' || taskId.trim() === '') {
+        console.error(`[仪表盘调试] 无效的任务ID:`, { taskId, type: typeof taskId });
+        alert(`无法查看任务详情：任务ID无效`);
         return;
       }
       
-      const url = `/publisher/dashboard/task-detail?id=${encodeURIComponent(taskId)}`;
+      // 构建目标URL
+      const encodedTaskId = encodeURIComponent(taskId);
+      const url = `/publisher/dashboard/task-detail?id=${encodedTaskId}`;
+      
+      console.log(`[仪表盘调试] 构建的目标URL: ${url}`);
+      console.log(`[仪表盘调试] 编码后的任务ID: ${encodedTaskId}`);
+      
       try {
+        // 记录导航前的状态
+        console.log(`[仪表盘调试] 开始导航到任务详情页`);
+        console.log(`[仪表盘调试] 当前路由路径: ${typeof window !== 'undefined' ? window.location.pathname : '服务器端渲染'}`);
+        
+        // 执行导航
         // Using type assertion to fix Next.js 14 router push type issue
         router.push(url as unknown as never);
-        console.log('Navigation initiated successfully');
+        
+        console.log(`[仪表盘调试] 导航操作已成功触发`);
+        
+        // 查找当前点击的任务详情进行记录
+        const currentTask = activeTab === 'active' 
+          ? activeTasks.find(task => task.id === taskId) 
+          : myTasks.find(task => task.id === taskId);
+        
+        if (currentTask) {
+          console.log(`[仪表盘调试] 导航的任务详情:`, {
+            id: currentTask.id,
+            title: currentTask.title,
+            status: currentTask.status,
+            statusText: currentTask.statusText
+          });
+        } else {
+          console.warn(`[仪表盘调试] 未在当前任务列表中找到ID为${taskId}的任务`);
+        }
+        
       } catch (error) {
-        console.error('Navigation failed:', error);
+        console.error(`[仪表盘调试] 导航到任务详情页时出错:`, error);
+        alert(`导航到任务详情页失败: ${error instanceof Error ? error.message : String(error)}`);
       }
     } else {
+      console.log(`[仪表盘调试] 执行非查看详情操作: ${action}`);
       alert(`对任务 ${taskId} 执行 ${action} 操作`);
     }
+    
+    console.log(`[仪表盘调试] 任务操作处理完成 - 任务ID: ${taskId}, 操作: ${action}`);
   };
 
   const handleOrderReview = async (orderId: string, action: 'approve' | 'reject') => {
@@ -418,7 +457,7 @@ export default function PublisherDashboardPage() {
                 </div>
                 <div className="bg-yellow-50 border border-yellow-100 rounded-lg p-3 text-center">
                   <div className="text-lg font-bold text-yellow-600">{stats.totalPendingSubOrders || 0}</div>
-                  <div className="text-xs text-yellow-700">待抢单</div>
+                  <div className="text-xs text-yellow-700">待领取</div>
                 </div>
               </div>
             </div>
@@ -448,15 +487,15 @@ export default function PublisherDashboardPage() {
                             {task.title}
                           </div>
                           <span className={`px-2 py-1 rounded text-xs ${
-                            task.status === 'in_progress' ? 'bg-green-100 text-green-600' :
-                            task.status === 'completed' ? 'bg-green-100 text-green-600' :
+                            task.status === 'main_progress' ? 'bg-green-100 text-green-600' :
+                            task.status === 'main_completed' ? 'bg-green-100 text-green-600' :
                             'bg-green-100 text-green-600' // 默认状态也设为进行中
                           }`}>
                             {task.statusText}
                           </span>
                         </div>
                         <div className="text-xs text-gray-600 mb-3">
-                          完成: {task.completed} | 进行中: {task.inProgress} | 待抢单: {task.pending} | 待审核: {task.pendingReview || 0} | 总计: {task.maxParticipants} 条 · {new Date(task.time).toLocaleString('zh-CN')}
+                          完成: {task.completed} | 进行中: {task.inProgress} | 待领取: {task.pending} | 待审核: {task.pendingReview || 0} | 总计: {task.maxParticipants} 条 · {new Date(task.time).toLocaleString('zh-CN')}
                         </div>
                         <div className="flex justify-between items-center mb-2">
                           <div className="text-sm">
@@ -523,6 +562,7 @@ export default function PublisherDashboardPage() {
                   <div className="flex items-start justify-between mb-3">
                     <div>
                       <h4 className="font-bold text-gray-800">{order.taskTitle}</h4>
+                      <p className="text-sm text-gray-600">订单号: {order.orderNumber}</p>
                       <p className="text-sm text-gray-600">评论员: {order.commenterName}</p>
                       <p className="text-xs text-gray-500">提交时间: {order.submitTime}</p>
                     </div>
@@ -669,7 +709,7 @@ export default function PublisherDashboardPage() {
 
                   {/* 操作按钮 */}
                   <div className="flex space-x-2">
-                    {task.status === 'in_progress' && (
+                    {task.status === 'main_progress' && (
                       <button
                         onClick={() => handleTaskAction(task.id, '查看详情')}
                         className="flex-1 bg-green-500 text-white py-2 rounded font-medium hover:bg-green-600 transition-colors text-sm"
@@ -677,7 +717,7 @@ export default function PublisherDashboardPage() {
                         查看详情
                       </button>
                     )}
-                    {task.status === 'completed' && (
+                    {task.status === 'main_completed' && (
                       <>
                         <button
                           onClick={() => handleTaskAction(task.id, '查看详情')}

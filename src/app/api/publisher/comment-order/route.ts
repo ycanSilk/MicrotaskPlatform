@@ -130,14 +130,19 @@ export async function POST(request: Request) {
     const description = requestBody.description || requestBody.requirements;
     const videoUrl = requestBody.videoUrl;
     // 处理mention参数，支持单个mention
-    const mention = requestBody.mention || requestBody.mentions?.[0];
+    let mention = '';
+    if (requestBody.mention) {
+      mention = requestBody.mention;
+    } else if (Array.isArray(requestBody.mentions) && requestBody.mentions.length > 0) {
+      mention = requestBody.mentions[0];
+    }
     const quantity = requestBody.quantity;
     const deadline = requestBody.deadline;
 
-    // 验证必需参数
-    console.log('验证参数:', { taskId, title, price, description, videoUrl, quantity });
-    if (!taskId || !title || !price || !description || !videoUrl || !quantity) {
-      console.log('缺少必要参数:', { taskId, title, price, description, videoUrl, quantity });
+    // 验证必需参数（不验证videoUrl格式）
+    console.log('验证参数:', { taskId, title, price, description, quantity });
+    if (!taskId || !title || !price || !description || !quantity) {
+      console.log('缺少必要参数:', { taskId, title, price, description, quantity });
       return NextResponse.json(
         { success: false, message: '缺少必要的参数' },
         { status: 400 }
@@ -167,7 +172,22 @@ export async function POST(request: Request) {
     // 事务开始 - 读取现有订单数据
     console.log('读取现有订单数据...');
     const orderData = getCommentOrders();
-    console.log('当前订单数量:', orderData.orders.length);
+    console.log('当前订单数据结构:', orderData && typeof orderData === 'object' ? '有效' : '无效');
+    
+    // 确保orderData和commentOrders数组存在
+    if (!orderData || typeof orderData !== 'object') {
+      console.error('订单数据格式错误');
+      return NextResponse.json(
+        { success: false, message: '系统数据错误，请稍后重试' },
+        { status: 500 }
+      );
+    }
+    
+    if (!Array.isArray(orderData.commentOrders)) {
+      orderData.commentOrders = [];
+    }
+    
+    console.log('当前订单数量:', orderData.commentOrders.length);
     
     // 生成新的订单ID和订单号
     const newOrderId = generateOrderId(currentUserId);
@@ -199,8 +219,8 @@ export async function POST(request: Request) {
     console.log('创建新订单:', newOrder);
 
     // 添加新订单到订单列表
-    orderData.orders.push(newOrder);
-    console.log('添加订单后数量:', orderData.orders.length);
+    orderData.commentOrders.push(newOrder);
+    console.log('添加订单后数量:', orderData.commentOrders.length);
 
     // 事务处理 - 保存更新后的订单数据
     console.log('保存订单数据...');
@@ -226,9 +246,36 @@ export async function POST(request: Request) {
       );
     }
   } catch (error) {
+    // 修复错误处理中的变量作用域问题
     console.error('Comment order creation error:', error);
+    
+    // 获取具体的错误信息
+    let errorMessage = '服务器内部错误';
+    if (error instanceof Error) {
+      errorMessage = `错误: ${error.message}`;
+      console.error('Error stack:', error.stack);
+    }
+    
+    // 安全地记录请求信息，避免引用可能未定义的变量
+    console.error('Failed request details:');
+    try {
+      if (typeof currentUserId !== 'undefined') {
+        console.error('- User ID:', currentUserId);
+      }
+      if (typeof taskId !== 'undefined') {
+        console.error('- Task ID:', taskId);
+      }
+    } catch (e) {
+      console.error('无法获取请求详情:', e);
+    }
+    
     return NextResponse.json(
-      { success: false, message: '服务器内部错误' },
+      { 
+        success: false, 
+        message: errorMessage,
+        errorType: error instanceof Error ? error.name : 'UnknownError',
+        requestId: generateOrderNumber() // 生成一个临时请求ID，便于追踪
+      },
       { status: 500 }
     );
   }

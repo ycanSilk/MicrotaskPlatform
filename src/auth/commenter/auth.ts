@@ -149,12 +149,24 @@ export const CommenterAuthStorage = {
       const userInfo = localStorage.getItem('commenter_user_info');
       const expiresAt = localStorage.getItem('commenter_auth_expires');
       
+      console.log('从localStorage获取认证数据:', {
+        token: token ? token.substring(0, 20) + '...' : null,
+        userInfo: userInfo ? JSON.parse(userInfo) : null,
+        expiresAt: expiresAt
+      });
+      
       if (!token || !userInfo || !expiresAt) {
+        console.log('缺少必要的认证数据:', {
+          hasToken: !!token,
+          hasUserInfo: !!userInfo,
+          hasExpiresAt: !!expiresAt
+        });
         return null;
       }
       
       // 检查是否过期
       if (parseInt(expiresAt) < Date.now()) {
+        console.log('认证已过期，清除认证信息');
         CommenterAuthStorage.clearAuth();
         return null;
       }
@@ -165,6 +177,7 @@ export const CommenterAuthStorage = {
         expiresAt: parseInt(expiresAt)
       };
       
+      console.log('成功获取认证会话');
       return authSession;
     } catch (error) {
       console.error('获取评论员认证信息失败:', error);

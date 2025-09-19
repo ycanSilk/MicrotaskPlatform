@@ -6,8 +6,8 @@ import { authenticatePublisher, PublisherAuthStorage, getPublisherHomePath } fro
 
 export default function PublisherLoginPage() {
   const [formData, setFormData] = useState({
-    username: '',
-    password: '',
+    username: 'test12',
+    password: '123456',
     captcha: ''
   });
   const [captchaCode, setCaptchaCode] = useState('');
@@ -28,14 +28,32 @@ export default function PublisherLoginPage() {
   // 初始化验证码
   useEffect(() => {
     console.log('Initializing captcha');
-    setCaptchaCode(generateCaptcha());
+    const initialCaptcha = generateCaptcha();
+    setCaptchaCode(initialCaptcha);
+    // 默认填充验证码
+    setFormData(prev => ({ ...prev, captcha: initialCaptcha }));
   }, []);
+
+  // 自动填充测试账号
+  useEffect(() => {
+    // 设置默认测试账号
+    setFormData({
+      username: 'test12',
+      password: '123456',
+      captcha: captchaCode
+    });
+  }, [captchaCode]);
 
   // 刷新验证码
   const refreshCaptcha = () => {
     console.log('Refreshing captcha');
-    setCaptchaCode(generateCaptcha());
-    setFormData({ ...formData, captcha: '' });
+    const newCaptcha = generateCaptcha();
+    setCaptchaCode(newCaptcha);
+    // 刷新验证码时保持用户名和密码不变，只更新验证码
+    setFormData(prev => ({
+      ...prev,
+      captcha: newCaptcha
+    }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -91,11 +109,21 @@ export default function PublisherLoginPage() {
         // 保存认证信息
         PublisherAuthStorage.saveAuth(authSession);
         
+        console.log('Auth info saved, checking localStorage');
+        // 验证信息是否正确保存
+        const savedToken = localStorage.getItem('publisher_auth_token');
+        const savedUser = localStorage.getItem('publisher_user_info');
+        console.log('Saved token:', savedToken);
+        console.log('Saved user:', savedUser);
+        
         // 显示成功消息
         alert(`发布者登录成功！欢迎 ${result.user.username}`);
         
-        // 跳转到发布者首页
-        router.replace(getPublisherHomePath() as any);
+        // 使用setTimeout确保状态保存完成后再跳转
+        setTimeout(() => {
+          console.log('Redirecting to dashboard');
+          router.replace(getPublisherHomePath() as any);
+        }, 100);
       } else {
         console.log('Login failed with message:', result?.message);
         setErrorMessage(result?.message || '登录失败');

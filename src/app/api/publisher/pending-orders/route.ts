@@ -26,8 +26,8 @@ const getPendingOrders = (orders: any[], currentUserId: string) => {
       // 确保subOrders存在且为数组
       if (order.subOrders && Array.isArray(order.subOrders)) {
         const pendingSubs = order.subOrders.filter((subOrder: any) => {
-          const isPendingReview = subOrder.status === 'pending_review';
-          console.log(`子订单 ${subOrder.id} 状态: ${subOrder.status}, 是否为pending_review: ${isPendingReview}`);
+          const isPendingReview = subOrder.status === 'pending_review' || subOrder.status === 'sub_pending_review';
+          console.log(`子订单 ${subOrder.id} 状态: ${subOrder.status}, 是否为待审核状态: ${isPendingReview}`);
           return isPendingReview;
         });
         

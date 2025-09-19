@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { CommenterAuthStorage } from '@/auth';
+import { CommenterAuthStorage } from '@/auth/commenter/auth';
 
 export default function CommenterHallContentPage() {
   const [sortBy, setSortBy] = useState('time'); // 'time' | 'price'
@@ -19,7 +19,9 @@ export default function CommenterHallContentPage() {
         const timeB = new Date(b.publishTime).getTime();
         return sortOrder === 'desc' ? timeB - timeA : timeA - timeB;
       } else if (sortBy === 'price') {
-        return sortOrder === 'desc' ? b.price - a.price : a.price - b.price;
+        const priceA = typeof a.price === 'number' ? a.price : 0;
+        const priceB = typeof b.price === 'number' ? b.price : 0;
+        return sortOrder === 'desc' ? priceB - priceA : priceA - priceB;
       }
       return 0;
     });
@@ -56,15 +58,35 @@ export default function CommenterHallContentPage() {
         return;
       }
 
-      const response = await fetch('/api/commenter/available-orders', {        method: 'GET',        headers: {          'Content-Type': 'application/json'        }      });
+      // 获取认证信息以获取token
+      const auth = CommenterAuthStorage.getAuth();
+      if (!auth || !auth.token) {
+        console.error('无法获取认证token');
+        alert('认证信息无效，请重新登录');
+        return;
+      }
 
+      console.log('调用API获取订单，使用token:', auth.token.substring(0, 20) + '...');
+      
+      const response = await fetch('/api/commenter/available-orders', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${auth.token}`
+        }
+      });
+
+      console.log('API响应状态:', response.status);
+      
       const data = await response.json();
+      console.log('API响应数据:', data);
+      
       if (data.success) {
         // 为每个任务添加一些额外的显示信息
         const formattedTasks = data.data.map((task: any) => ({
           ...task,
-          badge: task.price >= 5 ? '高价' : task.progress < 30 ? '新' : null,
-          badgeColor: task.price >= 5 ? 'bg-green-500' : task.progress < 30 ? 'bg-orange-500' : ''
+          badge: typeof task.price === 'number' && task.price >= 5 ? '高价' : typeof task.progress === 'number' && task.progress < 30 ? '新' : null,
+          badgeColor: typeof task.price === 'number' && task.price >= 5 ? 'bg-green-500' : typeof task.progress === 'number' && task.progress < 30 ? 'bg-orange-500' : ''
         }));
         setTasks(formattedTasks);
         setLastUpdated(new Date());
@@ -106,47 +128,39 @@ export default function CommenterHallContentPage() {
         return;
       }
 
+      // 获取认证信息以获取token
+      const auth = CommenterAuthStorage.getAuth();
+      if (!auth || !auth.token) {
+        console.error('无法获取认证token');
+        alert('认证信息无效，请重新登录');
+        return;
+      }
+
       setGrabbingTasks(prev => new Set(prev).add(taskId));
 
+      console.log('调用抢单API，使用token:', auth.token.substring(0, 20) + '...');
+      
       const response = await fetch('/api/commenter/available-orders', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${auth.token}`
         },
         body: JSON.stringify({ taskId, userId: user.id })
       });
 
+      console.log('抢单API响应状态:', response.status);
+      
       const data = await response.json();
+      console.log('抢单API响应数据:', data);
+      
       if (data.success) {
         alert(data.message);
         // 抢单成功后立即刷新列表
         await fetchAvailableTasks();
 
-        // 设置3分钟后检查是否需要释放订单
-        setTimeout(async () => {
-          // 调用API检查订单状态
-          // 如果用户没有在3分钟内提交审核，系统会自动释放订单
-          try {
-            const checkUser = CommenterAuthStorage.getCurrentUser();
-            if (checkUser) {
-              const checkResponse = await fetch('/api/commenter/release-task', {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ taskId, userId: checkUser.id })
-              });
-              
-              const checkData = await checkResponse.json();
-              if (checkData.success && checkData.data.releasedCount > 0) {
-                // 如果订单被释放，刷新列表
-                await fetchAvailableTasks();
-              }
-            }
-          } catch (checkError) {
-            console.error('检查订单超时错误:', checkError);
-          }
-        }, 3 * 60 * 1000);
+        // 移除3分钟后检查是否需要释放订单的功能
+        
       } else {
         let errorMessage = data.message || '抢单失败';
         // 根据不同的错误状态码提供更具体的提示
@@ -167,35 +181,10 @@ export default function CommenterHallContentPage() {
     }
   };
 
-  // 定期检查超时订单（每30秒）
+  // 移除定期检查超时订单的功能
   useEffect(() => {
-    const checkTimeoutOrders = async () => {
-      try {
-        const auth = CommenterAuthStorage.getAuth();
-        if (auth && auth.user.role === 'commenter') {
-          await fetch('/api/commenter/release-task', {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${auth.token}`,
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({})
-          });
-        }
-      } catch (error) {
-        console.error('检查超时订单错误:', error);
-      }
-    };
-
     // 初始加载订单
     fetchAvailableTasks();
-
-    // 设置定期检查
-    const interval = setInterval(() => {
-      checkTimeoutOrders();
-    }, 30 * 1000);
-
-    return () => clearInterval(interval);
   }, []);
   
   // 获取排序后的任务
@@ -287,13 +276,13 @@ export default function CommenterHallContentPage() {
             </div>
             
             <div className="flex justify-between items-center mb-3">
-              <div className="text-lg font-bold text-orange-500">¥{task.price.toFixed(2)}</div>
+              <div className="text-lg font-bold text-orange-500">¥{typeof task.price === 'number' ? task.price.toFixed(2) : '0.00'}</div>
               <div className="text-xs text-gray-500">
                 🕰️ {new Date(task.publishTime).toLocaleString()}
               </div>
             </div>
             
-            <div className="text-xs text-gray-500 mb-3">剩余 {task.remaining}</div>
+      
             <div className="text-sm text-gray-600 mb-4">
               要求：{task.requirements}
             </div>

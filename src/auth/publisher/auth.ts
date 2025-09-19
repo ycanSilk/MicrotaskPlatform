@@ -149,12 +149,18 @@ export const PublisherAuthStorage = {
       const userInfo = localStorage.getItem('publisher_user_info');
       const expiresAt = localStorage.getItem('publisher_auth_expires');
       
+      console.log('Retrieved from localStorage:', { token, userInfo, expiresAt });
+      
       if (!token || !userInfo || !expiresAt) {
+        console.log('Missing required auth data in localStorage');
         return null;
       }
       
       // 检查是否过期
-      if (parseInt(expiresAt) < Date.now()) {
+      const expiresAtNum = parseInt(expiresAt);
+      console.log('Current time:', Date.now(), 'Expires at:', expiresAtNum);
+      if (expiresAtNum < Date.now()) {
+        console.log('Auth session expired, clearing auth');
         PublisherAuthStorage.clearAuth();
         return null;
       }
@@ -162,9 +168,10 @@ export const PublisherAuthStorage = {
       const authSession = {
         token,
         user: JSON.parse(userInfo),
-        expiresAt: parseInt(expiresAt)
+        expiresAt: expiresAtNum
       };
       
+      console.log('Auth session parsed successfully:', authSession);
       return authSession;
     } catch (error) {
       console.error('获取派单员认证信息失败:', error);

@@ -2,12 +2,12 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { authenticateCommenter, CommenterAuthStorage, getCommenterHomePath } from '@/auth';
+import { authenticateCommenter, CommenterAuthStorage, getCommenterHomePath, clearAllAuth } from '@/auth';
 
 export default function CommenterLoginPage() {
   const [formData, setFormData] = useState({
-    username: '',
-    password: '',
+    username: 'test123',
+    password: '123456',
     captcha: ''
   });
   const [captchaCode, setCaptchaCode] = useState('');
@@ -27,70 +27,88 @@ export default function CommenterLoginPage() {
 
   // 初始化验证码
   useEffect(() => {
-    setCaptchaCode(generateCaptcha());
+    console.log('Initializing captcha');
+    const initialCaptcha = generateCaptcha();
+    setCaptchaCode(initialCaptcha);
+    // 默认填充验证码
+    setFormData(prev => ({ ...prev, captcha: initialCaptcha }));
   }, []);
+
+  // 自动填充测试账号
+  useEffect(() => {
+    // 设置默认测试账号
+    setFormData({
+      username: 'test123',
+      password: '123456',
+      captcha: captchaCode
+    });
+  }, [captchaCode]);
 
   // 刷新验证码
   const refreshCaptcha = () => {
-    setCaptchaCode(generateCaptcha());
-    setFormData({ ...formData, captcha: '' });
+    console.log('Refreshing captcha');
+    const newCaptcha = generateCaptcha();
+    setCaptchaCode(newCaptcha);
+    // 刷新验证码时保持用户名和密码不变，只更新验证码
+    setFormData(prev => ({
+      ...prev,
+      captcha: newCaptcha
+    }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // 重置错误信息
     setErrorMessage('');
     
-    // 验证表单
-    if (!formData.username.trim()) {
-      setErrorMessage('请输入用户名');
+    // 验证用户名和密码
+    if (!formData.username || !formData.password) {
+      setErrorMessage('请输入用户名和密码');
       return;
     }
     
-    if (!formData.password.trim()) {
-      setErrorMessage('请输入密码');
+    // 验证验证码
+    if (!formData.captcha || formData.captcha.toUpperCase() !== captchaCode.toUpperCase()) {
+      setErrorMessage('请输入正确的验证码');
       return;
     }
     
-    if (!formData.captcha.trim()) {
-      setErrorMessage('请输入验证码');
-      return;
-    }
-    
-    if (formData.captcha.toUpperCase() !== captchaCode.toUpperCase()) {
-      setErrorMessage('验证码错误');
-      refreshCaptcha();
-      return;
-    }
-
     setIsLoading(true);
+    setErrorMessage('');
     
     try {
-      // 使用新的认证系统
       const result = await authenticateCommenter({
         username: formData.username,
         password: formData.password
       });
       
       if (result.success && result.user && result.token) {
-        // 保存认证信息
+        // 先清除所有其他角色的认证信息，确保只有评论员角色有效
+        clearAllAuth();
+        
+        // 保存认证信息到本地存储
         CommenterAuthStorage.saveAuth({
-          user: result.user,
           token: result.token,
-          expiresAt: Date.now() + (24 * 60 * 60 * 1000) // 24小时过期
+          user: result.user,
+          expiresAt: Date.now() + (24 * 60 * 60 * 1000) // 24小时后过期
         });
         
-        // 显示成功消息
-        alert(`评论员登录成功！欢迎 ${result.user.username}`);
+        console.log('评论员登录成功，用户角色:', result.user.role);
+        console.log('保存的认证信息:', result.token.substring(0, 20) + '...');
         
-        // 跳转到评论员首页
-        router.replace(getCommenterHomePath() as any);
+        // 登录成功后跳转
+        // 使用window.location.href确保在任何环境下都能正确跳转
+        if (typeof window !== 'undefined') {
+          window.location.href = getCommenterHomePath();
+        }
       } else {
         setErrorMessage(result.message || '登录失败');
         refreshCaptcha();
       }
     } catch (error) {
-      console.error('Login error:', error);
-      setErrorMessage('登录过程中发生错误，请重试');
+      console.error('登录错误:', error);
+      setErrorMessage('登录过程中出现错误，请稍后再试');
       refreshCaptcha();
     } finally {
       setIsLoading(false);

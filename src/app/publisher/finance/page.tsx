@@ -1,80 +1,104 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 export default function PublisherFinancePage() {
   const [activeTab, setActiveTab] = useState('recharge');
   const [rechargeAmount, setRechargeAmount] = useState('');
   const [withdrawAmount, setWithdrawAmount] = useState('');
-  
-  // 模拟用户余额数据
-  const balance = {
-    total: 2345.60,
-    frozen: 156.80,
-    available: 2188.80
-  };
+  const [balance, setBalance] = useState({
+    total: 0,
+    frozen: 0,
+    available: 0
+  });
+  const [transactions, setTransactions] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('alipay');
+  const [rechargeSuccess, setRechargeSuccess] = useState(false);
 
   // 充值档位
   const rechargeOptions = [100, 200, 500, 1000, 2000, 5000];
 
-  // 交易记录
-  const transactions = [
-    {
-      id: 1,
-      type: 'recharge',
-      amount: 1000.00,
-      status: 'success',
-      method: '微信支付',
-      time: '2024-01-15 14:30',
-      orderId: 'RC20240115001'
-    },
-    {
-      id: 2,
-      type: 'expense',
-      amount: -45.60,
-      status: 'success',
-      method: '任务支付',
-      time: '2024-01-15 10:20',
-      orderId: 'EX20240115001'
-    },
-    {
-      id: 3,
-      type: 'withdraw',
-      amount: -500.00,
-      status: 'pending',
-      method: '银行卡',
-      time: '2024-01-14 16:45',
-      orderId: 'WD20240114001'
-    },
-    {
-      id: 4,
-      type: 'expense',
-      amount: -38.90,
-      status: 'success',
-      method: '任务支付',
-      time: '2024-01-14 09:15',
-      orderId: 'EX20240114001'
-    },
-    {
-      id: 5,
-      type: 'recharge',
-      amount: 500.00,
-      status: 'success',
-      method: '支付宝',
-      time: '2024-01-13 20:30',
-      orderId: 'RC20240113001'
-    }
-  ];
+  // 获取财务数据
+  const fetchFinanceData = async () => {
+    try {
+      setLoading(true);
+      // 从localStorage获取token
+      const token = localStorage.getItem('publisher_auth_token');
+      if (!token) {
+        alert('请先登录');
+        return;
+      }
 
-  const handleRecharge = () => {
+      const response = await fetch('/api/publisher/finance', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        cache: 'no-store',
+        next: { revalidate: 0 }
+      });
+
+      const data = await response.json();
+      if (data.success && data.data) {
+        setBalance(data.data.balance);
+        setTransactions(data.data.transactions || []);
+      } else {
+        alert('获取数据失败：' + data.message);
+      }
+    } catch (error) {
+      console.error('获取财务数据失败:', error);
+      alert('获取数据失败，请稍后重试');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 处理充值
+  const handleRecharge = async () => {
     if (!rechargeAmount || parseFloat(rechargeAmount) <= 0) {
       alert('请输入有效的充值金额');
       return;
     }
-    alert(`充值 ¥${rechargeAmount} 成功！`);
-    setRechargeAmount('');
+
+    try {
+      // 从localStorage获取token
+      const token = localStorage.getItem('publisher_auth_token');
+      if (!token) {
+        alert('请先登录');
+        return;
+      }
+
+      const response = await fetch('/api/publisher/finance', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          amount: parseFloat(rechargeAmount),
+          paymentMethod: selectedPaymentMethod
+        })
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        setRechargeSuccess(true);
+        // 重新获取数据以更新余额
+        await fetchFinanceData();
+        alert(data.message);
+        setRechargeAmount('');
+      } else {
+        alert('充值失败：' + data.message);
+      }
+    } catch (error) {
+      console.error('充值失败:', error);
+      alert('充值失败，请稍后重试');
+    }
   };
 
+  // 处理提现
   const handleWithdraw = () => {
     if (!withdrawAmount || parseFloat(withdrawAmount) <= 0) {
       alert('请输入有效的提现金额');
@@ -87,6 +111,11 @@ export default function PublisherFinancePage() {
     alert(`申请提现 ¥${withdrawAmount} 成功！`);
     setWithdrawAmount('');
   };
+
+  // 初始加载数据
+  useEffect(() => {
+    fetchFinanceData();
+  }, [rechargeSuccess]);
 
   const getTransactionIcon = (type: string) => {
     switch (type) {
@@ -159,15 +188,21 @@ export default function PublisherFinancePage() {
         <div className="bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg p-6">
           <div className="text-center">
             <div className="text-sm mb-2">账户余额</div>
-            <div className="text-3xl font-bold mb-4">¥{balance.total.toFixed(2)}</div>
+            <div className="text-3xl font-bold mb-4">
+              {loading ? '加载中...' : `¥${balance.total.toFixed(2)}`}
+            </div>
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div>
                 <div>可用余额</div>
-                <div className="font-bold">¥{balance.available.toFixed(2)}</div>
+                <div className="font-bold">
+                  {loading ? '加载中...' : `¥${balance.available.toFixed(2)}`}
+                </div>
               </div>
               <div>
                 <div>冻结金额</div>
-                <div className="font-bold">¥{balance.frozen.toFixed(2)}</div>
+                <div className="font-bold">
+                  {loading ? '加载中...' : `¥${balance.frozen.toFixed(2)}`}
+                </div>
               </div>
             </div>
           </div>
@@ -217,25 +252,44 @@ export default function PublisherFinancePage() {
                 <h4 className="text-sm font-medium text-gray-700 mb-2">支付方式</h4>
                 <div className="space-y-2">
                   <label className="flex items-center">
-                    <input type="radio" name="payMethod" className="mr-2" defaultChecked />
-                    <span className="text-sm">💰 微信支付</span>
-                  </label>
-                  <label className="flex items-center">
-                    <input type="radio" name="payMethod" className="mr-2" />
+                    <input 
+                      type="radio" 
+                      name="payMethod" 
+                      className="mr-2" 
+                      checked={selectedPaymentMethod === 'alipay'} 
+                      onChange={() => setSelectedPaymentMethod('alipay')}
+                    />
                     <span className="text-sm">💙 支付宝</span>
                   </label>
                   <label className="flex items-center">
-                    <input type="radio" name="payMethod" className="mr-2" />
-                    <span className="text-sm">🏦 银行卡</span>
+                    <input 
+                      type="radio" 
+                      name="payMethod" 
+                      className="mr-2" 
+                      checked={selectedPaymentMethod === 'paypal'} 
+                      onChange={() => setSelectedPaymentMethod('paypal')}
+                    />
+                    <span className="text-sm">💳 PayPal</span>
+                  </label>
+                  <label className="flex items-center">
+                    <input 
+                      type="radio" 
+                      name="payMethod" 
+                      className="mr-2" 
+                      checked={selectedPaymentMethod === 'usdt'} 
+                      onChange={() => setSelectedPaymentMethod('usdt')}
+                    />
+                    <span className="text-sm">🪙 USDT</span>
                   </label>
                 </div>
               </div>
 
               <button
                 onClick={handleRecharge}
-                className="w-full bg-green-500 text-white py-3 rounded-lg font-medium hover:bg-green-600 transition-colors"
+                disabled={loading}
+                className={`w-full py-3 rounded-lg font-medium transition-colors ${loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-500 text-white hover:bg-green-600'}`}
               >
-                立即充值
+                {loading ? '处理中...' : '立即充值'}
               </button>
             </div>
           </div>
@@ -317,28 +371,34 @@ export default function PublisherFinancePage() {
                 <h3 className="font-bold text-gray-800">交易记录</h3>
               </div>
               <div className="divide-y max-h-96 overflow-y-auto">
-                {transactions.map((record) => (
-                  <div key={record.id} className="p-4">
-                    <div className="flex justify-between items-start mb-2">
-                      <div className="flex items-center space-x-3">
-                        <span className="text-xl">{getTransactionIcon(record.type)}</span>
-                        <div>
-                          <div className="font-medium text-gray-800">{record.method}</div>
-                          <div className="text-xs text-gray-500">{record.time}</div>
-                          <div className="text-xs text-gray-400">订单号：{record.orderId}</div>
+                {loading ? (
+                  <div className="p-8 text-center text-gray-500">加载中...</div>
+                ) : transactions.length > 0 ? (
+                  transactions.map((record) => (
+                    <div key={record.id} className="p-4">
+                      <div className="flex justify-between items-start mb-2">
+                        <div className="flex items-center space-x-3">
+                          <span className="text-xl">{getTransactionIcon(record.type)}</span>
+                          <div>
+                            <div className="font-medium text-gray-800">{record.method}</div>
+                            <div className="text-xs text-gray-500">{record.time}</div>
+                            <div className="text-xs text-gray-400">订单号：{record.orderId}</div>
+                          </div>
                         </div>
-                      </div>
-                      <div className="text-right">
-                        <div className={`font-bold ${getTransactionColor(record.type)}`}>
-                          {record.amount > 0 ? '+' : ''}¥{Math.abs(record.amount).toFixed(2)}
-                        </div>
-                        <div className={`text-xs ${getStatusColor(record.status)}`}>
-                          {getStatusText(record.status)}
+                        <div className="text-right">
+                          <div className={`font-bold ${getTransactionColor(record.type)}`}>
+                            {record.amount > 0 ? '+' : ''}¥{Math.abs(record.amount).toFixed(2)}
+                          </div>
+                          <div className={`text-xs ${getStatusColor(record.status)}`}>
+                            {getStatusText(record.status)}
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  ))
+                ) : (
+                  <div className="p-8 text-center text-gray-500">暂无交易记录</div>
+                )}
               </div>
               
               {/* 查看更多 */}

@@ -17,8 +17,8 @@ const getStatsData = (orders: any[], timeRange: string) => {
   
   // 计算统计数据
   const totalTasks = filteredOrders.length;
-  const activeTasks = filteredOrders.filter(order => order.status === 'in_progress').length;
-  const completedTasks = filteredOrders.filter(order => order.status === 'completed').length;
+  const activeTasks = filteredOrders.filter(order => order.status === 'main_progress').length;
+  const completedTasks = filteredOrders.filter(order => order.status === 'main_completed').length;
   const totalSpent = filteredOrders.reduce((sum, order) => sum + (order.unitPrice * order.quantity), 0);
   
   // 计算子订单统计数据
@@ -29,10 +29,10 @@ const getStatsData = (orders: any[], timeRange: string) => {
   
   filteredOrders.forEach(order => {
     if (order.subOrders && Array.isArray(order.subOrders)) {
-      totalInProgressSubOrders += order.subOrders.filter((subOrder: any) => subOrder.status === 'in_progress').length;
-      totalCompletedSubOrders += order.subOrders.filter((subOrder: any) => subOrder.status === 'completed').length;
-      totalPendingReviewSubOrders += order.subOrders.filter((subOrder: any) => subOrder.status === 'pending_review').length;
-      totalPendingSubOrders += order.subOrders.filter((subOrder: any) => subOrder.status === 'pending').length;
+      totalInProgressSubOrders += order.subOrders.filter((subOrder: any) => subOrder.status === 'sub_progress').length;
+      totalCompletedSubOrders += order.subOrders.filter((subOrder: any) => subOrder.status === 'sub_completed').length;
+      totalPendingReviewSubOrders += order.subOrders.filter((subOrder: any) => subOrder.status === 'sub_pending_review').length;
+      totalPendingSubOrders += order.subOrders.filter((subOrder: any) => subOrder.status === 'waiting_collect').length;
     }
   });
   
@@ -111,13 +111,13 @@ const transformOrdersToTasks = (orders: any[]) => {
     // 确定任务状态（使用原始状态值）
     let status, statusText, statusColor;
     switch (order.status) {
-      case 'in_progress':
-        status = 'in_progress';  // 保持原始状态值
+      case 'main_progress':
+        status = 'main_progress';  // 保持原始状态值
         statusText = '进行中';
         statusColor = 'bg-green-100 text-green-600';
         break;
-      case 'completed':
-        status = 'completed';  // 保持原始状态值
+      case 'main_completed':
+        status = 'main_completed';  // 保持原始状态值
         statusText = '已完成';
         statusColor = 'bg-green-100 text-green-600';
         break;
@@ -125,7 +125,7 @@ const transformOrdersToTasks = (orders: any[]) => {
         // 根据规范，主任务只有进行中和已完成两种状态
         // 如果状态不是这两个之一，默认设为进行中
         console.log(`警告：发现未知状态 "${order.status}" 的订单 ${order.id}，将默认设为进行中`);
-        status = 'in_progress';  // 保持原始状态值
+        status = 'main_progress';  // 保持原始状态值
         statusText = '进行中';
         statusColor = 'bg-green-100 text-green-600';
     }
@@ -137,10 +137,10 @@ const transformOrdersToTasks = (orders: any[]) => {
     let pendingReview = 0; // 添加待审核的数量
     
     if (order.subOrders && Array.isArray(order.subOrders)) {
-      inProgress = order.subOrders.filter((subOrder: any) => subOrder.status === 'in_progress').length;
-      pending = order.subOrders.filter((subOrder: any) => subOrder.status === 'pending').length;
-      completed = order.subOrders.filter((subOrder: any) => subOrder.status === 'completed').length;
-      pendingReview = order.subOrders.filter((subOrder: any) => subOrder.status === 'pending_review').length; // 计算待审核的数量
+      inProgress = order.subOrders.filter((subOrder: any) => subOrder.status === 'sub_progress').length;
+      pending = order.subOrders.filter((subOrder: any) => subOrder.status === 'waiting_collect').length;
+      completed = order.subOrders.filter((subOrder: any) => subOrder.status === 'sub_completed').length;
+      pendingReview = order.subOrders.filter((subOrder: any) => subOrder.status === 'sub_pending_review').length; // 计算待审核的数量
     }
     
     return {
@@ -179,8 +179,8 @@ const getPendingOrders = (orders: any[], currentUserId: string) => {
       // 确保subOrders存在且为数组
       if (order.subOrders && Array.isArray(order.subOrders)) {
         const pendingSubs = order.subOrders.filter((subOrder: any) => {
-          const isPendingReview = subOrder.status === 'pending_review';
-          console.log(`子订单 ${subOrder.id} 状态: ${subOrder.status}, 是否为pending_review: ${isPendingReview}`);
+          const isPendingReview = subOrder.status === 'sub_pending_review';
+          console.log(`子订单 ${subOrder.id} 状态: ${subOrder.status}, 是否为待审核状态: ${isPendingReview}`);
           return isPendingReview;
         });
         
@@ -190,6 +190,7 @@ const getPendingOrders = (orders: any[], currentUserId: string) => {
           const pendingOrder = {
             id: subOrder.id,
             taskTitle: order.taskRequirements.substring(0, 20) + (order.taskRequirements.length > 20 ? '...' : ''),
+            orderNumber: subOrder.orderNumber || '未知子订单号',
             commenterName: subOrder.commenterName || '未知评论员',
             submitTime: subOrder.commentTime ? new Date(subOrder.commentTime).toLocaleString('zh-CN') : '未知时间',
             content: subOrder.commentContent || '无内容',
@@ -250,7 +251,7 @@ export async function GET(request: Request) {
     
     // 读取订单数据
     const orderData = getCommentOrders();
-    const allOrders = orderData.orders;
+    const allOrders = orderData.commentOrders;
     
     // 过滤当前用户的订单
     const userOrders = filterOrdersByUser(allOrders, currentUserId);
@@ -263,8 +264,8 @@ export async function GET(request: Request) {
     const allTasks = transformOrdersToTasks(userOrders);
   
     // 分类任务（使用原始状态值）
-    const activeTasks = allTasks.filter(task => task.status === 'in_progress');
-    const completedTasks = allTasks.filter(task => task.status === 'completed');
+    const activeTasks = allTasks.filter(task => task.status === 'main_progress');
+    const completedTasks = allTasks.filter(task => task.status === 'main_completed');
     
     // 获取待审核订单（只获取当前用户的）
     const pendingOrders = getPendingOrders(allOrders, currentUserId); // 修复：使用allOrders以确保能查找到所有用户的订单

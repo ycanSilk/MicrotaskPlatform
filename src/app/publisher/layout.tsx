@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { getCurrentLoggedInUser, commonLogout } from '@/auth/common';
+import { PublisherAuthStorage } from '@/auth/publisher/auth';
 import Link from 'next/link';
 
 export default function PublisherLayout({
@@ -29,9 +29,12 @@ export default function PublisherLayout({
       
       try {
         console.log('Checking user authentication...');
-        const currentUser = await getCurrentLoggedInUser();
+        // 直接使用派单员认证存储检查，而不是通用检查
+        const authSession = PublisherAuthStorage.getAuth();
         
-        if (!currentUser) {
+        console.log('Auth session from storage:', authSession);
+        
+        if (!authSession || !authSession.user) {
           console.log('Publisher Layout: No user found, redirecting to login');
           if (isMounted) {
             router.push('/auth/login/publisherlogin');
@@ -39,9 +42,9 @@ export default function PublisherLayout({
           return;
         }
         
-        console.log('User role:', currentUser.role);
-        if (currentUser.role !== 'publisher') {
-          console.log('Publisher Layout: Wrong role, redirecting to login. Role:', currentUser.role);
+        console.log('User role:', authSession.user.role);
+        if (authSession.user.role !== 'publisher') {
+          console.log('Publisher Layout: Wrong role, redirecting to login. Role:', authSession.user.role);
           if (isMounted) {
             router.push('/auth/login/publisherlogin');
           }
@@ -50,7 +53,7 @@ export default function PublisherLayout({
         
         console.log('Publisher Layout: User authorized, setting user data');
         if (isMounted) {
-          setUser(currentUser);
+          setUser(authSession.user);
           setIsLoading(false);
         }
       } catch (error) {
@@ -73,7 +76,7 @@ export default function PublisherLayout({
   const handleLogout = async () => {
     console.log('Logging out user');
     try {
-      await commonLogout();
+      PublisherAuthStorage.clearAuth();
     } catch (error) {
       console.error('Logout error:', error);
     } finally {

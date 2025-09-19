@@ -1,0 +1,74 @@
+{
+  "userId": "pub003",
+  "userType": "publisher",
+  "currentBalance": 1000.50,
+  "availableBalance": 950.50,
+  "frozenAmount": 50.00,
+  "currency": "CNY",
+  "accountStatus": {
+    "isActive": true,
+    "isFrozen": false,
+    "freezeReason": null,
+    "lastStatusUpdateTime": "2025-09-20T10:30:00.000Z"
+  },
+  "rechargeInfo": {
+    "supportedPaymentMethods": ["wechat_pay", "alipay", "bank_transfer"],
+    "minRechargeAmount": 10.00,
+    "maxRechargeAmount": 50000.00,
+    "lastRechargeTime": "2025-09-19T15:45:30.000Z",
+    "lastRechargeAmount": 500.00
+  },
+  "withdrawalInfo": {
+    "withdrawalAccounts": [
+      {
+        "id": "wacc001",
+        "type": "alipay",
+        "accountNumber": "user@example.com",
+        "accountName": "张三",
+        "isDefault": true,
+        "status": "verified"
+      }
+    ],
+    "minWithdrawalAmount": 50.00,
+    "maxWithdrawalAmount": 20000.00,
+    "dailyWithdrawalLimit": 50000.00,
+    "dailyWithdrawalRemaining": 45000.00,
+    "withdrawalFeeRate": 0.001,
+    "lastWithdrawalTime": "2025-09-18T09:20:15.000Z",
+    "lastWithdrawalAmount": 300.00
+  },
+  "transactionHistory": [
+    {
+      "id": "txn1001",
+      "type": "recharge",
+      "amount": 500.00,
+      "balanceAfter": 1000.50,
+      "paymentMethod": "alipay",
+      "status": "completed",
+      "transactionTime": "2025-09-19T15:45:30.000Z",
+      "description": "账户充值"
+    },
+    {
+      "id": "txn1002",
+      "type": "withdrawal",
+      "amount": -300.00,
+      "balanceAfter": 500.50,
+      "withdrawalAccountId": "wacc001",
+      "status": "completed",
+      "transactionTime": "2025-09-18T09:20:15.000Z",
+      "description": "提现到支付宝"
+    },
+    {
+      "id": "txn1003",
+      "type": "task_payment",
+      "amount": -50.00,
+      "balanceAfter": 450.50,
+      "relatedTaskId": "task001",
+      "status": "completed",
+      "transactionTime": "2025-09-17T14:30:45.000Z",
+      "description": "任务发布费用"
+    }
+  ],
+  "createdAt": "2025-09-16T08:00:00.000Z",
+  "updatedAt": "2025-09-19T15:45:30.000Z"
+}

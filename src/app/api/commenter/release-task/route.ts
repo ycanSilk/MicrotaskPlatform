@@ -28,7 +28,7 @@ export async function POST(request: Request) {
     let tasksReleased = 0;
 
     // 查找并释放超时的订单
-    commentOrders.orders.forEach(order => {
+    commentOrders.commentOrders.forEach((order: any) => {
       order.subOrders.forEach((subOrder: any) => {
         // 如果是进行中状态的订单，检查是否超时
         if (subOrder.status === 'in_progress' && 

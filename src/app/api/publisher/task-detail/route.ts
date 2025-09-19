@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
 
+
 // 读取评论订单数据文件
 const getCommentOrders = () => {
   const filePath = path.join(process.cwd(), 'src/data/commentOrder/commentOrder.json');
@@ -22,7 +23,16 @@ export async function GET(request: Request) {
     
     // 如果提供了taskId，则返回特定任务的详情
     if (taskId) {
-      const task = orderData.orders.find((order: any) => order.id === taskId);
+      // 确保orderData.commentOrders存在
+      if (!orderData.commentOrders || !Array.isArray(orderData.commentOrders)) {
+        console.error('commentOrders is not an array in data');
+        return NextResponse.json(
+          { success: false, message: '数据格式错误' },
+          { status: 500 }
+        );
+      }
+      
+      const task = orderData.commentOrders.find((order: any) => order.id === taskId);
       console.log('Found task:', task ? 'Yes' : 'No');
       if (task) {
         return NextResponse.json({
@@ -30,6 +40,7 @@ export async function GET(request: Request) {
           data: task
         });
       } else {
+        console.log(`Task with ID ${taskId} not found in commentOrders`);
         return NextResponse.json(
           { success: false, message: '未找到指定任务' },
           { status: 404 }

@@ -34,19 +34,19 @@ const writeCommentOrders = (data: any) => {
 // 检查并更新主订单状态
 const updateParentOrderStatus = (parentOrder: any) => {
   // 检查所有子订单是否都已完成
-  const allSubOrdersCompleted = parentOrder.subOrders.every((sub: any) => sub.status === 'completed');
+  const allSubOrdersCompleted = parentOrder.subOrders.every((sub: any) => sub.status === 'sub_completed');
   
   // 如果所有子订单都已完成，将主订单状态设为已完成
-  if (allSubOrdersCompleted && parentOrder.status !== 'completed') {
-    parentOrder.status = 'completed';
+  if (allSubOrdersCompleted && parentOrder.status !== 'main_completed') {
+    parentOrder.status = 'main_completed';
     console.log('主订单所有子订单已完成，更新主订单状态为已完成');
   }
   
   // 更新完成数量
-  const completedCount = parentOrder.subOrders.filter((sub: any) => sub.status === 'completed').length;
+  const completedCount = parentOrder.subOrders.filter((sub: any) => sub.status === 'sub_completed').length;
   parentOrder.completedQuantity = completedCount;
   console.log('更新主订单完成数量:', completedCount);
-};
+}
 
 export async function POST(request: Request) {
   try {
@@ -57,7 +57,7 @@ export async function POST(request: Request) {
     // 读取订单数据
     const orderData = getCommentOrders();
     
-    console.log('Loaded order data, orders count:', orderData.orders.length);
+    console.log('Loaded order data, orders count:', orderData.commentOrders.length);
     
     // 查找对应的子订单
     let subOrderFound = false;
@@ -65,7 +65,7 @@ export async function POST(request: Request) {
     let parentOrder = null;
     let subOrder = null;
     
-    for (const order of orderData.orders) {
+    for (const order of orderData.commentOrders) {
       console.log('Checking order:', order.id);
       for (const sub of order.subOrders) {
         console.log('Checking subOrder:', sub.id);
@@ -76,7 +76,7 @@ export async function POST(request: Request) {
           subOrder = sub;
           
           // 检查子订单状态，防止对已完成订单的重复审核
-          if (sub.status === 'completed') {
+          if (sub.status === 'sub_completed') {
             console.log('SubOrder is already completed, cannot review again');
             return NextResponse.json(
               { success: false, message: '该订单已完成，无法再次审核' },
@@ -86,10 +86,10 @@ export async function POST(request: Request) {
           
           // 根据操作类型更新子订单状态
           if (action === 'approve') {
-            sub.status = 'completed';
+            sub.status = 'sub_completed';
             console.log('Approved subOrder, new status:', sub.status);
           } else if (action === 'reject') {
-            sub.status = 'in_progress';
+            sub.status = 'waiting_collect';
             // 清除评论员信息以便重新抢单
             sub.commenterId = '';
             sub.commenterName = '';
