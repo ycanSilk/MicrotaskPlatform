@@ -30,6 +30,7 @@ interface PendingOrder {
   content: string;
   images: string[];
   status: string; // 添加状态字段
+  orderNumber?: string; // 添加可选的订单号字段
 }
 
 interface DispatchedTask {
@@ -45,6 +46,9 @@ interface DispatchedTask {
   pending: number; // 添加待抢单的数量
   pendingReview?: number; // 添加待审核的数量
   price: number; // 添加单价字段
+  orderNumber: string; // 添加订单号字段
+  taskType: string; // 添加任务类型字段
+  taskRequirements: string; // 添加任务需求字段
 }
 
 interface Stats {
@@ -316,15 +320,70 @@ export default function PublisherDashboardPage() {
     }
   };
 
-  // 图片查看功能
+  // 图片查看功能 - 增强支持放大查看
   const openImageViewer = (imageUrl: string) => {
     setCurrentImage(imageUrl);
     setImageViewerOpen(true);
+    setScale(1); // 重置缩放比例
+    setPosition({ x: 0, y: 0 }); // 重置位置
+    setIsDragging(false); // 重置拖拽状态
   };
 
   const closeImageViewer = () => {
     setImageViewerOpen(false);
     setCurrentImage('');
+    setScale(1);
+    setPosition({ x: 0, y: 0 });
+    setIsDragging(false);
+  };
+
+  // 图片放大相关状态
+  const [scale, setScale] = useState(1); // 缩放比例
+  const [position, setPosition] = useState({ x: 0, y: 0 }); // 图片位置
+  const [isDragging, setIsDragging] = useState(false); // 是否正在拖拽
+  const [startPosition, setStartPosition] = useState({ x: 0, y: 0 }); // 拖拽开始位置
+
+  // 处理鼠标滚轮缩放
+  const handleWheel = (e: React.WheelEvent) => {
+    e.preventDefault();
+    const delta = e.deltaY > 0 ? -0.1 : 0.1; // 滚轮向下为缩小，向上为放大
+    setScale(prevScale => {
+      const newScale = Math.max(0.1, Math.min(5, prevScale + delta)); // 限制缩放范围0.1-5倍
+      return newScale;
+    });
+  };
+
+  // 处理拖拽开始
+  const handleDragStart = (e: React.MouseEvent) => {
+    setIsDragging(true);
+    setStartPosition({ x: e.clientX - position.x, y: e.clientY - position.y });
+  };
+
+  // 处理拖拽移动
+  const handleDragMove = (e: React.MouseEvent) => {
+    if (!isDragging) return;
+    setPosition({ x: e.clientX - startPosition.x, y: e.clientY - startPosition.y });
+  };
+
+  // 处理拖拽结束
+  const handleDragEnd = () => {
+    setIsDragging(false);
+  };
+
+  // 放大图片
+  const zoomIn = () => {
+    setScale(prevScale => Math.min(5, prevScale + 0.1));
+  };
+
+  // 缩小图片
+  const zoomOut = () => {
+    setScale(prevScale => Math.max(0.1, prevScale - 0.1));
+  };
+
+  // 重置图片
+  const resetImage = () => {
+    setScale(1);
+    setPosition({ x: 0, y: 0 });
   };
 
   // 显示加载状态
@@ -484,7 +543,7 @@ export default function PublisherDashboardPage() {
                       <div className="flex-1">
                         <div className="flex items-center space-x-2 mb-2">
                           <div className="text-sm font-medium text-gray-800">
-                            {task.title}
+                            任务需求：{task.taskRequirements}
                           </div>
                           <span className={`px-2 py-1 rounded text-xs ${
                             task.status === 'main_progress' ? 'bg-green-100 text-green-600' :
@@ -494,12 +553,34 @@ export default function PublisherDashboardPage() {
                             {task.statusText}
                           </span>
                         </div>
-                        <div className="text-xs text-gray-600 mb-3">
-                          完成: {task.completed} | 进行中: {task.inProgress} | 待领取: {task.pending} | 待审核: {task.pendingReview || 0} | 总计: {task.maxParticipants} 条 · {new Date(task.time).toLocaleString('zh-CN')}
+                        {/* 新增主任务订单号显示 */}
+                        <div className="text-xs text-gray-500 mb-1">
+                          订单号: {task.orderNumber || 'N/A'}
+                        </div>
+                        {/* 新增任务类型信息展示 */}
+                        <div className="text-xs text-gray-500 mb-1">
+                          任务类型: {(() => {
+                            const taskTypeMap: Record<string, string> = {
+                              'comment_middle': '评论任务',
+                              'account_rental': '租号任务',
+                              'video_send': '视频推送任务'
+                            };
+                            return taskTypeMap[task.taskType] || task.taskType;
+                          })()}
+                        </div>
+                        {/* 修改发布时间显示，换行并添加标识 */}
+                        <div className="text-xs text-gray-600 mb-1">
+                          发布时间：
+                          {new Date(task.time).toLocaleString('zh-CN')}
+                        </div>
+                        <div className="flex justify-between items-center mb-1">
+                          <div className="text-xs text-gray-600">
+                            完成: {task.completed} | 进行中: {task.inProgress} | 待领取: {task.pending} | 待审核: {task.pendingReview || 0} | 总计: {task.maxParticipants} 条
+                          </div>
                         </div>
                         <div className="flex justify-between items-center mb-2">
                           <div className="text-sm">
-                            <span className="text-gray-600">子订单单价:</span>
+                            <span className="text-gray-600">订单单价:</span>
                             <span className="font-medium text-gray-800"> ¥{typeof task.price === 'number' ? task.price.toFixed(2) : '0.00'}</span>
                           </div>
                           <div className="text-sm">
@@ -509,11 +590,15 @@ export default function PublisherDashboardPage() {
                             </span>
                           </div>
                         </div>
-                        <div className="bg-gray-200 h-2 rounded">
+                        {/* 在进度条上添加百分比数值显示 */}
+                        <div className="relative bg-green-200 h-5 rounded">
                           <div 
-                            className="bg-green-500 h-2 rounded" 
+                            className="bg-green-500 h-5 rounded" 
                             style={{width: `${task.maxParticipants > 0 ? (task.participants / task.maxParticipants) * 100 : 0}%`}}
                           ></div>
+                          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-xs font-medium text-gray-800">
+                            {task.maxParticipants > 0 ? Math.round((task.participants / task.maxParticipants) * 100) : 0}%
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -523,233 +608,283 @@ export default function PublisherDashboardPage() {
             </div>
           </div>
 
-          {/* 快捷操作 */}
-          <div className="mx-4 mt-6">
-            <div className="bg-gradient-to-r from-blue-50 to-blue-100 border border-blue-200 rounded-lg p-4">
-              <h3 className="font-bold text-gray-800 mb-3">快捷操作</h3>
-              <div className="grid grid-cols-2 gap-3">
-                <button className="bg-blue-100 border border-blue-200 text-blue-700 py-3 px-4 rounded-lg text-sm font-medium hover:bg-blue-200 transition-colors">
-                  ➕ 发布新任务
-                </button>
-                <button className="bg-blue-100 border border-blue-200 text-blue-700 py-3 px-4 rounded-lg text-sm font-medium hover:bg-blue-200 transition-colors">
-                  📈 查看统计
-                </button>
-                <button className="bg-blue-100 border border-blue-200 text-blue-700 py-3 px-4 rounded-lg text-sm font-medium hover:bg-blue-200 transition-colors">
-                  💰 财务管理
-                </button>
-                <button className="bg-blue-100 border border-blue-200 text-blue-700 py-3 px-4 rounded-lg text-sm font-medium hover:bg-blue-200 transition-colors">
-                  👤 个人中心
-                </button>
-              </div>
-            </div>
-          </div>
+
         </>
       )}
 
       {/* 审核任务页面 */}
       {activeTab === 'audit' && (
-        <>
-          <div className="mx-4 mt-6 flex items-center justify-between">
+        <div className="mx-4 mt-6 space-y-4">
+          {/* 标题和统计信息 */}
+          <div className="flex items-center justify-between">
             <h3 className="font-bold text-gray-800">待审核的订单</h3>
             <span className="text-sm text-gray-500">共 {pendingOrders.length} 个订单</span>
           </div>
-
-          <div className="mx-4 mt-4">
-            <div className="space-y-4">
-              {pendingOrders.map((order) => (
-                <div key={order.id} className="bg-white rounded-lg p-4 shadow-sm border border-orange-200">
-                  {/* 订单头部 */}
-                  <div className="flex items-start justify-between mb-3">
-                    <div>
-                      <h4 className="font-bold text-gray-800">{order.taskTitle}</h4>
-                      <p className="text-sm text-gray-600">订单号: {order.id}</p>
-                      <p className="text-sm text-gray-600">评论员: {order.commenterName}</p>
-                      <p className="text-xs text-gray-500">提交时间: {order.submitTime}</p>
-                    </div>
-                    <span className="px-2 py-1 rounded text-xs bg-orange-100 text-orange-600">
-                      待审核
-                    </span>
-                  </div>
-
-                  {/* 提交内容 */}
-                  <div className="mb-4">
-                    <h5 className="text-sm font-medium text-gray-700 mb-2">提交内容:</h5>
-                    <div className="bg-gray-50 p-3 rounded text-sm text-gray-700">
-                      {order.content}
-                    </div>
-                  </div>
-
-                  {/* 图片附件 */}
-                  {order.images.length > 0 && (
-                    <div className="mb-4">
-                      <h5 className="text-sm font-medium text-gray-700 mb-2">图片附件:</h5>
-                      <div className="flex space-x-2">
-                        {order.images.map((image, index) => (
-                          <div 
-                            key={index} 
-                            className="w-16 h-16 bg-gray-200 rounded flex items-center justify-center text-xs text-gray-500 cursor-pointer hover:bg-gray-300 transition-colors overflow-hidden"
-                            onClick={() => openImageViewer(image)}
-                          >
-                            <img 
-                              src={image} 
-                              alt={`附件图片 ${index + 1}`} 
-                              className="w-full h-full object-cover"
-                              onError={(e) => {
-                                const target = e.target as HTMLImageElement;
-                                target.src = '/images/20250916161008.png';
-                              }}
-                            />
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* 审核按钮 */}
-                  <div className="flex space-x-3">
-                    <button
-                      onClick={() => handleOrderReview(order.id, 'approve')}
-                      className={`flex-1 py-2 rounded font-medium transition-colors text-sm ${
-                        order.status === 'completed' || order.status === 'approved' 
-                          ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
-                          : 'bg-green-500 text-white hover:bg-green-600'
-                      }`}
-                      disabled={order.status === 'completed' || order.status === 'approved'}
-                    >
-                      ✅ 通过审核
-                    </button>
-                    <button
-                      onClick={() => handleOrderReview(order.id, 'reject')}
-                      className={`flex-1 py-2 rounded font-medium transition-colors text-sm ${
-                        order.status === 'completed' || order.status === 'approved' 
-                          ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
-                          : 'bg-red-500 text-white hover:bg-red-600'
-                      }`}
-                      disabled={order.status === 'completed' || order.status === 'approved'}
-                    >
-                      ❌ 驳回订单
-                    </button>
-                  </div>
+          
+          {/* 子订单列表 - 直接展示订单详情内容 */}
+          {pendingOrders.map((order) => (
+            <div key={order.id} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+              <div className="flex items-center space-x-2 mb-2">
+                <div className="text-sm font-medium text-gray-800">
+                  任务需求：{order.taskTitle}
                 </div>
-              ))}
+                <span className="px-2 py-1 rounded text-xs bg-orange-100 text-orange-600">
+                  待审核
+                </span>
+              </div>
+              
+              {/* 订单号显示 - 显示"订单号"字段而非"id"字段 */}
+              <div className="text-xs text-gray-500 mb-1">
+                订单号: {order.orderNumber || order.id}
+              </div>
+              
+              {/* 领取用户信息展示 */}
+              <div className="text-xs text-gray-500 mb-1">
+                领取用户: {order.commenterName}
+              </div>
+              
+              {/* 提交时间显示 */}
+              <div className="text-xs text-gray-600 mb-2">
+                提交时间：
+                {new Date(order.submitTime).toLocaleString('zh-CN')}
+              </div>
+
+              {/* 提交内容 */}
+              <div className="mb-3">
+                <h5 className="text-xs font-medium text-gray-700 mb-1">提交内容:</h5>
+                <div className="bg-white p-3 rounded text-sm text-gray-700 border border-gray-200">
+                  {order.content}
+                </div>
+              </div>
+
+              {/* 图片附件 - 恢复上传截图的显示功能 */}
+              <div className="mb-3">
+                <h5 className="text-xs font-medium text-gray-700 mb-1">上传截图:</h5>
+                {order.images && order.images.length > 0 ? (
+                  <div className="flex space-x-2 flex-wrap">
+                    {order.images.map((image, index) => (
+                      <div 
+                        key={index} 
+                        className="w-20 h-20 bg-gray-200 rounded flex items-center justify-center text-xs text-gray-500 cursor-pointer hover:bg-gray-300 transition-colors overflow-hidden shadow-sm"
+                        onClick={() => openImageViewer(image)}
+                      >
+                        <img 
+                          src={image} 
+                          alt={`上传截图 ${index + 1}`} 
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.onerror = null; // 防止无限循环
+                            target.src = '/images/20250916161008.png';
+                            target.alt = `图片加载失败 ${index + 1}`;
+                          }}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="bg-gray-50 p-3 rounded text-sm text-gray-500 border border-gray-200">
+                    暂无上传截图
+                  </div>
+                )}
+              </div>
+
+              {/* 审核按钮 */}
+              <div className="flex space-x-3 mt-3">
+                <button
+                  onClick={() => handleOrderReview(order.id, 'approve')}
+                  className={`flex-1 py-2 rounded font-medium transition-colors text-sm ${order.status === 'completed' || order.status === 'approved' ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-green-500 text-white hover:bg-green-600'}`}
+                  disabled={order.status === 'completed' || order.status === 'approved'}
+                >
+                  ✅ 通过审核
+                </button>
+                <button
+                  onClick={() => handleOrderReview(order.id, 'reject')}
+                  className={`flex-1 py-2 rounded font-medium transition-colors text-sm ${order.status === 'completed' || order.status === 'approved' ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-red-500 text-white hover:bg-red-600'}`}
+                  disabled={order.status === 'completed' || order.status === 'approved'}
+                >
+                  ❌ 驳回订单
+                </button>
+              </div>
             </div>
-          </div>
-        </>
+          ))}
+        </div>
       )}
 
       {(activeTab === 'active' || activeTab === 'completed') && (
-        <>
-          {/* 排序选择 */}
-          <div className="mx-4 mt-6 flex items-center justify-between">
-            <h3 className="font-bold text-gray-800">
-              {activeTab === 'active' && '进行中的任务'}
-              {activeTab === 'completed' && '已完成的任务'}
-            </h3>
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-              className="px-3 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
-            >
-              <option value="time">按时间排序</option>
-              <option value="price">按价格排序</option>
-              <option value="status">按状态排序</option>
-            </select>
-          </div>
-
-          {/* 任务列表 */}
-          <div className="mx-4 mt-4">
-            <div className="space-y-4">
-              {sortTasks(getTasksByStatus(activeTab)).map((task) => (
-                <div key={task.id} className="bg-white rounded-lg p-4 shadow-sm">
-                  {/* 任务头部信息 */}
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-2 mb-1">
-                        <h3 className="font-bold text-gray-800">{task.title}</h3>
-                        <span className={`px-2 py-1 rounded text-xs ${task.statusColor}`}>
-                          {task.statusText}
-                        </span>
-                      </div>
-                      <div className="text-sm text-gray-600 space-y-1">
-                        <div>分类：{task.category} | 价格：¥{task.price}</div>
-                        <div>发布时间：{task.publishTime}</div>
-                        <div>截止时间：{task.deadline}</div>
-                      </div>
+        <div className="mx-4 mt-6 space-y-4">
+          {/* 排序选择和查看全部历史订单按钮 */}
+          <div className="flex items-center justify-between">
+              <h3 className="font-bold text-gray-800">
+                {activeTab === 'active' && '进行中的任务'}
+                {activeTab === 'completed' && '已完成的任务'}
+              </h3>
+              <div className="flex items-center">
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  className="px-3 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                >
+                  <option value="time">按时间排序</option>
+                  <option value="price">按价格排序</option>
+                  <option value="status">按状态排序</option>
+                </select>
+              </div>
+            </div>
+          
+          {/* 订单列表 - 直接展示订单详情内容 */}
+          {sortTasks(getTasksByStatus(activeTab)).map((task) => (
+            <div key={task.id} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center space-x-2 mb-2">
+                    <div className="text-sm font-medium text-gray-800">
+                      任务需求：{task.description}
                     </div>
-                    <div className="text-lg font-bold text-green-600">
-                      ¥{task.price.toFixed(2)}
+                    <span className={`px-2 py-1 rounded text-xs ${task.statusColor}`}>
+                      {task.statusText}
+                    </span>
+                  </div>
+                  {/* 主任务订单号显示 */}
+                  <div className="text-xs text-gray-500 mb-1">
+                    订单号: {task.id}
+                  </div>
+                  {/* 任务类型信息展示 */}
+                  <div className="text-xs text-gray-500 mb-1">
+                    任务类型: {task.category || '评论任务'}
+                  </div>
+                  {/* 修改发布时间显示，换行并添加标识 */}
+                  <div className="text-xs text-gray-600 mb-1">
+                    发布时间：
+                    {new Date(task.publishTime).toLocaleString('zh-CN')}
+                  </div>
+                  <div className="flex justify-between items-center mb-1">
+                    <div className="text-xs text-gray-600">
+                      完成: {task.completed} | 进行中: {task.inProgress} | 待领取: {task.pending || 0} | 总计: {task.maxParticipants} 条
                     </div>
                   </div>
-
-                  {/* 任务描述 */}
-                  <div className="mb-3">
-                    <div className="text-sm text-gray-600 bg-gray-50 p-2 rounded">
-                      {task.description}
+                  <div className="flex justify-between items-center mb-2">
+                    <div className="text-sm">
+                      <span className="text-gray-600">订单单价:</span>
+                      <span className="font-medium text-gray-800"> ¥{task.price.toFixed(2)}</span>
                     </div>
-                  </div>
-
-                  {/* 参与情况 */}
-                  <div className="mb-3">
-                    <div className="flex justify-between items-center mb-1">
-                      <span className="text-sm text-gray-600">参与情况</span>
-                      <span className="text-sm text-gray-800">
-                        {task.participants}/{task.maxParticipants} 人
+                    <div className="text-sm">
+                      <span className="text-gray-600">总金额:</span>
+                      <span className="font-medium text-gray-800"> 
+                        ¥{(task.price * task.maxParticipants).toFixed(2)}
                       </span>
                     </div>
-                    <div className="bg-gray-200 h-2 rounded">
-                      <div 
-                        className="bg-green-500 h-2 rounded" 
-                        style={{width: `${(task.participants / task.maxParticipants) * 100}%`}}
-                      ></div>
-                    </div>
-                    <div className="text-xs text-gray-500 mt-1">
-                      已完成：{task.completed}/{task.participants} 人
-                    </div>
                   </div>
-
-                  {/* 操作按钮 */}
-                  <div className="flex space-x-2">
-                    {task.status === 'main_progress' && (
-                      <button
-                        onClick={() => handleTaskAction(task.id, '查看详情')}
-                        className="flex-1 bg-green-500 text-white py-2 rounded font-medium hover:bg-green-600 transition-colors text-sm"
-                      >
-                        查看详情
-                      </button>
-                    )}
-                    {task.status === 'main_completed' && (
-                      <>
-                        <button
-                          onClick={() => handleTaskAction(task.id, '查看详情')}
-                          className="flex-1 bg-green-500 text-white py-2 rounded font-medium hover:bg-green-600 transition-colors text-sm"
-                        >
-                          查看详情
-                        </button>
-                      </>
-                    )}
+                  {/* 在进度条上添加百分比数值显示 */}
+                  <div className="relative bg-green-200 h-5 rounded">
+                    <div 
+                      className="bg-green-500 h-5 rounded" 
+                      style={{width: `${task.maxParticipants > 0 ? (task.participants / task.maxParticipants) * 100 : 0}%`}}
+                    ></div>
+                    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-xs font-medium text-gray-800">
+                      {task.maxParticipants > 0 ? Math.round((task.participants / task.maxParticipants) * 100) : 0}%
+                    </div>
                   </div>
                 </div>
-              ))}
+              </div>
+              
+              {/* 操作按钮 - 宽度设置为100% */}
+              <div className="mt-3">
+                <button
+                  onClick={() => handleTaskAction(task.id, '查看详情')}
+                  className="w-full py-2 bg-green-500 text-white rounded font-medium hover:bg-green-600 transition-colors text-sm"
+                >
+                  查看详情
+                </button>
+              </div>
             </div>
-          </div>
-        </>
+          ))}
+        </div>
       )}
       
-      {/* 图片查看器模态框 */}
+      {/* 图片查看器模态框 - 支持放大查看 */}
       {imageViewerOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
-          <div className="relative max-w-4xl max-h-full">
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4"
+          onClick={closeImageViewer}
+          onMouseMove={handleDragMove}
+          onMouseUp={handleDragEnd}
+          onMouseLeave={handleDragEnd}
+        >
+          <div className="relative max-w-4xl max-h-full w-full">
+            {/* 关闭按钮 */}
             <button
               onClick={closeImageViewer}
-              className="absolute -top-10 right-0 text-white text-2xl hover:text-gray-300"
+              className="absolute -top-10 right-0 text-white text-2xl hover:text-gray-300 z-10"
+              style={{ right: 'calc(50% - 200px)' }}
             >
               ✕
             </button>
-            <img 
-              src={currentImage} 
-              alt="查看图片" 
-              className="max-w-full max-h-full object-contain"
-            />
+            
+            {/* 缩放控制按钮 */}
+            <div className="absolute top-0 left-0 flex space-x-2 p-2 z-10 bg-black bg-opacity-50 rounded">
+              <button 
+                onClick={(e) => { e.stopPropagation(); zoomIn(); }}
+                className="text-white p-2 hover:bg-white hover:bg-opacity-20 rounded"
+                title="放大"
+              >
+                🔍+
+              </button>
+              <button 
+                onClick={(e) => { e.stopPropagation(); zoomOut(); }}
+                className="text-white p-2 hover:bg-white hover:bg-opacity-20 rounded"
+                title="缩小"
+              >
+                🔍-
+              </button>
+              <button 
+                onClick={(e) => { e.stopPropagation(); resetImage(); }}
+                className="text-white p-2 hover:bg-white hover:bg-opacity-20 rounded"
+                title="重置"
+              >
+                🔄
+              </button>
+            </div>
+            
+            {/* 缩放比例显示 */}
+            <div className="absolute top-0 right-0 p-2 text-white font-medium bg-black bg-opacity-50 rounded">
+              {Math.round(scale * 100)}%
+            </div>
+            
+            {/* 可缩放拖拽的图片 */}
+            <div 
+              className="flex items-center justify-center"
+              style={{ overflow: 'hidden', height: '80vh' }}
+            >
+              <img 
+                src={currentImage} 
+                alt="查看图片" 
+                className="transition-transform duration-100 cursor-grab active:cursor-grabbing"
+                style={{ 
+                  transform: `translate(${position.x}px, ${position.y}px) scale(${scale})`,
+                  maxHeight: 'none',
+                  maxWidth: 'none'
+                }}
+                onWheel={handleWheel}
+                onMouseDown={handleDragStart}
+                onClick={(e) => e.stopPropagation()}
+                onLoad={(e) => {
+                  // 图片加载完成后的处理
+                  const img = e.currentTarget;
+                  // 可以在这里添加一些图片加载后的逻辑
+                }}
+                onError={(e) => {
+                  const img = e.currentTarget;
+                  img.src = '/images/20250916161008.png'; // 加载失败时显示的默认图片
+                  img.alt = '图片加载失败';
+                }}
+              />
+            </div>
+            
+            {/* 使用提示 */}
+            <div className="absolute bottom-0 left-0 right-0 text-center text-white text-sm p-2 bg-black bg-opacity-50">
+              提示：使用鼠标滚轮缩放，拖拽移动图片，或点击按钮控制
+            </div>
           </div>
         </div>
       )}

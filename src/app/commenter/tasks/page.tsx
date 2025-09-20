@@ -11,13 +11,13 @@ type TaskStatus = 'sub_progress' | 'sub_completed' | 'sub_pending_review' | 'wai
 interface Task {
   id: string;
   parentId?: string;
-  title: string;
-  price: number;
-  category: string;
+  title?: string;
+  price?: number;
+  unitPrice?: number;
   status: TaskStatus;
-  statusText: string;
-  statusColor: string;
-  description: string;
+  statusText?: string;
+  statusColor?: string;
+  description?: string;
   deadline?: string;
   progress?: number;
   submitTime?: string;
@@ -27,10 +27,12 @@ interface Task {
   publishTime: string;
   videoUrl?: string;
   mention?: string;
-  screenshotUrl?: string; // 添加截图URL字段
-  recommendedComment?: string; // 推荐评论字段
-  commentContent?: string; // 评论内容字段
-  subOrderNumber?: string; // 子订单的订单号
+  screenshotUrl?: string;
+  recommendedComment?: string;
+  commentContent?: string;
+  subOrderNumber?: string;
+  orderNumber?: string;
+  taskType?: string;
 }
 
 export default function CommenterTasksPage() {
@@ -47,18 +49,19 @@ export default function CommenterTasksPage() {
   
   // 获取用户订单数据
   const fetchUserTasks = async () => {
-    try {
-      setIsLoading(true);
-      setErrorMessage(null);
+    setIsLoading(true);
+    setErrorMessage(null);
       
       // 获取当前用户
       const currentUser = CommenterAuthStorage.getCurrentUser();
       
       // 获取token并验证
       const token = localStorage.getItem('commenter_auth_token');
+      const authExpires = localStorage.getItem('commenter_auth_expires');
       
-      // 如果没有token，重定向到登录页面
+      // 检查token是否存在
       if (!token) {
+        console.warn('未找到认证token，重定向到登录页面');
         setErrorMessage('请先登录');
         setTimeout(() => {
           router.push('/auth/login/commenterlogin');
@@ -66,22 +69,69 @@ export default function CommenterTasksPage() {
         return;
       }
       
+      // 检查token是否已过期
+      if (authExpires) {
+        const expiryTime = parseInt(authExpires, 10);
+        const now = Date.now();
+        
+        if (now > expiryTime) {
+          console.warn('认证token已过期，需要重新登录');
+          setErrorMessage('登录已过期，请重新登录');
+          localStorage.removeItem('commenter_auth_token');
+          localStorage.removeItem('commenter_user_info');
+          localStorage.removeItem('commenter_auth_expires');
+          setTimeout(() => {
+            router.push('/auth/login/commenterlogin');
+          }, 1000);
+          return;
+        }
+      }
+      
       // 添加时间戳参数防止浏览器缓存，确保每次获取最新数据
       const timestamp = new Date().getTime();
-      const response = await fetch(`/api/commenter/user-tasks?t=${timestamp}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-          'Cache-Control': 'no-cache, no-store, must-revalidate'
-        }
-      });
       
-      const result = await response.json();
+      // 设置请求超时
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => {
+        console.warn('请求超时，中止操作');
+        controller.abort();
+        setIsLoading(false);
+        setErrorMessage('请求超时，请检查网络连接');
+      }, 30000); // 30秒超时
+      
+      try {
+        const response = await fetch(`/api/commenter/user-tasks?t=${timestamp}`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+            'Cache-Control': 'no-cache, no-store, must-revalidate'
+          },
+          signal: controller.signal
+        });
+        
+        // 清除超时计时器
+        clearTimeout(timeoutId);
+        
+        console.debug('API请求成功，状态码:', response.status);
+        
+        const result = await response.json();
         
         if (result.success && result.data) {
-          setTasks(result.data);
+          // API现在已经直接在任务对象中返回了完整的taskType和recommendedComment字段
+          // 不需要再手动从主订单映射，保留处理逻辑以确保兼容性
+          const processedTasks = result.data;
+          
+          console.debug(`获取到 ${processedTasks.length} 个任务，每个任务已包含完整字段:`);
+          if (processedTasks.length > 0) {
+            console.debug(`  - 第一个任务taskType: ${processedTasks[0].taskType}`);
+            console.debug(`  - 第一个任务recommendedComment: ${processedTasks[0].recommendedComment ? '存在' : '不存在'}`);
+          }
+          
+          console.debug(`获取到 ${processedTasks.length} 个任务`);
+          setTasks(processedTasks);
         } else if (response.status === 401) {
+          console.warn('认证失败，token无效或已过期');
           setErrorMessage('登录已过期，请重新登录');
           localStorage.removeItem('commenter_auth_token');
           localStorage.removeItem('commenter_user_info');
@@ -94,19 +144,37 @@ export default function CommenterTasksPage() {
           setErrorMessage(result.message || '获取订单失败');
           setTasks([]);
         }
-    } catch (error) {
-      console.error('获取订单时发生错误:', error);
-      setErrorMessage('网络错误，请稍后重试');
-      setTasks([]);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+      } catch (error) {
+        // 清除超时计时器
+        clearTimeout(timeoutId);
+        
+        if (error instanceof DOMException && error.name === 'AbortError') {
+          // 处理请求超时中止的情况
+          return;
+        }
+        
+        console.error('获取订单时发生网络错误:', error);
+        setErrorMessage('网络错误，请稍后重试');
+        setTasks([]);
+      } finally {
+        setIsLoading(false);
+      }
+  }
   
-  // 组件加载时获取数据
+  // 初始化数据
   useEffect(() => {
     fetchUserTasks();
   }, []);
+
+  // 任务类型映射函数 - 将英文taskType转换为中文名称
+  const getTaskTypeName = (taskType?: string): string => {
+    const taskTypeMap: Record<string, string> = {
+      'comment_middle': '中评任务',
+      'account_rental': '账号出租',
+      'video_send': '视频分享'
+    };
+    return taskTypeMap[taskType || ''] || taskType || '';
+  };
   
   // 过滤不同状态的任务
   const getFilteredTasks = (status: TaskStatus) => {
@@ -549,28 +617,55 @@ export default function CommenterTasksPage() {
           </div>
         ) : (
           currentTasks.map((task) => (
-            <div key={task.id || 'unknown'} className="bg-white rounded-lg p-4 mb-4 shadow-sm">
+            <div key={task.id || 'unknown'} className="rounded-lg p-4 mb-4 shadow-sm transition-all hover:shadow-md bg-white">
               <div className="flex justify-between items-start mb-3">
-                <h3 className="font-bold text-gray-800">订单号：{task.subOrderNumber || task.title || '未命名任务'}</h3>
-                <span className={`px-2 py-1 rounded text-xs ${task.statusColor || 
-                  (task.status === 'sub_pending_review' ? 'bg-orange-100 text-orange-600' : 
-                   task.status === 'sub_progress' ? 'bg-blue-100 text-blue-600' : 
-                   task.status === 'sub_completed' ? 'bg-green-100 text-green-600' : 
-                   task.status === 'waiting_collect' ? 'bg-purple-100 text-purple-600' : 
-                   'bg-gray-100 text-gray-600')}`}>
-                  {task.statusText || 
-                   (task.status === 'sub_pending_review' ? '待审核' : 
-                    task.status === 'sub_progress' ? '进行中' : 
-                    task.status === 'sub_completed' ? '已完成' : 
-                    task.status === 'waiting_collect' ? '待领取' : '未知状态')}
-                </span>
+                <h3 className="font-bold text-gray-800">订单号：{task.subOrderNumber || task.orderNumber || '未命名任务'}</h3>
               </div>
               
-              <div className="flex justify-between items-center mb-3">
-                <div className="text-lg font-bold text-orange-500">¥{(task.price || 0).toFixed(2)}</div>
-                <div className="text-xs text-gray-500">
-                  {task.category || '评论'} | {task.publishTime || '未知时间'}
-                </div>
+              {/* 价格和任务信息区域 - 显示单价、任务状态和发布时间 */}
+              <div className="mb-3">
+                <div className="text-lg font-bold text-orange-500 mb-2">订单单价：¥{(task.unitPrice || task.price || 0).toFixed(2)}</div>
+                <div className="flex flex-col space-y-1">
+                  <span className={`text-xs px-2 py-0.5 rounded whitespace-nowrap inline-block w-32 ${task.statusColor || 
+                      (task.status === 'sub_pending_review' ? 'bg-orange-100 text-orange-600' : 
+                       task.status === 'sub_progress' ? 'bg-blue-100 text-blue-600' : 
+                       task.status === 'sub_completed' ? 'bg-green-100 text-green-600' : 
+                       task.status === 'waiting_collect' ? 'bg-purple-100 text-purple-600' : 
+                       'bg-gray-100 text-gray-600')}`}>
+                      状态：{task.statusText || 
+                       (task.status === 'sub_pending_review' ? '待审核' : 
+                        task.status === 'sub_progress' ? '进行中' : 
+                        task.status === 'sub_completed' ? '已完成' : 
+                        task.status === 'waiting_collect' ? '待领取' : '未知状态')}
+                    </span>
+
+                     <span className="text-xs px-2 py-0.5 rounded bg-blue-100 text-blue-600 whitespace-nowrap inline-block w-32">
+                      任务类型：{getTaskTypeName(task.taskType) || '评论'}
+                    </span>
+
+                    <span className="text-xs text-gray-500">
+                      发布时间：{task.publishTime || '未知时间'}
+                    </span>
+                    
+                    {/* 时间信息 */}
+                    {task.deadline && task.status === 'sub_progress' && (
+                      <div className="text-xs text-gray-500 mb-3">
+                        截止时间：{task.deadline}
+                      </div>
+                    )}
+                     {(task.submitTime && task.status === 'sub_pending_review') && (
+                        <div className="text-xs text-gray-500 mb-3">
+                          提交时间：{task.submitTime}
+                        </div>
+                      )}
+                      
+                      {task.completedTime && task.status === 'sub_completed' && (
+                        <div className="text-xs text-gray-500 mb-3">
+                          完成时间：{task.completedTime}
+                        </div>
+                      )}
+                   
+                  </div>
               </div>
               
               <div className="text-sm text-gray-600 mb-3">
@@ -597,42 +692,24 @@ export default function CommenterTasksPage() {
                 </div>
               )}
               
-              {/* 时间信息 */}
-              {task.deadline && task.status === 'sub_progress' && (
-                <div className="text-xs text-gray-500 mb-3">
-                  截止时间：{task.deadline}
-                </div>
-              )}
               
-              {(task.submitTime && task.status === 'sub_pending_review') && (
-                <div className="text-xs text-gray-500 mb-3">
-                  提交时间：{task.submitTime}
-                </div>
-              )}
+             
               
-              {task.completedTime && task.status === 'sub_completed' && (
-                <div className="text-xs text-gray-500 mb-3">
-                  完成时间：{task.completedTime}
+              {/* 推荐评论区域 - 所有任务都显示 */}
+              <div className="mb-4 bg-blue-50 p-3 rounded-lg border border-blue-100">
+                <div className="flex justify-between items-center mb-1">
+                  <h4 className="text-sm font-medium text-blue-700">✏️ 推荐评论</h4>
+                  <button 
+                    className="text-xs bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 transition-colors"
+                    onClick={() => handleCopyComment(task.id, task.recommendedComment)}
+                  >
+                    📋 复制评论
+                  </button>
                 </div>
-              )}
-              
-              {/* 推荐评论区域 */}
-              {task.recommendedComment && (
-                <div className="mb-4 bg-yellow-50 p-3 rounded-lg">
-                  <div className="flex justify-between items-center mb-1">
-                    <h4 className="text-sm font-medium text-yellow-700">推荐评论</h4>
-                    <button 
-                      className="text-xs bg-yellow-500 text-white px-2 py-1 rounded hover:bg-yellow-600 transition-colors"
-                      onClick={() => handleCopyComment(task.id, task.recommendedComment)}
-                    >
-                      复制评论
-                    </button>
-                  </div>
-                  <p className="text-sm text-gray-600 bg-white p-2 rounded">
-                    {task.recommendedComment}
-                  </p>
-                </div>
-              )}
+                <p className="text-sm text-gray-700 bg-white p-3 rounded border border-blue-100 whitespace-pre-line">
+                  {task.recommendedComment || '暂无推荐评论内容，请根据任务要求自行撰写。'}
+                </p>
+              </div>
 
               {/* 截图显示区域 - 自适应高度，居中显示 */}
               <div className="mb-4">

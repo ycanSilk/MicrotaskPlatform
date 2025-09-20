@@ -3,20 +3,33 @@ import path from 'path';
 import { NextResponse } from 'next/server';
 import { validateTokenByRole } from '@/auth/common';
 
+// 定义子订单接口
+interface SubOrder {
+  id: string;
+  status: string;
+  commenterId?: string;
+  commenterName?: string;
+  commentContent?: string;
+  commentTime?: string;
+  screenshotUrl?: string;
+  orderNumber?: string;
+  unitPrice?: number;
+}
+
 // 定义类型接口
 interface Order {
   id: string;
   userId: string;
   status: string;
-  subOrders?: Array<{
-    status: string;
-  }>;
+  subOrders?: SubOrder[];
   taskRequirements: string;
   unitPrice: number;
   completedQuantity: number;
   quantity: number;
   publishTime: string;
   deadline: string;
+  taskType?: string;
+  orderNumber?: string;
 }
 
 interface OrderData {
@@ -40,6 +53,9 @@ interface Task {
   publishTime: string;
   deadline: string;
   description: string;
+  taskRequirements: string;
+  taskType?: string;
+  subOrders?: SubOrder[];
 }
 
 interface ApiResponse<T> {
@@ -92,10 +108,18 @@ const transformOrderToTask = (order: Order): Task => {
   // 计算子任务各种状态的数量
   const { inProgress, pending, completed, pendingReview } = countSubOrderStatuses(order.subOrders || []);
   
+  // 根据任务类型确定分类
+  let category = '评论任务';
+  if (order.taskType === 'video_send') {
+    category = '视频推送任务';
+  } else if (order.taskType === 'account_rental') {
+    category = '租号任务';
+  }
+  
   return {
     id: order.id,
     title: truncateTitle(order.taskRequirements),
-    category: '评论任务',
+    category,
     price: order.unitPrice,
     status: statusInfo.status,
     statusText: statusInfo.statusText,
@@ -108,7 +132,10 @@ const transformOrderToTask = (order: Order): Task => {
     pendingReview,
     publishTime: formatDate(order.publishTime),
     deadline: formatDate(order.deadline),
-    description: order.taskRequirements
+    description: order.taskRequirements,
+    taskRequirements: order.taskRequirements,
+    taskType: order.taskType,
+    subOrders: order.subOrders
   };
 };
 
@@ -146,7 +173,7 @@ const getStatusInfo = (status: string): { status: string; statusText: string; st
  * @param {Array} subOrders - 子订单数组
  * @returns {Object} 各状态数量
  */
-const countSubOrderStatuses = (subOrders: Array<{ status: string }>): {
+const countSubOrderStatuses = (subOrders: SubOrder[]): {
   inProgress: number;
   pending: number;
   completed: number;

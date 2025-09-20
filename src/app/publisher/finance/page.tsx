@@ -1,7 +1,9 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import AlertModal from '../../../components/ui/AlertModal';
+import transactionData from '../../../data/financialRecords/transactionRecords.json';
 
 // 定义类型接口
 export interface BalanceData {
@@ -9,6 +11,7 @@ export interface BalanceData {
 }
 
 export default function PublisherFinancePage() {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState('recharge');
   const [rechargeAmount, setRechargeAmount] = useState('');
   // 初始化余额数据，确保符合BalanceData类型
@@ -19,6 +22,7 @@ export default function PublisherFinancePage() {
   const [loading, setLoading] = useState(true);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('alipay');
   const [rechargeSuccess, setRechargeSuccess] = useState(false);
+  const [monthlyTransactions, setMonthlyTransactions] = useState<Record<string, any[]>>({});
 
   // 通用提示框状态
   const [showAlertModal, setShowAlertModal] = useState(false);
@@ -108,50 +112,61 @@ export default function PublisherFinancePage() {
         return;
       }
       
-      // 从localStorage获取token
-      const token = localStorage.getItem('publisher_auth_token');
-      console.log('fetchFinanceData: 获取到token', token ? '是' : '否');
+      // 模拟数据：从本地JSON文件获取交易记录数据
+      console.log('fetchFinanceData: 从本地JSON文件获取交易记录数据');
       
-      if (!token) {
-        console.log('fetchFinanceData: 未获取到token，提示登录');
-        showAlert('提示', '请先登录', '💡');
-        return;
-      }
-
-      console.log('fetchFinanceData: 准备发送API请求到 /api/publisher/finance');
-      const response = await fetch('/api/publisher/finance', {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        cache: 'no-store',
-        next: { revalidate: 0 }
+      // 处理余额数据（这里使用模拟数据）
+      const newBalance: BalanceData = {
+        balance: 1298 // 模拟余额数据
+      };
+      
+      console.log('fetchFinanceData: 使用模拟余额数据:', newBalance);
+      setBalance(newBalance);
+      
+      // 处理交易记录 - 从本地JSON文件获取
+      // 过滤出当前用户的交易记录
+      const currentUserId = userInfo.userId || 'pub003'; // 默认使用pub003作为演示
+      const transactionsList = transactionData.transactions
+        .filter((trans: any) => trans.userId === currentUserId)
+        .map((trans: any) => ({
+          ...trans,
+          // 转换数据结构以匹配前端展示需求
+          id: trans.transactionId,
+          type: trans.transactionType,
+          time: trans.orderTime,
+          method: trans.paymentMethod || (trans.transactionType === 'recharge' ? '账户充值' : '账户支出')
+        }));
+      
+      setTransactions(transactionsList);
+      
+      // 按月份分组交易记录
+      const monthlyData: Record<string, any[]> = {};
+      transactionsList.forEach((transaction: any) => {
+        if (transaction.time) {
+          const date = new Date(transaction.time);
+          const monthKey = `${date.getFullYear()}年${date.getMonth() + 1}月`;
+          if (!monthlyData[monthKey]) {
+            monthlyData[monthKey] = [];
+          }
+          monthlyData[monthKey].push(transaction);
+        }
       });
-
-      console.log('fetchFinanceData: API请求完成，状态码:', response.status);
-      const data = await response.json();
-      console.log('fetchFinanceData: API返回数据', data);
       
-      if (data.success && data.data) {
-        console.log('fetchFinanceData: 数据获取成功，开始处理余额数据');
-        console.log('fetchFinanceData: 原始余额数据结构:', data.data);
-        
-        // 直接获取并使用后端返回的余额数据
-        const newBalance: BalanceData = {
-          balance: data.data.balance?.total || 0
-        };
-        
-        console.log('fetchFinanceData: 使用后端返回的余额数据:', newBalance);
-        setBalance(newBalance);
-        setTransactions(Array.isArray(data.data.transactions) ? data.data.transactions : []);
-        
-        // 显示当前登录用户信息
-        console.log(`当前登录用户: ${userInfo.username || '未知用户'} (ID: ${userInfo.userId || '未知ID'})`);
-      } else {
-        console.log('fetchFinanceData: 获取数据失败', data.message || '未知错误');
-        showAlert('获取数据失败', data.message || '未知错误', '❌');
-      }
+      // 按月份降序排列
+      const sortedMonthlyData: Record<string, any[]> = {};
+      Object.keys(monthlyData).sort((a, b) => {
+        const [yearA, monthA] = a.match(/(\d+)年(\d+)月/)!.slice(1).map(Number);
+        const [yearB, monthB] = b.match(/(\d+)年(\d+)月/)!.slice(1).map(Number);
+        return (yearB * 12 + monthB) - (yearA * 12 + monthA);
+      }).forEach(key => {
+        sortedMonthlyData[key] = monthlyData[key];
+      });
+      
+      setMonthlyTransactions(sortedMonthlyData);
+      
+      // 显示当前登录用户信息
+      console.log(`当前登录用户: ${userInfo.username || '未知用户'} (ID: ${userInfo.userId || '未知ID'})`);
+      
     } catch (error) {
       console.error('获取财务数据失败:', error);
       showAlert('网络错误', '获取数据失败，请稍后重试', '❌');
@@ -242,13 +257,23 @@ export default function PublisherFinancePage() {
   // 3. availableBalance: 冗余字段，当前实现中与balance保持一致
   // 这三个字段在当前版本中存储相同的值，是为了未来可能的扩展需求，比如实现余额冻结功能
 
-  const getTransactionIcon = (type: string) => {
-    switch (type) {
-      case 'recharge': return '💰';
-      case 'withdraw': return '🏦';
-      case 'expense': return '📤';
-      default: return '💳';
+  // 获取交易图标
+  const getTransactionIcon = (type: string, expenseType?: string) => {
+    if (type === 'recharge') return '💰';
+    if (type === 'withdraw') return '🏦';
+    if (type === 'expense') {
+      switch (expenseType) {
+        case 'task_publish': return '📝';
+        case 'platform_fee': return '💼';
+        default: return '📤';
+      }
     }
+    return '💳';
+  };
+  
+  // 跳转到交易详情页
+  const handleTransactionClick = (transactionId: string) => {
+    router.push(`/publisher/transactions/${transactionId}`);
   };
 
   const getTransactionColor = (type: string) => {
@@ -403,48 +428,96 @@ export default function PublisherFinancePage() {
 
       {activeTab === 'records' && (
         <>
-          {/* 交易记录 */}
+          {/* 交易记录 - 支付宝账单风格 */}
           <div className="mx-4 mt-6">
-            <div className="bg-white rounded-lg shadow-sm">
+            <div className="bg-white rounded-lg shadow-sm overflow-hidden">
               <div className="p-4 border-b">
                 <h3 className="font-bold text-gray-800">交易记录</h3>
               </div>
-              <div className="divide-y max-h-96 overflow-y-auto">
+              
+              {/* 记录内容 */}
+              <div className="max-h-[60vh] overflow-y-auto">
                 {loading ? (
                   <div className="p-8 text-center text-gray-500">加载中...</div>
                 ) : transactions.length > 0 ? (
-                  transactions.map((record) => (
-                    <div key={record.id} className="p-4">
-                      <div className="flex justify-between items-start mb-2">
-                        <div className="flex items-center space-x-3">
-                          <span className="text-xl">{getTransactionIcon(record.type)}</span>
-                          <div>
-                            <div className="font-medium text-gray-800">{record.method}</div>
-                            <div className="text-xs text-gray-500">{record.time}</div>
-                            <div className="text-xs text-gray-400">订单号：{record.orderId}</div>
-                          </div>
+                  <>
+                    {/* 按月份分组显示交易记录 */}
+                    {Object.entries(monthlyTransactions).map(([month, records]) => (
+                      <div key={month}>
+                        {/* 月份标题 */}
+                        <div className="px-4 py-3 bg-gray-50 border-b">
+                          <span className="text-sm font-medium text-gray-600">{month}</span>
                         </div>
-                        <div className="text-right">
-                          <div className={`font-bold ${getTransactionColor(record.type)}`}>
-                            {record.amount > 0 ? '+' : ''}¥{Math.abs(record.amount).toFixed(2)}
+                        
+                        {/* 交易记录列表 */}
+                        {records.map((record) => (
+                          <div 
+                            key={record.id} 
+                            className="border-b last:border-0"
+                          >
+                            <button
+                              onClick={() => handleTransactionClick(record.id)}
+                              className="w-full p-4 hover:bg-gray-50 transition-colors flex justify-between items-center"
+                            >
+                              {/* 左侧：图标、标题、描述 */}
+                              <div className="flex items-center space-x-3">
+                                <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center">
+                                  <span className="text-xl">
+                                    {getTransactionIcon(record.type, record.expenseType)}
+                                  </span>
+                                </div>
+                                <div className="text-left">
+                                  <div className="font-medium text-gray-800 mb-1">
+                                    {record.method || (record.type === 'recharge' ? '账户充值' : '账户支出')}
+                                  </div>
+                                  <div className="text-sm text-gray-500">
+                                    {record.expenseType === 'task_publish' ? '任务发布' : ''}
+                                  </div>
+                                  <div className="text-xs text-gray-400 mt-1">
+                                    {new Date(record.time).toLocaleDateString('zh-CN', { 
+                                      month: '2-digit', 
+                                      day: '2-digit',
+                                      hour: '2-digit',
+                                      minute: '2-digit'
+                                    })}
+                                  </div>
+                                </div>
+                              </div>
+                              
+                              {/* 右侧：金额和状态 */}
+                              <div className="text-right">
+                                <div className={`font-bold text-lg ${getTransactionColor(record.type)}`}>
+                                  {record.amount > 0 ? '+' : ''}¥{Math.abs(record.amount).toFixed(2)}
+                                </div>
+                                <div className={`text-xs ${getStatusColor(record.status)} mt-1`}>
+                                  {getStatusText(record.status)}
+                                </div>
+                                <div className="text-xs text-gray-400 mt-1">
+                                  {record.orderId}
+                                </div>
+                              </div>
+                            </button>
                           </div>
-                          <div className={`text-xs ${getStatusColor(record.status)}`}>
-                            {getStatusText(record.status)}
-                          </div>
-                        </div>
+                        ))}
                       </div>
-                    </div>
-                  ))
+                    ))}
+                  </>
                 ) : (
                   <div className="p-8 text-center text-gray-500">暂无交易记录</div>
                 )}
               </div>
               
-              {/* 查看更多 */}
-              <div className="p-4 border-t bg-blue-500 hover:bg-blue-700 mt-4">
-                <a href="/publisher/transactions" className="block w-full text-center text-white text-sm transition-colors ">
-                  查看全部交易记录
-                </a>
+              {/* 查看更多按钮 - 支付宝风格 */}
+              <div className="border-t">
+                <button
+                  onClick={() => router.push('/publisher/transactions')}
+                  className="w-full p-4 bg-white hover:bg-gray-50 transition-colors flex items-center justify-center"
+                >
+                  <span className="text-sm text-blue-500">查看更多交易记录</span>
+                  <svg className="w-4 h-4 ml-2 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
               </div>
             </div>
           </div>

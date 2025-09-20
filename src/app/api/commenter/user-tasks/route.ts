@@ -92,8 +92,8 @@ export async function GET(request: Request) {
                   id: subOrder.id,
                   parentId: subOrder.parentId,
                   title: `评论任务 #${order.orderNumber}`,
-                  price: subOrder.unitPrice,
-                  category: '评论',
+                  price: subOrder.unitPrice || order.unitPrice,
+                  unitPrice: subOrder.unitPrice || order.unitPrice,
                   // 确保状态命名统一使用'in_progress'标准
                   status: getTaskStatus(subOrder.status),
                   statusText: getStatusText(subOrder.status),
@@ -109,7 +109,10 @@ export async function GET(request: Request) {
                   videoUrl: order.videoUrl,
                   screenshotUrl: subOrder.screenshotUrl || '',
                   // 添加子订单自己的订单号字段
-                  subOrderNumber: subOrder.orderNumber || ''
+                  subOrderNumber: subOrder.orderNumber || '',
+                  // 从主订单获取taskType和recommendedComment
+                  taskType: order.taskType || 'comment',
+                  recommendedComment: order.recommendedComment || ''
                 };
                 
                 userTasks.push(task);

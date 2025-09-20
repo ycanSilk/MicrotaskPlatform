@@ -3,20 +3,24 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
-// 定义子任务数据类型
-interface SubTask {
+// 定义子任务数据类型 - 租号任务特定
+interface AccountRentalSubTask {
   id: string;
   parentId: string;
   status: 'sub_progress' | 'sub_completed' | 'sub_pending_review' | 'waiting_collect';
   commenterId: string;
   commenterName: string;
-  commentContent: string;
   commentTime: string;
   screenshotUrl: string;
+  accountDetails?: {
+    username: string;
+    password: string;
+    loginMethod: string;
+  };
 }
 
-// 定义任务数据类型
-interface Task {
+// 定义任务数据类型 - 租号任务特定
+interface AccountRentalTask {
   id: string;
   orderNumber: string;
   videoUrl: string;
@@ -28,19 +32,25 @@ interface Task {
   taskRequirements: string;
   publishTime: string;
   deadline: string;
-  subOrders: SubTask[];
+  taskType: string;
+  title: string;
+  accountInfo: {
+    platform: string;
+    accountLevel: string;
+    followerCount: string;
+    requiresVerification: boolean;
+    rentalDuration: string;
+  };
+  subOrders: AccountRentalSubTask[];
 }
 
-export default function TaskDetailPage() {
+export default function AccountRentalDetailPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const taskId = searchParams.get('id');
   
-  console.log('TaskDetailPage rendered with searchParams:', Object.fromEntries(searchParams.entries()));
-  console.log('Extracted taskId:', taskId);
-  
   const [loading, setLoading] = useState(true);
-  const [task, setTask] = useState<Task | null>(null);
+  const [task, setTask] = useState<AccountRentalTask | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -55,21 +65,17 @@ export default function TaskDetailPage() {
   const fetchTaskDetail = async (id: string) => {
     try {
       setLoading(true);
-      console.log(`[任务详情调试] 开始获取任务ID: ${id} 的任务详情`);
       
       // 调用API获取任务详情
-      const startTime = Date.now();
       const url = `/api/publisher/task-detail?taskId=${id}`;
-      console.log(`[任务详情调试] API请求URL: ${url}`);
       
       // 获取认证token（如果存在）
       let authToken = null;
       if (typeof window !== 'undefined') {
         try {
           authToken = localStorage.getItem('publisher_auth_token');
-          console.log(`[任务详情调试] 获取到认证token: ${authToken ? '存在' : '不存在'}`);
         } catch (e) {
-          console.warn(`[任务详情调试] 获取认证token时出错: ${e}`);
+          console.warn(`获取认证token时出错: ${e}`);
         }
       }
       
@@ -83,41 +89,29 @@ export default function TaskDetailPage() {
         cache: 'no-store' as RequestCache
       };
       
-      console.log(`[任务详情调试] 请求选项:`, {
-        headers: requestOptions.headers,
-        cache: requestOptions.cache
-      });
-      
       // 发送请求
       const response = await fetch(url, requestOptions);
-      const responseTime = Date.now() - startTime;
-      
-      console.log(`[任务详情调试] API响应状态码: ${response.status}, 响应时间: ${responseTime}ms`);
       
       // 检查响应是否成功
       if (!response.ok) {
         const errorText = await response.text();
-        console.error(`[任务详情调试] API请求失败: ${response.status} - ${errorText}`);
         setError(`API请求失败: ${response.status}`);
         return;
       }
       
       // 解析响应数据
       const result = await response.json();
-      console.log(`[任务详情调试] API响应数据:`, result);
       
-      if (result.success) {
-        console.log(`[任务详情调试] 成功获取任务详情，任务数据:`, result.data);
+      if (result.success && result.data.taskType === 'account_rental') {
         setTask(result.data);
+      } else if (result.success && result.data.taskType !== 'account_rental') {
+        setError('此任务不是租号任务');
       } else {
-        console.error(`[任务详情调试] API返回错误:`, result.message || '获取任务详情失败');
         setError(result.message || '获取任务详情失败');
       }
     } catch (err) {
-      console.error(`[任务详情调试] 获取任务详情时捕获异常:`, err);
       setError(`获取任务详情时发生错误: ${err instanceof Error ? err.message : String(err)}`);
     } finally {
-      console.log(`[任务详情调试] 获取任务详情流程结束`);
       setLoading(false);
     }
   };
@@ -257,6 +251,28 @@ export default function TaskDetailPage() {
     }
   };
 
+  // 账号等级映射
+  const getAccountLevelText = (level: string) => {
+    const levelMap: Record<string, string> = {
+      'level_1': '初级账号',
+      'level_2': '中级账号',
+      'level_3': '高级账号',
+      'level_4': '专业账号',
+      'level_5': '顶级账号'
+    };
+    return levelMap[level] || level;
+  };
+
+  // 登录方式映射
+  const getLoginMethodText = (method: string) => {
+    const methodMap: Record<string, string> = {
+      'phone_verification': '手机验证登录',
+      'password_only': '密码登录',
+      'third_party': '第三方登录'
+    };
+    return methodMap[method] || method;
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
       <div className="bg-white shadow-sm">
@@ -269,7 +285,7 @@ export default function TaskDetailPage() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
           </button>
-          <h1 className="text-lg font-bold">订单详情</h1>
+          <h1 className="text-lg font-bold">租号任务详情</h1>
         </div>
       </div>
 
@@ -277,7 +293,7 @@ export default function TaskDetailPage() {
         {/* 任务基本信息 */}
         <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-bold text-gray-800">订单信息</h2>
+            <h2 className="text-lg font-bold text-gray-800">{task.title}</h2>
             <span className={`px-3 py-1 rounded-full text-sm ${getStatusStyle(task.status)}`}>
               {getStatusText(task.status)}
             </span>
@@ -285,12 +301,12 @@ export default function TaskDetailPage() {
           
           <div className="grid grid-cols-2 gap-4 mb-4">
             <div>
-              <p className="text-sm text-gray-600">订单编号</p>
+              <p className="text-sm text-gray-600">任务编号</p>
               <p className="font-medium">{task.orderNumber}</p>
             </div>
             <div>
               <p className="text-sm text-gray-600">任务类型</p>
-              <p className="font-medium">评论任务</p>
+              <p className="font-medium">账号租用任务</p>
             </div>
             <div>
               <p className="text-sm text-gray-600">单价</p>
@@ -298,11 +314,11 @@ export default function TaskDetailPage() {
             </div>
             <div>
               <p className="text-sm text-gray-600">总数量</p>
-              <p className="font-medium">{task.quantity} 条</p>
+              <p className="font-medium">{task.quantity} 个账号</p>
             </div>
             <div>
               <p className="text-sm text-gray-600">已完成</p>
-              <p className="font-medium">{task.completedQuantity} 条</p>
+              <p className="font-medium">{task.completedQuantity} 个</p>
             </div>
             <div>
               <p className="text-sm text-gray-600">发布时间</p>
@@ -313,21 +329,52 @@ export default function TaskDetailPage() {
               <p className="font-medium">{new Date(task.deadline).toLocaleString('zh-CN')}</p>
             </div>
           </div>
-           <div className="mb-4">
-               <p className="text-sm text-gray-600">视频链接</p>
-               <a 
-                 href={task.videoUrl} 
-                 target="_blank" 
-                 rel="noopener noreferrer"
-                 className="text-blue-600 hover:text-blue-800 underline break-all"
-               >
-                 {task.videoUrl}
-               </a>
-             </div>
+          
           <div>
-            <p className="text-sm text-gray-600">订单要求</p>
-            <div className="bg-gray-50 p-3 rounded-lg">
-              <p className="text-gray-800">{task.taskRequirements}</p>
+            <div className="mb-4">
+                <p className="text-sm text-gray-600">视频链接</p>
+                <a 
+                  href={task.videoUrl} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-blue-600 hover:text-blue-800 underline break-all"
+                >
+                  {task.videoUrl || '暂无链接'}
+                </a>
+              </div>
+              <div>
+                <p className="text-sm text-gray-600 mb-2">任务要求</p>
+                <div className="bg-gray-50 p-3 rounded-lg">
+                  <p className="text-gray-800">{task.taskRequirements}</p>
+                </div>
+              </div>
+          </div>
+        </div>
+
+        {/* 账号信息 */}
+        <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
+          <h2 className="text-lg font-bold text-gray-800 mb-4">账号信息</h2>
+          
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <p className="text-sm text-gray-600">平台</p>
+              <p className="font-medium">{task.accountInfo.platform}</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-600">账号等级</p>
+              <p className="font-medium">{getAccountLevelText(task.accountInfo.accountLevel)}</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-600">粉丝数量</p>
+              <p className="font-medium">{task.accountInfo.followerCount}</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-600">需要验证</p>
+              <p className="font-medium">{task.accountInfo.requiresVerification ? '是' : '否'}</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-600">租用时长</p>
+              <p className="font-medium">{task.accountInfo.rentalDuration}</p>
             </div>
           </div>
         </div>
@@ -362,7 +409,7 @@ export default function TaskDetailPage() {
             {task.subOrders.map((subTask) => (
               <div key={subTask.id} className="border border-gray-200 rounded-lg p-4">
                 <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center space-x-2">
+                      <div className="flex items-center space-x-2">
                         <span className="font-medium">订单编号： {subTask.id}</span>
                         <span className={`px-2 py-1 rounded text-xs ${getStatusStyle(subTask.status)}`}>
                           {getStatusText(subTask.status)}
@@ -388,28 +435,31 @@ export default function TaskDetailPage() {
                 
                 {subTask.commenterName ? (
                     <div className="mb-3">
-                      <p className="text-sm text-gray-600">领取用户：</p>
+                      <p className="text-sm text-gray-600">领取用户</p>
                       <p className="font-medium">{subTask.commenterName}</p>
                     </div>
                   ) : (
                     <div className="mb-3">
-                      <p className="text-sm text-gray-600">领取用户：</p>
+                      <p className="text-sm text-gray-600">领取用户</p>
                       <p className="font-medium text-gray-400">暂无信息</p>
                     </div>
                   )}
                 
-                {subTask.commentContent ? (
+                {subTask.accountDetails ? (
                   <div className="mb-3">
-                    <p className="text-sm text-gray-600 mb-1">评论内容</p>
-                    <div className="bg-gray-50 p-3 rounded">
-                      <p className="text-gray-800">{subTask.commentContent}</p>
+                    <p className="text-sm text-gray-600 mb-1">账号详情</p>
+                    <div className="bg-gray-50 p-3 rounded space-y-2">
+                      <p className="text-gray-800">用户名: {subTask.accountDetails.username || '暂无'}</p>
+                      <p className="text-gray-800">登录方式: {subTask.accountDetails.loginMethod ? getLoginMethodText(subTask.accountDetails.loginMethod) : '暂无'}</p>
+                      {/* 出于安全考虑，不显示密码 */}
+                      <p className="text-gray-800">密码: ************</p>
                     </div>
                   </div>
                 ) : (
                   <div className="mb-3">
-                    <p className="text-sm text-gray-600 mb-1">评论内容</p>
+                    <p className="text-sm text-gray-600 mb-1">账号详情</p>
                     <div className="bg-gray-50 border border-gray-200 p-3 rounded flex items-center justify-center h-20">
-                      <p className="text-gray-400">暂无评论内容</p>
+                      <p className="text-gray-400">暂无账号详情</p>
                     </div>
                   </div>
                 )}
@@ -432,7 +482,7 @@ export default function TaskDetailPage() {
                     <div className="bg-gray-100 rounded flex items-center justify-center">
                       <img 
                         src={subTask.screenshotUrl} 
-                        alt="评论截图" 
+                        alt="操作截图" 
                         className="max-h-40 object-contain"
                       />
                     </div>

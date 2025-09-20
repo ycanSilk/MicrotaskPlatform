@@ -3,6 +3,17 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
+// 定义子任务接口
+interface SubOrder {
+  id: string;
+  status: string;
+  commenterId?: string;
+  commenterName?: string;
+  commentContent?: string;
+  commentTime?: string;
+  screenshotUrl?: string;
+}
+
 // 定义历史任务接口
 interface HistoryTask {
   id: string;
@@ -21,6 +32,9 @@ interface HistoryTask {
   publishTime: string;
   deadline: string;
   description: string;
+  taskRequirements?: string;
+  taskType?: string;
+  subOrders?: SubOrder[];
 }
 
 // API响应接口
@@ -111,8 +125,19 @@ const TaskHistoryPage: React.FC = () => {
   };
 
   // 处理任务操作
-  const handleTaskAction = (taskId: string) => {
-    const url = `/publisher/dashboard/task-detail?id=${encodeURIComponent(taskId)}`;
+  const handleTaskAction = (taskId: string, taskType?: string) => {
+    let url = '';
+    
+    // 根据任务类型决定跳转的详情页面
+    if (taskType === 'account_rental') {
+      url = `/publisher/dashboard/account-rental-detail?id=${encodeURIComponent(taskId)}`;
+    } else if (taskType === 'video_send') {
+      url = `/publisher/dashboard/video-send-detail?id=${encodeURIComponent(taskId)}`;
+    } else {
+      // 默认跳转到普通任务详情页
+      url = `/publisher/dashboard/task-detail?id=${encodeURIComponent(taskId)}`;
+    }
+    
     router.push(url as never);
   };
 
@@ -172,8 +197,7 @@ const TaskHistoryPage: React.FC = () => {
         >
           ← 返回
         </button>
-        <h2 className="text-lg font-bold text-gray-800">历史订单</h2>
-        <div></div> {/* 占位元素，用于保持标题居中 */}
+
       </div>
 
       {/* 排序选择 */}
@@ -202,20 +226,31 @@ const TaskHistoryPage: React.FC = () => {
               <div className="flex flex-wrap items-start justify-between gap-3 mb-3">
                 <div className="flex-1 min-w-[0]">
                   <div className="flex items-center space-x-2 mb-1 flex-wrap">
-                    <h3 className="font-bold text-gray-800 truncate">{task.title}</h3>
+                    <h3 className="font-bold text-gray-800 truncate">任务需求：{task.title}</h3>
                     <span className={`px-2 py-1 rounded text-xs ${task.statusColor}`}>
                       {task.statusText}
                     </span>
+                    {/* 任务类型显示 */}
+                    {task.taskType && (
+                      <span className="px-2 py-1 bg-blue-100 text-blue-600 rounded text-xs">
+                        {(() => {
+                          const taskTypeMap: Record<string, string> = {
+                            'comment_middle': '评论任务',
+                            'account_rental': '租号任务',
+                            'video_send': '视频推送任务'
+                          };
+                          return taskTypeMap[task.taskType] || task.taskType;
+                        })()}
+                      </span>
+                    )}
                   </div>
                   <div className="text-sm text-gray-600 space-y-1">
-                    <div>分类：{task.category} | 价格：¥{task.price}</div>
                     <div>发布时间：{task.publishTime}</div>
-                    <div>截止时间：{task.deadline}</div>
+                    <div>截止时间：{task.deadline}</div>   
                   </div>
                 </div>
-                <div className="text-lg font-bold text-green-600 whitespace-nowrap">
-                  ¥{task.price.toFixed(2)}
-                </div>
+               
+                {/* 总订单价格 */}
               </div>
 
               {/* 任务描述 */}
@@ -223,35 +258,65 @@ const TaskHistoryPage: React.FC = () => {
                 <div className="text-sm text-gray-600 bg-gray-50 p-2 rounded">
                   {task.description}
                 </div>
+                {/* 订单单价 */}
+                <div className="text-green-800 ">
+                  总金额：<span className="text-lg font-bold">¥{(task.price * task.maxParticipants).toFixed(2)}</span>
+                </div>
+                <div className="text-xs text-gray-500 mt-1">
+                  订单单价：¥{task.price.toFixed(2)} /条
+                </div>
               </div>
+
+              {/* 子任务状态统计 */}
+              {task.subOrders && task.subOrders.length > 0 && (
+                <div className="mb-3">
+                  <h4 className="text-sm font-medium text-gray-700 mb-2">子任务状态统计</h4>
+                  <div className="grid grid-cols-4 gap-2 text-xs">
+                    <div className="flex items-center">
+                      <span className="inline-block w-2 h-2 bg-green-500 rounded-full mr-1"></span>
+                      已完成：{task.subOrders.filter(sub => sub.status === 'sub_completed').length}
+                    </div>
+                    <div className="flex items-center">
+                      <span className="inline-block w-2 h-2 bg-blue-500 rounded-full mr-1"></span>
+                      进行中：{task.subOrders.filter(sub => sub.status === 'sub_progress').length}
+                    </div>
+                    <div className="flex items-center">
+                      <span className="inline-block w-2 h-2 bg-yellow-500 rounded-full mr-1"></span>
+                      待审核：{task.subOrders.filter(sub => sub.status === 'sub_pending_review').length}
+                    </div>
+                    <div className="flex items-center">
+                      <span className="inline-block w-2 h-2 bg-gray-400 rounded-full mr-1"></span>
+                      待领取：{task.subOrders.filter(sub => sub.status === 'waiting_collect').length}
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* 参与情况 */}
               <div className="mb-3">
                 <div className="flex justify-between items-center mb-1">
-                  <span className="text-sm text-gray-600">参与情况</span>
+                  <span className="text-sm text-gray-600">订单进度</span>
                   <span className="text-sm text-gray-800">
-                    {task.participants}/{task.maxParticipants} 人
+                    {task.participants}/{task.maxParticipants}
                   </span>
                 </div>
-                <div className="bg-gray-200 h-2 rounded overflow-hidden">
+                <div className="relative bg-green-200 h-5 rounded overflow-hidden">
+                  {/* 居中显示的百分比 */}
+                  <div className="absolute inset-0 flex items-center justify-center text-blue-700 font-medium text-sm z-10">
+                    {Math.round((task.participants / task.maxParticipants) * 100)}%
+                  </div>
                   <div 
-                    className="bg-green-500 h-2 rounded transition-all duration-500 ease-out"
+                    className="bg-green-500 h-5 rounded transition-all duration-500 ease-out"
                     style={{width: `${(task.participants / task.maxParticipants) * 100}%`}}
                   ></div>
-                </div>
-                <div className="grid grid-cols-2 gap-2 text-xs text-gray-500 mt-1">
-                  <div>已完成：{task.completed}人</div>
-                  <div>进行中：{task.inProgress}人</div>
-                  <div>待领取：{task.pending}人</div>
-                  <div>待审核：{task.pendingReview || 0}人</div>
                 </div>
               </div>
 
               {/* 操作按钮 */}
               <div className="flex">
                 <button
-                  onClick={() => handleTaskAction(task.id)}
-                  className="flex-1 bg-green-500 text-white py-2 rounded font-medium hover:bg-green-600 transition-colors text-sm"
+                  onClick={() => handleTaskAction(task.id, task.taskType)}
+                  className="flex-1 bg-blue-500 text-white py-2 rounded font-medium hover:bg-blue-700 transition-colors text-sm"
                 >
                   查看详情
                 </button>

@@ -91,7 +91,7 @@ export default function PublisherLayout({
     if (pathname.includes('/stats')) return '数据统计';
     if (pathname.includes('/finance')) return '充值提现';
     if (pathname.includes('/profile')) return '个人中心';
-    return '派单员中心';
+    return '历史订单';
   };
 
   // 检查当前路由是否激活

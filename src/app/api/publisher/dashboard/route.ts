@@ -64,16 +64,20 @@ const filterOrdersByTimeRange = (orders: any[], timeRange: string) => {
   console.log(`当前时间: ${now.toString()}`);
   console.log(`时间范围: ${timeRange}`);
   
-  // 设置时间范围的开始时间（使用本地时间）
+  // 设置时间范围的开始时间和结束时间（使用本地时间）
   let startTime: Date;
+  let endTime: Date = now; // 默认为当前时间
+  
   switch (timeRange) {
     case 'today':
       // 今天的开始时间（本地时间）
       startTime = new Date(now.getFullYear(), now.getMonth(), now.getDate());
       break;
     case 'yesterday':
-      // 昨天的开始时间（本地时间）
+      // 昨天的开始时间和结束时间（本地时间）
       startTime = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
+      endTime = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      endTime.setMilliseconds(-1); // 设为昨天的最后一毫秒
       break;
     case 'week':
       // 本周第一天（周一）的开始时间（本地时间）
@@ -91,14 +95,32 @@ const filterOrdersByTimeRange = (orders: any[], timeRange: string) => {
   }
   
   console.log(`开始时间: ${startTime.toString()}`);
-  console.log(`结束时间: ${now.toString()}`);
+  console.log(`结束时间: ${endTime.toString()}`);
   
   // 过滤在时间范围内的订单（检查发布时间，转换为本地时间进行比较）
   const filteredOrders = orders.filter(order => {
-    const publishTime = new Date(order.publishTime);
-    const isInRange = publishTime >= startTime && publishTime <= now;
-    console.log(`订单ID: ${order.id}, 发布时间: ${publishTime.toString()}, 是否在范围内: ${isInRange}`);
-    return isInRange;
+    try {
+      // 确保order.publishTime存在且是有效的日期字符串
+      if (!order.publishTime) {
+        console.log(`订单ID: ${order.id} 没有发布时间，跳过`);
+        return false;
+      }
+      
+      const publishTime = new Date(order.publishTime);
+      
+      // 检查publishTime是否是有效日期
+      if (isNaN(publishTime.getTime())) {
+        console.log(`订单ID: ${order.id} 发布时间无效: ${order.publishTime}`);
+        return false;
+      }
+      
+      const isInRange = publishTime >= startTime && publishTime <= endTime;
+      console.log(`订单ID: ${order.id}, 发布时间: ${publishTime.toString()}, 是否在范围内: ${isInRange}`);
+      return isInRange;
+    } catch (error) {
+      console.error(`处理订单ID: ${order.id} 时出错:`, error);
+      return false;
+    }
   });
   
   console.log(`过滤后的订单数量: ${filteredOrders.length}`);
@@ -159,7 +181,9 @@ const transformOrdersToTasks = (orders: any[]) => {
       pendingReview: pendingReview, // 待审核的数量
       publishTime: new Date(order.publishTime).toLocaleString('zh-CN'),
       deadline: new Date(order.deadline).toLocaleString('zh-CN'),
-      description: order.taskRequirements
+      description: order.taskRequirements,
+      orderNumber: order.orderNumber, // 添加订单号字段
+      taskType: order.taskType // 添加任务类型字段
     };
   });
 };
@@ -284,7 +308,10 @@ export async function GET(request: Request) {
       inProgress: task.inProgress, // 添加进行中的数量
       pending: task.pending, // 添加待抢单的数量
       pendingReview: task.pendingReview, // 添加待审核的数量
-      price: task.price // 添加单价字段
+      price: task.price, // 添加单价字段
+      orderNumber: task.orderNumber, // 传递订单号字段
+      taskType: task.taskType, // 传递任务类型字段
+      taskRequirements: task.description // 传递任务需求字段
     }));
     
     console.log(`派发的任务列表:`, dispatchedTasks.map(task => ({id: task.id, status: task.status, statusText: task.statusText})));

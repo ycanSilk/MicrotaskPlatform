@@ -3,20 +3,22 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
-// 定义子任务数据类型
-interface SubTask {
+// 定义子任务数据类型 - 视频推荐任务特定
+interface VideoSendSubTask {
   id: string;
   parentId: string;
   status: 'sub_progress' | 'sub_completed' | 'sub_pending_review' | 'waiting_collect';
   commenterId: string;
   commenterName: string;
-  commentContent: string;
   commentTime: string;
   screenshotUrl: string;
+  sharePlatform: string;
+  viewCount: number;
+  shareLink: string;
 }
 
-// 定义任务数据类型
-interface Task {
+// 定义任务数据类型 - 视频推荐任务特定
+interface VideoSendTask {
   id: string;
   orderNumber: string;
   videoUrl: string;
@@ -28,19 +30,25 @@ interface Task {
   taskRequirements: string;
   publishTime: string;
   deadline: string;
-  subOrders: SubTask[];
+  taskType: string;
+  title: string;
+  videoInfo: {
+    duration: string;
+    category: string;
+    requiredPlatforms: string[];
+    minViews: number;
+    requireScreenshot: boolean;
+  };
+  subOrders: VideoSendSubTask[];
 }
 
-export default function TaskDetailPage() {
+export default function VideoSendDetailPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const taskId = searchParams.get('id');
   
-  console.log('TaskDetailPage rendered with searchParams:', Object.fromEntries(searchParams.entries()));
-  console.log('Extracted taskId:', taskId);
-  
   const [loading, setLoading] = useState(true);
-  const [task, setTask] = useState<Task | null>(null);
+  const [task, setTask] = useState<VideoSendTask | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -55,21 +63,17 @@ export default function TaskDetailPage() {
   const fetchTaskDetail = async (id: string) => {
     try {
       setLoading(true);
-      console.log(`[任务详情调试] 开始获取任务ID: ${id} 的任务详情`);
       
       // 调用API获取任务详情
-      const startTime = Date.now();
       const url = `/api/publisher/task-detail?taskId=${id}`;
-      console.log(`[任务详情调试] API请求URL: ${url}`);
       
       // 获取认证token（如果存在）
       let authToken = null;
       if (typeof window !== 'undefined') {
         try {
           authToken = localStorage.getItem('publisher_auth_token');
-          console.log(`[任务详情调试] 获取到认证token: ${authToken ? '存在' : '不存在'}`);
         } catch (e) {
-          console.warn(`[任务详情调试] 获取认证token时出错: ${e}`);
+          console.warn(`获取认证token时出错: ${e}`);
         }
       }
       
@@ -83,41 +87,29 @@ export default function TaskDetailPage() {
         cache: 'no-store' as RequestCache
       };
       
-      console.log(`[任务详情调试] 请求选项:`, {
-        headers: requestOptions.headers,
-        cache: requestOptions.cache
-      });
-      
       // 发送请求
       const response = await fetch(url, requestOptions);
-      const responseTime = Date.now() - startTime;
-      
-      console.log(`[任务详情调试] API响应状态码: ${response.status}, 响应时间: ${responseTime}ms`);
       
       // 检查响应是否成功
       if (!response.ok) {
         const errorText = await response.text();
-        console.error(`[任务详情调试] API请求失败: ${response.status} - ${errorText}`);
         setError(`API请求失败: ${response.status}`);
         return;
       }
       
       // 解析响应数据
       const result = await response.json();
-      console.log(`[任务详情调试] API响应数据:`, result);
       
-      if (result.success) {
-        console.log(`[任务详情调试] 成功获取任务详情，任务数据:`, result.data);
+      if (result.success && result.data.taskType === 'video_send') {
         setTask(result.data);
+      } else if (result.success && result.data.taskType !== 'video_send') {
+        setError('此任务不是视频推荐任务');
       } else {
-        console.error(`[任务详情调试] API返回错误:`, result.message || '获取任务详情失败');
         setError(result.message || '获取任务详情失败');
       }
     } catch (err) {
-      console.error(`[任务详情调试] 获取任务详情时捕获异常:`, err);
       setError(`获取任务详情时发生错误: ${err instanceof Error ? err.message : String(err)}`);
     } finally {
-      console.log(`[任务详情调试] 获取任务详情流程结束`);
       setLoading(false);
     }
   };
@@ -257,6 +249,33 @@ export default function TaskDetailPage() {
     }
   };
 
+  // 平台名称映射
+  const getPlatformName = (platform: string) => {
+    const platformMap: Record<string, string> = {
+      'wechat': '微信',
+      'qq': 'QQ',
+      'weibo': '微博',
+      'douyin': '抖音',
+      'kuaishou': '快手',
+      'xiaohongshu': '小红书'
+    };
+    return platformMap[platform] || platform;
+  };
+
+  // 视频分类映射
+  const getCategoryName = (category: string) => {
+    const categoryMap: Record<string, string> = {
+      'entertainment': '娱乐',
+      'food': '美食',
+      'travel': '旅游',
+      'tech': '科技',
+      'fashion': '时尚',
+      'education': '教育',
+      'sports': '体育'
+    };
+    return categoryMap[category] || category;
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
       <div className="bg-white shadow-sm">
@@ -269,7 +288,7 @@ export default function TaskDetailPage() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
           </button>
-          <h1 className="text-lg font-bold">订单详情</h1>
+          <h1 className="text-lg font-bold">视频推荐任务详情</h1>
         </div>
       </div>
 
@@ -277,7 +296,7 @@ export default function TaskDetailPage() {
         {/* 任务基本信息 */}
         <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-bold text-gray-800">订单信息</h2>
+            <h2 className="text-lg font-bold text-gray-800">{task.title}</h2>
             <span className={`px-3 py-1 rounded-full text-sm ${getStatusStyle(task.status)}`}>
               {getStatusText(task.status)}
             </span>
@@ -290,7 +309,7 @@ export default function TaskDetailPage() {
             </div>
             <div>
               <p className="text-sm text-gray-600">任务类型</p>
-              <p className="font-medium">评论任务</p>
+              <p className="font-medium">视频推荐任务</p>
             </div>
             <div>
               <p className="text-sm text-gray-600">单价</p>
@@ -298,11 +317,11 @@ export default function TaskDetailPage() {
             </div>
             <div>
               <p className="text-sm text-gray-600">总数量</p>
-              <p className="font-medium">{task.quantity} 条</p>
+              <p className="font-medium">{task.quantity} 次</p>
             </div>
             <div>
               <p className="text-sm text-gray-600">已完成</p>
-              <p className="font-medium">{task.completedQuantity} 条</p>
+              <p className="font-medium">{task.completedQuantity} 次</p>
             </div>
             <div>
               <p className="text-sm text-gray-600">发布时间</p>
@@ -313,21 +332,57 @@ export default function TaskDetailPage() {
               <p className="font-medium">{new Date(task.deadline).toLocaleString('zh-CN')}</p>
             </div>
           </div>
-           <div className="mb-4">
-               <p className="text-sm text-gray-600">视频链接</p>
-               <a 
-                 href={task.videoUrl} 
-                 target="_blank" 
-                 rel="noopener noreferrer"
-                 className="text-blue-600 hover:text-blue-800 underline break-all"
-               >
-                 {task.videoUrl}
-               </a>
-             </div>
+          
           <div>
-            <p className="text-sm text-gray-600">订单要求</p>
+              <p className="text-sm text-gray-600 mb-2">视频链接</p>
+              <a 
+                href={task.videoUrl} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-blue-600 hover:text-blue-800 underline break-all"
+              >
+                {task.videoUrl}
+              </a>
+            </div>
+          
+          <div className="mt-4">
+            <p className="text-sm text-gray-600 mb-2">任务要求</p>
             <div className="bg-gray-50 p-3 rounded-lg">
               <p className="text-gray-800">{task.taskRequirements}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* 视频信息 */}
+        <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
+          <h2 className="text-lg font-bold text-gray-800 mb-4">视频信息</h2>
+          
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <p className="text-sm text-gray-600">视频时长</p>
+              <p className="font-medium">{task.videoInfo.duration}</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-600">视频分类</p>
+              <p className="font-medium">{getCategoryName(task.videoInfo.category)}</p>
+            </div>
+            <div className="col-span-2">
+              <p className="text-sm text-gray-600">需要分享平台</p>
+              <div className="flex flex-wrap gap-2 mt-1">
+                {task.videoInfo.requiredPlatforms.map((platform, index) => (
+                  <span key={index} className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs">
+                    {getPlatformName(platform)}
+                  </span>
+                ))}
+              </div>
+            </div>
+            <div>
+              <p className="text-sm text-gray-600">最低浏览量</p>
+              <p className="font-medium">{task.videoInfo.minViews} 次</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-600">需要截图</p>
+              <p className="font-medium">{task.videoInfo.requireScreenshot ? '是' : '否'}</p>
             </div>
           </div>
         </div>
@@ -362,7 +417,7 @@ export default function TaskDetailPage() {
             {task.subOrders.map((subTask) => (
               <div key={subTask.id} className="border border-gray-200 rounded-lg p-4">
                 <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center space-x-2">
+                      <div className="flex items-center space-x-2">
                         <span className="font-medium">订单编号： {subTask.id}</span>
                         <span className={`px-2 py-1 rounded text-xs ${getStatusStyle(subTask.status)}`}>
                           {getStatusText(subTask.status)}
@@ -398,19 +453,45 @@ export default function TaskDetailPage() {
                     </div>
                   )}
                 
-                {subTask.commentContent ? (
+                {subTask.sharePlatform ? (
                   <div className="mb-3">
-                    <p className="text-sm text-gray-600 mb-1">评论内容</p>
-                    <div className="bg-gray-50 p-3 rounded">
-                      <p className="text-gray-800">{subTask.commentContent}</p>
-                    </div>
+                    <p className="text-sm text-gray-600">分享平台</p>
+                    <p className="font-medium">{getPlatformName(subTask.sharePlatform)}</p>
                   </div>
                 ) : (
                   <div className="mb-3">
-                    <p className="text-sm text-gray-600 mb-1">评论内容</p>
-                    <div className="bg-gray-50 border border-gray-200 p-3 rounded flex items-center justify-center h-20">
-                      <p className="text-gray-400">暂无评论内容</p>
-                    </div>
+                    <p className="text-sm text-gray-600">分享平台</p>
+                    <p className="font-medium text-gray-400">暂无信息</p>
+                  </div>
+                )}
+                
+                {subTask.viewCount !== undefined ? (
+                  <div className="mb-3">
+                    <p className="text-sm text-gray-600">浏览量</p>
+                    <p className="font-medium">{subTask.viewCount} 次
+                      <span className={`ml-2 ${subTask.viewCount >= task.videoInfo.minViews ? 'text-green-600' : 'text-red-600'}`}>
+                        ({subTask.viewCount >= task.videoInfo.minViews ? '已达标' : '未达标'})
+                      </span>
+                    </p>
+                  </div>
+                ) : (
+                  <div className="mb-3">
+                    <p className="text-sm text-gray-600">浏览量</p>
+                    <p className="font-medium text-gray-400">暂无信息</p>
+                  </div>
+                )}
+                
+                {subTask.shareLink && (
+                  <div className="mb-3">
+                    <p className="text-sm text-gray-600">分享链接</p>
+                    <a 
+                      href={subTask.shareLink} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:text-blue-800 underline text-sm break-all"
+                    >
+                      {subTask.shareLink}
+                    </a>
                   </div>
                 )}
                 
@@ -432,7 +513,7 @@ export default function TaskDetailPage() {
                     <div className="bg-gray-100 rounded flex items-center justify-center">
                       <img 
                         src={subTask.screenshotUrl} 
-                        alt="评论截图" 
+                        alt="分享截图" 
                         className="max-h-40 object-contain"
                       />
                     </div>
