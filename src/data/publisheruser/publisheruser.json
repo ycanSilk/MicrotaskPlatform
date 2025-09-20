@@ -6,7 +6,7 @@
       "password": "p123456",
       "role": "publisher",
       "phone": "13900139001",
-      "balance": 8560.50,
+      "balance": 8560.5,
       "status": "active",
       "createdAt": "2024-01-02T08:00:00Z",
       "updatedAt": "2024-01-02T08:00:00Z"
@@ -17,7 +17,7 @@
       "password": "pub888888",
       "role": "publisher",
       "phone": "13900139002",
-      "balance": 12340.80,
+      "balance": 12340.8,
       "status": "active",
       "createdAt": "2024-01-03T09:15:00Z",
       "updatedAt": "2024-01-03T09:15:00Z"
@@ -28,10 +28,10 @@
       "password": "123456",
       "role": "publisher",
       "phone": "",
-      "balance": 100,
+      "balance": 1298,
       "status": "active",
       "createdAt": "2025-09-16T14:41:57.568Z",
-      "updatedAt": "2025-09-16T14:41:57.568Z"
+      "updatedAt": "2025-09-20T07:56:38.258Z"
     }
   ]
 }

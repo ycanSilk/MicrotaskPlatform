@@ -3,6 +3,11 @@ import fs from 'fs';
 import path from 'path';
 import { validateTokenByRole } from '@/auth/common';
 
+// 文件路径常量
+const PUBLISHER_USER_PATH = path.join(process.cwd(), 'src/data/publisheruser/publisheruser.json');
+const ACCOUNT_BALANCE_PATH = path.join(process.cwd(), 'src/data/accountBalance/accountBalance.json');
+const TRANSACTION_RECORDS_PATH = path.join(process.cwd(), 'src/data/financialRecords/transactionRecords.json');
+
 // 读取评论订单数据文件
 const getCommentOrders = () => {
   const filePath = path.join(process.cwd(), 'src/data/commentOrder/commentOrder.json');
@@ -10,7 +15,7 @@ const getCommentOrders = () => {
   return JSON.parse(fileContents);
 };
 
-// 写入评论订单数据文件 (事务方式)
+// 写入评论订单数据文件
 const saveCommentOrders = (data: any) => {
   try {
     const filePath = path.join(process.cwd(), 'src/data/commentOrder/commentOrder.json');
@@ -20,6 +25,170 @@ const saveCommentOrders = (data: any) => {
   } catch (error) {
     console.error('Failed to save comment orders:', error);
     return false;
+  }
+};
+
+// 读取发布者用户数据
+const getPublisherUserData = () => {
+  const filePath = PUBLISHER_USER_PATH;
+  const fileContents = fs.readFileSync(filePath, 'utf8');
+  return JSON.parse(fileContents);
+};
+
+// 更新发布者用户数据
+const updatePublisherUserData = (data: any) => {
+  try {
+    fs.writeFileSync(PUBLISHER_USER_PATH, JSON.stringify(data, null, 2), 'utf8');
+    console.log('Publisher user data saved successfully');
+    return true;
+  } catch (error) {
+    console.error('Failed to save publisher user data:', error);
+    return false;
+  }
+};
+
+// 更新账户余额数据
+const updateAccountBalanceData = (userId: string, newBalance: number, frozenAmount: number = 0) => {
+  try {
+    let balanceData = null;
+    try {
+      const balanceContent = fs.readFileSync(ACCOUNT_BALANCE_PATH, 'utf8');
+      balanceData = JSON.parse(balanceContent);
+    } catch (error) {
+      // 如果文件不存在或读取失败，创建新的数据结构
+      balanceData = {
+        userId: userId,
+        balance: 0,
+        frozenAmount: 0,
+        lastUpdateTime: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+    }
+    
+    // 确保是当前用户的余额数据
+    if (balanceData.userId === userId) {
+      balanceData.balance = newBalance;
+      balanceData.frozenAmount = frozenAmount;
+      balanceData.lastUpdateTime = new Date().toISOString();
+      balanceData.updatedAt = new Date().toISOString();
+      
+      fs.writeFileSync(ACCOUNT_BALANCE_PATH, JSON.stringify(balanceData, null, 2));
+      console.log('Account balance data updated successfully');
+      return true;
+    }
+    return false;
+  } catch (error) {
+    console.error('Failed to update account balance data:', error);
+    return false;
+  }
+};
+
+// 添加交易记录
+const addTransactionRecord = (userId: string, orderId: string, amount: number, type: string, description: string) => {
+  try {
+    let transactionData = null;
+    try {
+      const transactionContent = fs.readFileSync(TRANSACTION_RECORDS_PATH, 'utf8');
+      transactionData = JSON.parse(transactionContent);
+    } catch (error) {
+      // 如果文件不存在或读取失败，创建新的数据结构
+      transactionData = {
+        transactions: []
+      };
+    }
+    
+    const now = new Date().toISOString();
+    const newTransaction = {
+      orderId: orderId,
+      userId: userId,
+      transactionType: type, // 'expense' for task payment
+      expenseType: 'task_publish',
+      amount: amount,
+      currency: 'CNY',
+      transactionId: `trans${new Date().getTime()}`,
+      status: 'completed',
+      orderTime: now,
+      completedTime: now,
+      relatedId: orderId,
+      description: 'task_publish_fee'
+    };
+    
+    if (!transactionData.transactions) {
+      transactionData.transactions = [];
+    }
+    transactionData.transactions.unshift(newTransaction);
+    
+    fs.writeFileSync(TRANSACTION_RECORDS_PATH, JSON.stringify(transactionData, null, 2));
+    console.log('Transaction record added successfully');
+    return true;
+  } catch (error) {
+    console.error('Failed to add transaction record:', error);
+    return false;
+  }
+};
+
+// 事务化处理 - 发布任务并扣除余额
+const processTaskWithTransaction = (userId: string, orderId: string, totalCost: number, orderData: any, newOrder: any) => {
+  try {
+    console.log('开始事务处理 - 发布任务并扣除余额');
+    
+    // 1. 读取发布者用户数据
+    const publisherData = getPublisherUserData();
+    const userIndex = publisherData.users.findIndex((user: any) => user.id === userId);
+    
+    if (userIndex === -1) {
+      console.error('用户不存在');
+      throw new Error('用户不存在');
+    }
+    
+    const currentUser = publisherData.users[userIndex];
+    const currentBalance = currentUser.balance || 0;
+    
+    console.log(`当前用户余额: ¥${currentBalance}, 需要扣除: ¥${totalCost}`);
+    
+    // 2. 校验余额是否充足
+    if (currentBalance < totalCost) {
+      console.error('账户余额不足');
+      throw new Error('账户余额不足');
+    }
+    
+    // 3. 扣除余额
+    const newBalance = currentBalance - totalCost;
+    publisherData.users[userIndex].balance = newBalance;
+    publisherData.users[userIndex].updatedAt = new Date().toISOString();
+    
+    // 4. 添加新订单到订单列表
+    orderData.commentOrders.push(newOrder);
+    console.log('添加订单后数量:', orderData.commentOrders.length);
+    
+    // 5. 保存所有更改 (原子性操作)
+    console.log('保存所有数据更改...');
+    
+    // 先保存订单数据
+    const saveOrderResult = saveCommentOrders(orderData);
+    if (!saveOrderResult) {
+      throw new Error('保存订单数据失败');
+    }
+    
+    // 保存用户余额数据
+    const saveUserResult = updatePublisherUserData(publisherData);
+    if (!saveUserResult) {
+      // 如果保存用户数据失败，这里应该有回滚机制，但由于是文件操作，回滚比较复杂
+      // 在实际生产环境中，应该使用数据库事务
+      throw new Error('保存用户数据失败');
+    }
+    
+    // 更新账户余额数据
+    updateAccountBalanceData(userId, newBalance);
+    
+    // 添加交易记录
+    addTransactionRecord(userId, orderId, totalCost, 'expense', `发布${newOrder.taskType || '评论'}任务`);
+    
+    console.log('事务处理成功 - 任务发布并成功扣除余额');
+    return true;
+  } catch (error) {
+    console.error('事务处理失败:', error);
+    throw error;
   }
 };
 
@@ -85,6 +254,11 @@ const processDeadline = (deadline: string | null) => {
 };
 
 export async function POST(request: Request) {
+  // 在函数顶部声明变量，确保在catch块中也能访问
+  let currentUserId: string | null = null;
+  let taskId: string | null = null;
+  
+
   try {
     console.log('=== Comment Order API Called ===');
     console.log('Request URL:', request.url);
@@ -93,7 +267,6 @@ export async function POST(request: Request) {
     
     // 从请求头中获取认证token并解析用户ID
     const authHeader = request.headers.get('authorization');
-    let currentUserId = null;
     
     console.log('Auth header:', authHeader);
     
@@ -138,6 +311,8 @@ export async function POST(request: Request) {
     }
     const quantity = requestBody.quantity;
     const deadline = requestBody.deadline;
+    // 新增：是否需要图片评论参数
+    const needImageComment = requestBody.needImageComment || false;
 
     // 验证必需参数（不验证videoUrl格式）
     console.log('验证参数:', { taskId, title, price, description, quantity });
@@ -148,6 +323,8 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
+
+    // 移除评论内容相关字数限制 - 根据需求修改
 
     // 验证数量参数
     const quantityNum = parseInt(quantity);
@@ -213,6 +390,9 @@ export async function POST(request: Request) {
       taskRequirements: description,
       publishTime: new Date().toISOString(),
       deadline: processedDeadline,
+      needImageComment: needImageComment, // 新增：是否需要图片评论
+      taskType: taskId, // 添加任务类型
+      title: title, // 添加任务标题
       subOrders: generateSubOrders(newOrderId, quantityNum)
     };
     
@@ -222,23 +402,46 @@ export async function POST(request: Request) {
     orderData.commentOrders.push(newOrder);
     console.log('添加订单后数量:', orderData.commentOrders.length);
 
-    // 事务处理 - 保存更新后的订单数据
-    console.log('保存订单数据...');
-    const saveResult = saveCommentOrders(orderData);
+    // 计算总费用
+    const totalCost = priceNum * quantityNum;
+    console.log(`计算总费用: ¥${priceNum} × ${quantityNum} = ¥${totalCost}`);
     
-    if (saveResult) {
-      console.log('事务完成: 订单数据保存成功');
-      // 返回成功响应
-      return NextResponse.json({
-        success: true,
-        message: '评论任务发布成功！',
-        order: {
-          id: newOrder.id,
-          orderNumber: newOrder.orderNumber
+    // 执行事务化处理 - 发布任务并扣除余额
+    try {
+      // 注意：这里不添加新订单到orderData，因为这个操作会在processTaskWithTransaction函数内部执行
+      const transactionResult = processTaskWithTransaction(currentUserId, newOrderId, totalCost, orderData, newOrder);
+      
+      if (transactionResult) {
+        console.log('事务完成: 任务发布成功并成功扣除余额');
+        // 返回成功响应
+        return NextResponse.json({
+          success: true,
+          message: '评论任务发布成功！',
+          order: {
+            id: newOrder.id,
+            orderNumber: newOrder.orderNumber
+          },
+          totalCost: totalCost,
+          remainingBalance: (getPublisherUserData().users.find((user: any) => user.id === currentUserId)?.balance || 0)
+        });
+      } else {
+        throw new Error('事务处理失败');
+      }
+    } catch (error) {
+      console.error('事务处理失败:', error);
+      // 特定错误处理
+      if (error instanceof Error) {
+        if (error.message === '账户余额不足') {
+          return NextResponse.json(
+            { 
+              success: false, 
+              message: '账户余额不足',
+              errorType: 'InsufficientBalance'
+            },
+            { status: 400 }
+          );
         }
-      });
-    } else {
-      console.error('事务失败: 订单数据保存失败');
+      }
       // 返回错误响应
       return NextResponse.json(
         { success: false, message: '任务发布失败，请稍后重试' },

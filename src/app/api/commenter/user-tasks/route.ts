@@ -108,7 +108,6 @@ export async function GET(request: Request) {
                   reviewNote: '', // 可以从数据中获取审核备注
                   videoUrl: order.videoUrl,
                   screenshotUrl: subOrder.screenshotUrl || '',
-                  recommendedComment: order.recommendedComment || '',
                   // 添加子订单自己的订单号字段
                   subOrderNumber: subOrder.orderNumber || ''
                 };

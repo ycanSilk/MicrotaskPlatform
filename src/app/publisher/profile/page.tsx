@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import AlertModal from '../../../components/ui/AlertModal';
 
 export default function PublisherProfilePage() {
   const [activeTab, setActiveTab] = useState('profile');
@@ -16,6 +17,14 @@ export default function PublisherProfilePage() {
     description: '专注美食推广，为用户提供优质的探店体验任务。'
   });
   const router = useRouter();
+
+  // 通用提示框状态
+  const [showAlertModal, setShowAlertModal] = useState(false);
+  const [alertConfig, setAlertConfig] = useState({
+    title: '',
+    message: '',
+    icon: ''
+  });
 
   // 统计数据
   const statsData = {
@@ -42,9 +51,15 @@ export default function PublisherProfilePage() {
     { id: 'nightMode', label: '夜间模式', icon: '🌙', enabled: false }
   ];
 
+  // 显示通用提示框
+  const showAlert = (title: string, message: string, icon: string) => {
+    setAlertConfig({ title, message, icon });
+    setShowAlertModal(true);
+  };
+
   const handleSave = () => {
     setIsEditing(false);
-    alert('保存成功！');
+    showAlert('保存成功', '个人信息已成功保存', '✅');
   };
 
   const handleInputChange = (field: string, value: string) => {
@@ -56,7 +71,7 @@ export default function PublisherProfilePage() {
 
   const toggleSetting = (settingId: string) => {
     // 这里可以实现具体的设置切换逻辑
-    alert(`切换${settingId}设置`);
+    showAlert('设置切换', `已切换${settingId}设置`, '⚙️');
   };
 
   // 退出登录处理
@@ -363,6 +378,15 @@ export default function PublisherProfilePage() {
           </div>
         </>
       )}
+      
+      {/* 通用提示模态框 */}
+      <AlertModal
+        isOpen={showAlertModal}
+        title={alertConfig.title}
+        message={alertConfig.message}
+        icon={alertConfig.icon}
+        onClose={() => setShowAlertModal(false)}
+      />
     </div>
   );
 }

@@ -1,35 +1,124 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import AlertModal from '../../../components/ui/AlertModal';
+
+// 定义类型接口
+export interface BalanceData {
+  balance: number;
+}
 
 export default function PublisherFinancePage() {
   const [activeTab, setActiveTab] = useState('recharge');
   const [rechargeAmount, setRechargeAmount] = useState('');
-  const [withdrawAmount, setWithdrawAmount] = useState('');
-  const [balance, setBalance] = useState({
-    total: 0,
-    frozen: 0,
-    available: 0
+  // 初始化余额数据，确保符合BalanceData类型
+  const [balance, setBalance] = useState<BalanceData>({
+    balance: 0
   });
   const [transactions, setTransactions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('alipay');
   const [rechargeSuccess, setRechargeSuccess] = useState(false);
 
+  // 通用提示框状态
+  const [showAlertModal, setShowAlertModal] = useState(false);
+  const [alertConfig, setAlertConfig] = useState({
+    title: '',
+    message: '',
+    icon: ''
+  });
+  // 提示框确认后的回调函数
+  const [alertCallback, setAlertCallback] = useState<(() => void) | null>(null);
+
   // 充值档位
   const rechargeOptions = [100, 200, 500, 1000, 2000, 5000];
+
+  // 显示通用提示框
+  const showAlert = (title: string, message: string, icon: string, onConfirmCallback?: () => void) => {
+    setAlertConfig({ title, message, icon });
+    setAlertCallback(onConfirmCallback || null);
+    setShowAlertModal(true);
+  };
+
+  // 处理提示框关闭
+  const handleAlertClose = () => {
+    setShowAlertModal(false);
+    // 如果有回调函数，则执行它
+    if (alertCallback) {
+      setTimeout(() => {
+        alertCallback();
+        setAlertCallback(null);
+      }, 300); // 等待动画完成
+    }
+  };
+
+  // 从token中获取用户信息
+  const getUserInfoFromToken = () => {
+    try {
+      const token = localStorage.getItem('publisher_auth_token');
+      console.log('尝试从localStorage获取token:', token ? '已获取到token' : '未获取到token');
+      
+      if (!token) {
+        console.log('getUserInfoFromToken: 未找到token');
+        return null;
+      }
+      
+      const decodedToken = JSON.parse(atob(token));
+      console.log('getUserInfoFromToken: 解析token成功', decodedToken);
+      
+      // 验证token是否过期
+      if (decodedToken.exp && decodedToken.exp < Date.now()) {
+        console.log('getUserInfoFromToken: token已过期');
+        localStorage.removeItem('publisher_auth_token');
+        return null;
+      }
+      
+      return decodedToken;
+    } catch (error) {
+      console.error('解析token失败:', error);
+      return null;
+    }
+  };
+
+  // 检查是否已登录
+  useEffect(() => {
+    const userInfo = getUserInfoFromToken();
+    if (!userInfo && process.env.NODE_ENV !== 'development') {
+      // 在非开发环境下，如果没有登录信息，提示用户登录
+      showAlert('提示', '请先登录', '💡');
+    } else if (userInfo && process.env.NODE_ENV === 'development') {
+      console.log(`当前登录用户: ${userInfo.username || '未知用户'} (ID: ${userInfo.userId || '未知ID'})`);
+    }
+  }, []);
 
   // 获取财务数据
   const fetchFinanceData = async () => {
     try {
       setLoading(true);
+      console.log('开始获取财务数据');
+      
+      // 从token中获取用户信息
+      const userInfo = getUserInfoFromToken();
+      console.log('fetchFinanceData: 获取用户信息结果', userInfo);
+      
+      // 如果没有用户信息，提示登录
+      if (!userInfo) {
+        console.log('fetchFinanceData: 没有用户信息，提示登录');
+        showAlert('提示', '请先登录', '💡');
+        return;
+      }
+      
       // 从localStorage获取token
       const token = localStorage.getItem('publisher_auth_token');
+      console.log('fetchFinanceData: 获取到token', token ? '是' : '否');
+      
       if (!token) {
-        alert('请先登录');
+        console.log('fetchFinanceData: 未获取到token，提示登录');
+        showAlert('提示', '请先登录', '💡');
         return;
       }
 
+      console.log('fetchFinanceData: 准备发送API请求到 /api/publisher/finance');
       const response = await fetch('/api/publisher/finance', {
         method: 'GET',
         headers: {
@@ -40,36 +129,70 @@ export default function PublisherFinancePage() {
         next: { revalidate: 0 }
       });
 
+      console.log('fetchFinanceData: API请求完成，状态码:', response.status);
       const data = await response.json();
+      console.log('fetchFinanceData: API返回数据', data);
+      
       if (data.success && data.data) {
-        setBalance(data.data.balance);
-        setTransactions(data.data.transactions || []);
+        console.log('fetchFinanceData: 数据获取成功，开始处理余额数据');
+        console.log('fetchFinanceData: 原始余额数据结构:', data.data);
+        
+        // 直接获取并使用后端返回的余额数据
+        const newBalance: BalanceData = {
+          balance: data.data.balance?.total || 0
+        };
+        
+        console.log('fetchFinanceData: 使用后端返回的余额数据:', newBalance);
+        setBalance(newBalance);
+        setTransactions(Array.isArray(data.data.transactions) ? data.data.transactions : []);
+        
+        // 显示当前登录用户信息
+        console.log(`当前登录用户: ${userInfo.username || '未知用户'} (ID: ${userInfo.userId || '未知ID'})`);
       } else {
-        alert('获取数据失败：' + data.message);
+        console.log('fetchFinanceData: 获取数据失败', data.message || '未知错误');
+        showAlert('获取数据失败', data.message || '未知错误', '❌');
       }
     } catch (error) {
       console.error('获取财务数据失败:', error);
-      alert('获取数据失败，请稍后重试');
+      showAlert('网络错误', '获取数据失败，请稍后重试', '❌');
     } finally {
+      console.log('fetchFinanceData: 请求完成，设置loading为false');
       setLoading(false);
     }
   };
 
   // 处理充值
   const handleRecharge = async () => {
+    console.log('开始处理充值请求', { rechargeAmount, selectedPaymentMethod });
+    
     if (!rechargeAmount || parseFloat(rechargeAmount) <= 0) {
-      alert('请输入有效的充值金额');
+      console.log('充值金额无效');
+      showAlert('输入错误', '请输入有效的充值金额', '⚠️');
       return;
     }
 
     try {
-      // 从localStorage获取token
-      const token = localStorage.getItem('publisher_auth_token');
-      if (!token) {
-        alert('请先登录');
+      // 从token中获取用户信息
+      const userInfo = getUserInfoFromToken();
+      console.log('handleRecharge: 用户信息', userInfo);
+      
+      if (!userInfo) {
+        console.log('handleRecharge: 未登录');
+        showAlert('提示', '请先登录', '💡');
         return;
       }
 
+      // 从localStorage获取token
+      const token = localStorage.getItem('publisher_auth_token');
+      console.log('handleRecharge: 获取到token', token ? '是' : '否');
+      
+      if (!token) {
+        console.log('handleRecharge: 未获取到token');
+        showAlert('提示', '请先登录', '💡');
+        return;
+      }
+
+      console.log('handleRecharge: 准备发送充值请求', { amount: parseFloat(rechargeAmount), paymentMethod: selectedPaymentMethod });
       const response = await fetch('/api/publisher/finance', {
         method: 'POST',
         headers: {
@@ -82,40 +205,42 @@ export default function PublisherFinancePage() {
         })
       });
 
+      console.log('handleRecharge: 充值请求完成，状态码:', response.status);
       const data = await response.json();
+      console.log('handleRecharge: 充值响应数据', data);
+      
       if (data.success) {
-        setRechargeSuccess(true);
-        // 重新获取数据以更新余额
-        await fetchFinanceData();
-        alert(data.message);
-        setRechargeAmount('');
+        console.log('handleRecharge: 充值成功');
+        // 充值成功后只显示提示，不立即刷新数据
+        // 用户点击确认后再刷新数据并重置状态
+        showAlert('充值成功', data.message, '✅', () => {
+          // 用户点击确认后的回调函数
+          setRechargeSuccess(true);
+          fetchFinanceData();
+          setRechargeAmount('');
+        });
       } else {
-        alert('充值失败：' + data.message);
+        console.log('handleRecharge: 充值失败', data.message);
+        showAlert('充值失败', data.message, '❌');
       }
     } catch (error) {
       console.error('充值失败:', error);
-      alert('充值失败，请稍后重试');
+      showAlert('网络错误', '充值失败，请稍后重试', '❌');
     }
   };
 
-  // 处理提现
-  const handleWithdraw = () => {
-    if (!withdrawAmount || parseFloat(withdrawAmount) <= 0) {
-      alert('请输入有效的提现金额');
-      return;
-    }
-    if (parseFloat(withdrawAmount) > balance.available) {
-      alert('提现金额不能超过可用余额');
-      return;
-    }
-    alert(`申请提现 ¥${withdrawAmount} 成功！`);
-    setWithdrawAmount('');
-  };
+
 
   // 初始加载数据
   useEffect(() => {
     fetchFinanceData();
-  }, [rechargeSuccess]);
+  }, []);
+
+  // 余额字段说明：
+  // 1. balance: 主要的余额字段，前端页面直接使用这个字段显示余额
+  // 2. currentBalance: 冗余字段，当前实现中与balance保持一致
+  // 3. availableBalance: 冗余字段，当前实现中与balance保持一致
+  // 这三个字段在当前版本中存储相同的值，是为了未来可能的扩展需求，比如实现余额冻结功能
 
   const getTransactionIcon = (type: string) => {
     switch (type) {
@@ -156,7 +281,7 @@ export default function PublisherFinancePage() {
   return (
     <div className="pb-20">
       {/* 功能选择 */}
-      <div className="mx-4 mt-4 grid grid-cols-3 gap-2">
+      <div className="mx-4 mt-4 grid grid-cols-2 gap-2">
         <button
           onClick={() => setActiveTab('recharge')}
           className={`py-3 px-4 rounded font-medium transition-colors ${
@@ -164,14 +289,6 @@ export default function PublisherFinancePage() {
           }`}
         >
           充值
-        </button>
-        <button
-          onClick={() => setActiveTab('withdraw')}
-          className={`py-3 px-4 rounded font-medium transition-colors ${
-            activeTab === 'withdraw' ? 'bg-green-500 text-white shadow-md' : 'bg-white border border-gray-300 text-gray-600 hover:bg-green-50'
-          }`}
-        >
-          提现
         </button>
         <button
           onClick={() => setActiveTab('records')}
@@ -188,22 +305,8 @@ export default function PublisherFinancePage() {
         <div className="bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg p-6">
           <div className="text-center">
             <div className="text-sm mb-2">账户余额</div>
-            <div className="text-3xl font-bold mb-4">
-              {loading ? '加载中...' : `¥${balance.total.toFixed(2)}`}
-            </div>
-            <div className="grid grid-cols-2 gap-4 text-sm">
-              <div>
-                <div>可用余额</div>
-                <div className="font-bold">
-                  {loading ? '加载中...' : `¥${balance.available.toFixed(2)}`}
-                </div>
-              </div>
-              <div>
-                <div>冻结金额</div>
-                <div className="font-bold">
-                  {loading ? '加载中...' : `¥${balance.frozen.toFixed(2)}`}
-                </div>
-              </div>
+            <div className="text-4xl font-bold">
+              {loading ? '加载中...' : `¥${balance.balance.toFixed(2)}`}
             </div>
           </div>
         </div>
@@ -239,7 +342,7 @@ export default function PublisherFinancePage() {
                     <button
                       key={amount}
                       onClick={() => setRechargeAmount(amount.toString())}
-                      className="py-2 px-3 border border-gray-300 rounded text-sm hover:bg-green-50 hover:border-green-300"
+                      className={`py-2 px-3 border rounded text-sm transition-all duration-300 ${rechargeAmount === amount.toString() ? 'bg-blue-500 text-white border-blue-600' : 'border-gray-300 hover:bg-blue-50 hover:border-blue-300'}`}
                     >
                       ¥{amount}
                     </button>
@@ -296,71 +399,7 @@ export default function PublisherFinancePage() {
         </>
       )}
 
-      {activeTab === 'withdraw' && (
-        <>
-          {/* 提现申请 */}
-          <div className="mx-4 mt-6">
-            <div className="bg-white rounded-lg p-4 shadow-sm">
-              <h3 className="font-bold text-gray-800 mb-4">申请提现</h3>
-              
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  提现金额
-                </label>
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">¥</span>
-                  <input
-                    type="number"
-                    placeholder="请输入提现金额"
-                    value={withdrawAmount}
-                    onChange={(e) => setWithdrawAmount(e.target.value)}
-                    className="w-full pl-8 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                  />
-                </div>
-                <div className="text-xs text-gray-500 mt-1">
-                  可提现余额：¥{balance.available.toFixed(2)} | 最低提现：¥50.00
-                </div>
-              </div>
 
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  提现账户
-                </label>
-                <div className="space-y-2">
-                  <label className="flex items-center">
-                    <input type="radio" name="withdrawMethod" className="mr-2" defaultChecked />
-                    <span className="text-sm">🏦 农业银行 ****1234</span>
-                  </label>
-                  <label className="flex items-center">
-                    <input type="radio" name="withdrawMethod" className="mr-2" />
-                    <span className="text-sm">💙 支付宝账户</span>
-                  </label>
-                  <button className="text-sm text-green-500 ml-6">+ 添加新账户</button>
-                </div>
-              </div>
-
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
-                <div className="text-sm text-yellow-800">
-                  <div className="font-medium mb-1">提现说明：</div>
-                  <ul className="text-xs space-y-1">
-                    <li>• 提现手续费：2元/笔（提现金额≥1000元免手续费）</li>
-                    <li>• 工作日申请，2小时内到账</li>
-                    <li>• 周末申请，下个工作日到账</li>
-                    <li>• 单日最多可申请提现5次</li>
-                  </ul>
-                </div>
-              </div>
-
-              <button
-                onClick={handleWithdraw}
-                className="w-full bg-blue-500 text-white py-3 rounded-lg font-medium hover:bg-blue-600 transition-colors"
-              >
-                申请提现
-              </button>
-            </div>
-          </div>
-        </>
-      )}
 
       {activeTab === 'records' && (
         <>
@@ -402,15 +441,24 @@ export default function PublisherFinancePage() {
               </div>
               
               {/* 查看更多 */}
-              <div className="p-4 border-t bg-gray-50">
-                <button className="w-full text-green-500 text-sm hover:text-green-600">
+              <div className="p-4 border-t bg-blue-500 hover:bg-blue-700 mt-4">
+                <a href="/publisher/transactions" className="block w-full text-center text-white text-sm transition-colors ">
                   查看全部交易记录
-                </button>
+                </a>
               </div>
             </div>
           </div>
         </>
       )}
+      
+      {/* 通用提示模态框 */}
+      <AlertModal
+        isOpen={showAlertModal}
+        title={alertConfig.title}
+        message={alertConfig.message}
+        icon={alertConfig.icon}
+        onClose={handleAlertClose}
+      />
     </div>
   );
 }

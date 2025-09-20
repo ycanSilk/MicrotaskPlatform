@@ -562,7 +562,7 @@ export default function PublisherDashboardPage() {
                   <div className="flex items-start justify-between mb-3">
                     <div>
                       <h4 className="font-bold text-gray-800">{order.taskTitle}</h4>
-                      <p className="text-sm text-gray-600">订单号: {order.orderNumber}</p>
+                      <p className="text-sm text-gray-600">订单号: {order.id}</p>
                       <p className="text-sm text-gray-600">评论员: {order.commenterName}</p>
                       <p className="text-xs text-gray-500">提交时间: {order.submitTime}</p>
                     </div>

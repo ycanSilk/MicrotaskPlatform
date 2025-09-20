@@ -3,86 +3,102 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
+// 定义历史任务接口
 interface HistoryTask {
   id: string;
   title: string;
   category: string;
   price: number;
-  status: string;
+  status: 'main_progress' | 'main_completed' | string;
   statusText: string;
   statusColor: string;
   participants: number;
   maxParticipants: number;
   completed: number;
+  inProgress: number;
+  pending: number;
+  pendingReview: number;
   publishTime: string;
   deadline: string;
   description: string;
 }
 
-export default function TaskHistoryPage() {
+// API响应接口
+interface ApiResponse<T> {
+  success: boolean;
+  data?: T;
+  message?: string;
+}
+
+const TaskHistoryPage: React.FC = () => {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [historyTasks, setHistoryTasks] = useState<HistoryTask[]>([]);
-  const [sortBy, setSortBy] = useState('time'); // 'time' | 'status' | 'price'
+  const [sortBy, setSortBy] = useState<'time' | 'price' | 'status'>('time');
 
   // 获取历史任务数据
-  useEffect(() => {
-    const fetchHistoryData = async () => {
-      try {
-        setLoading(true);
-        console.log('正在获取历史任务数据');
-        
-        // 获取认证token
-        let authToken = null;
-        if (typeof window !== 'undefined') {
-          try {
-            const token = localStorage.getItem('auth_token');
-            if (token) {
-              authToken = token;
-              console.log('获取到认证token:', token);
-            } else {
-              console.log('未找到认证token');
-            }
-          } catch (e) {
-            console.log('获取认证token失败:', e);
+  const fetchHistoryData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      // 获取认证token
+      let authToken = null;
+      if (typeof window !== 'undefined') {
+        try {
+          const token = localStorage.getItem('publisher_auth_token');
+          if (token) {
+            authToken = token;
+          } else {
+            throw new Error('未找到认证token');
           }
+        } catch (e) {
+          throw new Error('获取认证信息失败');
         }
-        
-        // 构建请求头
-        const headers: Record<string, string> = {
-          'Content-Type': 'application/json',
-        };
-        
-        if (authToken) {
-          headers['Authorization'] = `Bearer ${authToken}`;
-          console.log('设置Authorization头:', headers['Authorization']);
-        }
-        
-        // 使用新的API路由获取当前用户的所有任务
-        const response = await fetch('/api/publisher/tasks', {
-          headers
-        });
-        const result = await response.json();
-        console.log('API响应:', result);
-        
-        if (result.success) {
-          setHistoryTasks(result.data);
-          console.log('历史任务数据更新完成');
-        } else {
-          console.error('API返回错误:', result.message);
-        }
-      } catch (error) {
-        console.error('获取历史任务数据失败:', error);
-      } finally {
-        setLoading(false);
       }
-    };
+      
+      // 构建请求头
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+      
+      if (authToken) {
+        headers['Authorization'] = `Bearer ${authToken}`;
+      }
+      
+      // 发送API请求
+      const response = await fetch('/api/publisher/tasks', {
+        headers,
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        throw new Error(`网络请求失败: ${response.status} ${response.statusText}`);
+      }
+      
+      const result: ApiResponse<HistoryTask[]> = await response.json();
+      
+      if (result.success) {
+        setHistoryTasks(result.data || []);
+      } else {
+        throw new Error(result.message || '获取数据失败');
+      }
+    } catch (error) {
+      setError(error instanceof Error ? error.message : '获取数据异常');
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  // 初始加载数据
+  useEffect(() => {
     fetchHistoryData();
   }, []);
 
-  const sortTasks = (tasks: HistoryTask[]) => {
-    return [...tasks].sort((a, b) => {
+  // 排序功能
+  const getSortedTasks = () => {
+    return [...historyTasks].sort((a, b) => {
       if (sortBy === 'time') {
         return new Date(b.publishTime).getTime() - new Date(a.publishTime).getTime();
       } else if (sortBy === 'status') {
@@ -94,23 +110,54 @@ export default function TaskHistoryPage() {
     });
   };
 
-  const handleTaskAction = (taskId: string, action: string) => {
-    console.log('handleTaskAction called with:', { taskId, action });
-    if (action === '查看详情') {
-      const url = `/publisher/dashboard/task-detail?id=${encodeURIComponent(taskId)}`;
-      console.log('Full URL to navigate to:', url);
-      // 使用类型断言修复Next.js 14 router push类型问题
-      router.push(url as unknown as never);
-    } else {
-      alert(`对任务 ${taskId} 执行 ${action} 操作`);
-    }
+  // 处理任务操作
+  const handleTaskAction = (taskId: string) => {
+    const url = `/publisher/dashboard/task-detail?id=${encodeURIComponent(taskId)}`;
+    router.push(url as never);
+  };
+
+  // 重试获取数据
+  const handleRetry = () => {
+    fetchHistoryData();
   };
 
   // 显示加载状态
   if (loading) {
     return (
-      <div className="pb-20 flex items-center justify-center h-64">
-        <div className="text-gray-500">加载中...</div>
+      <div className="pb-20 flex flex-col items-center justify-center min-h-[80vh]">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-500 mb-4"></div>
+        <div className="text-gray-500">加载中，请稍候...</div>
+      </div>
+    );
+  }
+
+  // 显示错误状态
+  if (error) {
+    return (
+      <div className="pb-20 flex flex-col items-center justify-center min-h-[80vh] p-4">
+        <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-lg mb-6 max-w-md w-full">
+          <p className="mb-2 font-medium">获取数据失败</p>
+          <p className="text-sm">{error}</p>
+        </div>
+        <button 
+          onClick={handleRetry}
+          className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors"
+        >
+          重试
+        </button>
+      </div>
+    );
+  }
+
+  // 显示空状态
+  if (historyTasks.length === 0) {
+    return (
+      <div className="pb-20 flex flex-col items-center justify-center min-h-[80vh] p-4">
+        <div className="text-gray-400 mb-4">📋</div>
+        <h3 className="text-lg font-medium text-gray-700 mb-2">暂无历史订单</h3>
+        <p className="text-gray-500 text-center max-w-md">
+          您还没有任何历史订单记录。完成任务后，您可以在这里查看历史订单。
+        </p>
       </div>
     );
   }
@@ -121,7 +168,7 @@ export default function TaskHistoryPage() {
       <div className="mx-4 mt-4 flex items-center justify-between">
         <button 
           onClick={() => router.back()}
-          className="flex items-center text-blue-500 hover:text-blue-700"
+          className="flex items-center text-blue-500 hover:text-blue-700 transition-colors"
         >
           ← 返回
         </button>
@@ -134,7 +181,7 @@ export default function TaskHistoryPage() {
         <h3 className="font-bold text-gray-800">全部历史订单</h3>
         <select
           value={sortBy}
-          onChange={(e) => setSortBy(e.target.value)}
+          onChange={(e) => setSortBy(e.target.value as 'time' | 'price' | 'status')}
           className="px-3 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
         >
           <option value="time">按时间排序</option>
@@ -146,13 +193,16 @@ export default function TaskHistoryPage() {
       {/* 任务列表 */}
       <div className="mx-4 mt-4">
         <div className="space-y-4">
-          {sortTasks(historyTasks).map((task) => (
-            <div key={task.id} className="bg-white rounded-lg p-4 shadow-sm">
+          {getSortedTasks().map((task) => (
+            <div 
+              key={task.id} 
+              className="bg-white rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow"
+            >
               {/* 任务头部信息 */}
-              <div className="flex items-start justify-between mb-3">
-                <div className="flex-1">
-                  <div className="flex items-center space-x-2 mb-1">
-                    <h3 className="font-bold text-gray-800">{task.title}</h3>
+              <div className="flex flex-wrap items-start justify-between gap-3 mb-3">
+                <div className="flex-1 min-w-[0]">
+                  <div className="flex items-center space-x-2 mb-1 flex-wrap">
+                    <h3 className="font-bold text-gray-800 truncate">{task.title}</h3>
                     <span className={`px-2 py-1 rounded text-xs ${task.statusColor}`}>
                       {task.statusText}
                     </span>
@@ -163,7 +213,7 @@ export default function TaskHistoryPage() {
                     <div>截止时间：{task.deadline}</div>
                   </div>
                 </div>
-                <div className="text-lg font-bold text-green-600">
+                <div className="text-lg font-bold text-green-600 whitespace-nowrap">
                   ¥{task.price.toFixed(2)}
                 </div>
               </div>
@@ -183,21 +233,24 @@ export default function TaskHistoryPage() {
                     {task.participants}/{task.maxParticipants} 人
                   </span>
                 </div>
-                <div className="bg-gray-200 h-2 rounded">
+                <div className="bg-gray-200 h-2 rounded overflow-hidden">
                   <div 
-                    className="bg-green-500 h-2 rounded" 
+                    className="bg-green-500 h-2 rounded transition-all duration-500 ease-out"
                     style={{width: `${(task.participants / task.maxParticipants) * 100}%`}}
                   ></div>
                 </div>
-                <div className="text-xs text-gray-500 mt-1">
-                  已完成：{task.completed}/{task.participants} 人
+                <div className="grid grid-cols-2 gap-2 text-xs text-gray-500 mt-1">
+                  <div>已完成：{task.completed}人</div>
+                  <div>进行中：{task.inProgress}人</div>
+                  <div>待领取：{task.pending}人</div>
+                  <div>待审核：{task.pendingReview || 0}人</div>
                 </div>
               </div>
 
               {/* 操作按钮 */}
-              <div className="flex space-x-2">
+              <div className="flex">
                 <button
-                  onClick={() => handleTaskAction(task.id, '查看详情')}
+                  onClick={() => handleTaskAction(task.id)}
                   className="flex-1 bg-green-500 text-white py-2 rounded font-medium hover:bg-green-600 transition-colors text-sm"
                 >
                   查看详情
@@ -209,4 +262,6 @@ export default function TaskHistoryPage() {
       </div>
     </div>
   );
-}
+};
+
+export default TaskHistoryPage;

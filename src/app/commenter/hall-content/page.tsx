@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { CommenterAuthStorage } from '@/auth/commenter/auth';
+import AlertModal from '../../../components/ui/AlertModal';
 
 export default function CommenterHallContentPage() {
   const [sortBy, setSortBy] = useState('time'); // 'time' | 'price'
@@ -11,6 +12,24 @@ export default function CommenterHallContentPage() {
   const [grabbingTasks, setGrabbingTasks] = useState(new Set()); // 正在抢单的任务ID
   const [lastUpdated, setLastUpdated] = useState(new Date());
   
+  // 冷却时间相关状态
+  const [coolingDown, setCoolingDown] = useState(false);
+  const [coolingEndTime, setCoolingEndTime] = useState<number | null>(null);
+  const [remainingTime, setRemainingTime] = useState({ minutes: 0, seconds: 0 });
+  const [showCoolingModal, setShowCoolingModal] = useState(false);
+  const [showAlertModal, setShowAlertModal] = useState(false);
+  const [alertConfig, setAlertConfig] = useState({
+    title: '',
+    message: '',
+    icon: '⚠️'
+  });
+  
+  // 显示通用提示框
+  const showAlert = (title: string, message: string, icon: string = '⚠️') => {
+    setAlertConfig({ title, message, icon });
+    setShowAlertModal(true);
+  };
+
   // 排序功能
   const sortTasks = (tasks: any[], sortBy: string, sortOrder: string) => {
     const sorted = [...tasks].sort((a, b) => {
@@ -96,11 +115,11 @@ export default function CommenterHallContentPage() {
         if (response.status === 401) {
           errorMessage = '您没有权限访问此功能，请以评论员身份登录';
         }
-        alert(`获取订单失败：${errorMessage}`);
+        showAlert('获取订单失败', errorMessage, '❌');
       }
     } catch (error) {
       console.error('获取订单错误:', error);
-      alert('获取订单时发生错误，请检查网络连接或稍后再试');
+      showAlert('网络错误', '获取订单时发生错误，请检查网络连接或稍后再试', '❌');
     }
   };
 
@@ -113,18 +132,24 @@ export default function CommenterHallContentPage() {
 
   // 抢单功能
   const handleGrabTask = async (taskId: string) => {
+    // 检查是否处于冷却状态
+    if (coolingDown) {
+      setShowCoolingModal(true);
+      return;
+    }
+
     if (grabbingTasks.has(taskId)) return;
 
     try {
       const user = CommenterAuthStorage.getCurrentUser();
       if (!user) {
-        alert('请先登录');
+        showAlert('提示', '请先登录', '💡');
         return;
       }
 
       // 检查用户角色是否为评论员
       if (user.role !== 'commenter') {
-        alert('您不是评论员角色，无法抢单');
+        showAlert('权限不足', '您不是评论员角色，无法抢单', '⚠️');
         return;
       }
 
@@ -132,7 +157,7 @@ export default function CommenterHallContentPage() {
       const auth = CommenterAuthStorage.getAuth();
       if (!auth || !auth.token) {
         console.error('无法获取认证token');
-        alert('认证信息无效，请重新登录');
+        showAlert('认证错误', '认证信息无效，请重新登录', '❌');
         return;
       }
 
@@ -155,11 +180,16 @@ export default function CommenterHallContentPage() {
       console.log('抢单API响应数据:', data);
       
       if (data.success) {
-        alert(data.message);
+        showAlert('抢单成功', data.message, '✅');
+        
+        // 设置10分钟冷却时间
+        const tenMinutesInMs = 10 * 60 * 1000;
+        const endTime = Date.now() + tenMinutesInMs;
+        setCoolingDown(true);
+        setCoolingEndTime(endTime);
+        
         // 抢单成功后立即刷新列表
         await fetchAvailableTasks();
-
-        // 移除3分钟后检查是否需要释放订单的功能
         
       } else {
         let errorMessage = data.message || '抢单失败';
@@ -167,11 +197,11 @@ export default function CommenterHallContentPage() {
         if (response.status === 401) {
           errorMessage = '您没有权限抢单，请以评论员身份登录';
         }
-        alert(`抢单失败：${errorMessage}`);
+        showAlert('抢单失败', errorMessage, '❌');
       }
     } catch (error) {
       console.error('抢单错误:', error);
-      alert('抢单时发生错误，请检查网络连接或稍后再试');
+      showAlert('网络错误', '抢单时发生错误，请检查网络连接或稍后再试', '❌');
     } finally {
       setGrabbingTasks(prev => {
         const newSet = new Set(prev);
@@ -187,11 +217,69 @@ export default function CommenterHallContentPage() {
     fetchAvailableTasks();
   }, []);
   
+  // 冷却时间倒计时逻辑
+  useEffect(() => {
+    let timer: NodeJS.Timeout | undefined;
+    
+    // 如果处于冷却状态，定期更新剩余时间
+    if (coolingDown && coolingEndTime) {
+      const calculateRemainingTime = () => {
+        const now = Date.now();
+        const diff = coolingEndTime - now;
+        
+        // 如果冷却时间已结束
+        if (diff <= 0) {
+          setCoolingDown(false);
+          setCoolingEndTime(null);
+          setRemainingTime({ minutes: 0, seconds: 0 });
+          return;
+        }
+        
+        // 计算剩余分钟和秒数
+        const minutes = Math.floor(diff / (1000 * 60));
+        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+        
+        setRemainingTime({ minutes, seconds });
+      };
+      
+      // 立即计算一次
+      calculateRemainingTime();
+      
+      // 每秒更新一次
+      timer = setInterval(calculateRemainingTime, 1000);
+    }
+    
+    // 清理定时器
+    return () => {
+      if (timer) {
+        clearInterval(timer);
+      }
+    };
+  }, [coolingDown, coolingEndTime]);
+  
   // 获取排序后的任务
   const sortedTasks = sortTasks(tasks, sortBy, sortOrder);
   
   return (
     <div className="pb-32">
+      {/* 冷却时间显示 */}
+      {coolingDown && (
+        <div className="bg-gradient-to-r from-orange-500 to-red-500 text-white mx-4 mt-4 rounded-lg p-4 shadow-md">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <span className="text-xl">⏱️</span>
+              <span className="font-medium">抢单冷却中</span>
+            </div>
+            <div className="font-bold text-lg">
+              {remainingTime.minutes.toString().padStart(2, '0')}:{remainingTime.seconds.toString().padStart(2, '0')}
+            </div>
+          </div>
+          <div className="mt-2 text-sm opacity-90">
+            为保证任务质量，每成功抢单后将有10分钟冷却时间
+          </div>
+        </div>
+      )}
+
       {/* 排序功能按钮 */}
       <div className="bg-white mx-4 mt-4 rounded-lg shadow-sm p-4">
         <div className="flex items-center justify-between mb-3">
@@ -327,6 +415,24 @@ export default function CommenterHallContentPage() {
           </div>
         </button>
       </div>
+
+      {/* 冷却提示模态框 - 使用统一的AlertModal组件 */}
+      <AlertModal
+        isOpen={showCoolingModal}
+        icon="⏱️"
+        title="抢单冷却中"
+        message={`您当前处于冷却期，还剩余 ${remainingTime.minutes} 分 ${remainingTime.seconds} 秒`}
+        onClose={() => setShowCoolingModal(false)}
+      />
+
+      {/* 通用提示模态框 */}
+    <AlertModal
+      isOpen={showAlertModal}
+      title={alertConfig.title}
+      message={alertConfig.message}
+      icon={alertConfig.icon}
+      onClose={() => setShowAlertModal(false)}
+    />
     </div>
   );
 }

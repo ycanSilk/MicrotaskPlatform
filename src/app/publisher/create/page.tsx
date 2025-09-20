@@ -1,119 +1,122 @@
 'use client';
 
-import { Card, Button, Input, Badge } from '@/components/ui';
 import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+import AlertModal from '../../../components/ui/AlertModal';
 
-// 系统预设任务类型 - 只保留评论任务的两个选项
-const TASK_TYPES = [
+// 定义平台类型接口
+interface Platform {
+  id: string;
+  title: string;
+  icon: string;
+  description: string;
+  taskCount: number;
+  color: string;
+}
+
+// 平台类型配置
+const PLATFORMS: Platform[] = [
   {
-    id: 'comment_top',
-    title: '上评任务',
-    icon: '⭐',
-    price: 3.0,
-    description: '发布高质量评论，置顶展示',
-    requirements: '评论内容需要真实有效，不少于15字，包含表情符号',
-    estimatedTime: '5分钟',
-    difficulty: '中等'
+    id: 'douyin',
+    title: '抖音',
+    icon: '🎵',
+    description: '在抖音平台发布各类任务，包括评论、账号出租、视频发送等',
+    taskCount: 5,
+    color: 'from-red-500 to-pink-600'
   },
   {
-    id: 'comment_middle',
-    title: '中评任务',
-    icon: '💬',
-    price: 2.0,
-    description: '发布普通评论',
-    requirements: '评论内容需要真实有效，不少于10字',
-    estimatedTime: '3分钟',
-    difficulty: '简单'
+    id: 'xiaohongshu',
+    title: '小红书',
+    icon: '📕',
+    description: '在小红书平台发布各类任务，包括评论、笔记推广等',
+    taskCount: 3,
+    color: 'from-red-400 to-orange-500'
+  },
+  {
+    id: 'kuaishou',
+    title: '快手',
+    icon: '🔧',
+    description: '在快手平台发布各类任务，包括评论、视频推广等',
+    taskCount: 4,
+    color: 'from-blue-500 to-teal-400'
   }
 ];
 
-// 任务卡片组件
-const TaskCard = ({ task, onClick }: { task: any, onClick: () => void }) => {
-  const getDifficultyColor = (difficulty: string) => {
-    switch (difficulty) {
-      case '简单': return 'bg-green-100 text-green-800';
-      case '中等': return 'bg-yellow-100 text-yellow-800';
-      case '困难': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
-
+// 平台卡片组件
+const PlatformCard = ({ platform, onClick }: { platform: Platform, onClick: () => void }) => {
   return (
     <div 
       onClick={onClick}
-      className="bg-white rounded-2xl p-5 shadow-sm border-2 border-gray-100 hover:border-blue-200 hover:shadow-md transition-all cursor-pointer active:scale-95"
+      className="bg-white rounded-2xl p-6 shadow-sm border-2 border-gray-100 hover:border-blue-200 hover:shadow-md transition-all cursor-pointer active:scale-95"
     >
-      {/* 任务头部 */}
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center space-x-3">
-          <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center text-2xl">
-            {task.icon}
-          </div>
-          <div>
-            <h3 className="font-bold text-gray-900 text-lg">{task.title}</h3>
-            <div className="flex items-center space-x-2 mt-1">
-              <span className={`px-2 py-1 rounded-full text-xs font-medium ${getDifficultyColor(task.difficulty)}`}>
-                {task.difficulty}
-              </span>
-              <span className="text-gray-500 text-sm">约{task.estimatedTime}</span>
-            </div>
-          </div>
+      {/* 平台头部 */}
+      <div className="flex items-center space-x-4 mb-4">
+        <div className={`w-16 h-16 bg-gradient-to-r ${platform.color} rounded-2xl flex items-center justify-center text-3xl`}>
+          {platform.icon}
         </div>
-        <div className="text-right">
-          <div className="text-2xl font-bold text-orange-500">¥{task.price}</div>
-          <div className="text-gray-500 text-sm">单价</div>
+        <div>
+          <h3 className="font-bold text-gray-900 text-xl">{platform.title}</h3>
+          <div className="flex items-center space-x-2 mt-1">
+            <span className="text-gray-500 text-sm">{platform.taskCount} 种任务类型</span>
+          </div>
         </div>
       </div>
 
-      {/* 任务描述 */}
+      {/* 平台描述 */}
       <div className="mb-4">
-        <p className="text-gray-700 mb-2">{task.description}</p>
-        <p className="text-gray-500 text-sm">{task.requirements}</p>
+        <p className="text-gray-700">{platform.description}</p>
       </div>
 
-      {/* 发布按钮 */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-2 text-gray-500 text-sm">
-          <span>💡</span>
-          <span>系统定价，公平公正</span>
-        </div>
-        <div className="bg-blue-500 text-white px-4 py-2 rounded-lg text-sm font-medium">
-          立即发布
+      {/* 进入按钮 */}
+      <div className="flex items-center justify-end">
+        <div className="bg-blue-500 text-white px-5 py-2.5 rounded-lg text-sm font-medium flex items-center space-x-2">
+          <span>进入平台</span>
+          <span>→</span>
         </div>
       </div>
     </div>
   );
-};
+}
 
 export default function CreateTask() {
   const router = useRouter();
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const handleTaskClick = (task: any) => {
-    const params = new URLSearchParams({
-      taskId: task.id,
-      title: task.title,
-      icon: task.icon,
-      price: task.price.toString(),
-      description: task.description
-    });
-    router.push(`/publisher/create/publish?${params.toString()}`);
+  const handlePlatformClick = (platform: Platform) => {
+    // 只有抖音平台可以正常跳转，其他平台显示维护提示
+    if (platform.id === 'douyin') {
+      router.push(`/publisher/create/platform-task/${platform.id}`);
+    } else {
+      setIsModalOpen(true);
+    }
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+  };
+
+  // 点击模态框外部关闭模态框
+  const handleOverlayClick = (e: React.MouseEvent) => {
+    if (e.target === e.currentTarget) {
+      closeModal();
+    }
   };
 
   return (
     <div className="space-y-6 pb-20">
       {/* 页面头部 */}
-      <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-4 py-8 -mx-4 -mt-4">
-        <h1 className="text-2xl font-bold mb-2">发布评论任务</h1>
-        <p className="text-blue-100">选择评论任务类型</p>
+      <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-8 -mx-4 -mt-4">
+        <h1 className="text-2xl font-bold mb-2 px-4">发布任务</h1>
+        <p className="text-blue-100 px-4">选择您想要发布任务的平台</p>
       </div>
 
-      {/* 任务卡片列表 */}
+      {/* 平台卡片列表 */}
       <div className="px-4 space-y-4">
-        {TASK_TYPES.map((task) => (
-          <TaskCard 
-            key={task.id} 
-            task={task} 
-            onClick={() => handleTaskClick(task)}
+        {PLATFORMS.map((platform) => (
+          <PlatformCard 
+            key={platform.id} 
+            platform={platform} 
+            onClick={() => handlePlatformClick(platform)}
           />
         ))}
       </div>
@@ -124,14 +127,23 @@ export default function CreateTask() {
           <div className="flex items-start space-x-3">
             <span className="text-2xl">💡</span>
             <div>
-              <h3 className="font-medium text-blue-900 mb-1">任务说明</h3>
+              <h3 className="font-medium text-blue-900 mb-1">平台选择说明</h3>
               <p className="text-blue-700 text-sm leading-relaxed">
-                上评任务单价为¥3.0，中评任务单价为¥2.0。请根据您的需求选择合适的任务类型。
+                请选择您需要发布任务的平台，目前支持抖音、小红书、快手等主流社交媒体平台。选择平台后，您将进入该平台的任务类型选择页面，可以选择具体的任务类型进行发布。
               </p>
             </div>
           </div>
         </div>
       </div>
+
+      {/* 维护提示模态框 - 使用统一的AlertModal组件 */}
+      <AlertModal
+        isOpen={isModalOpen}
+        icon="🔧"
+        title="平台维护中"
+        message="该平台维护中，暂时无法使用"
+        onClose={closeModal}
+      />
     </div>
   );
 }

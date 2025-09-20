@@ -1,11 +1,11 @@
-import { NextResponse } from 'next/server';
 import { validateTokenByRole } from '@/auth/common';
 import commentOrders from '@/data/commentOrder/commentOrder.json';
 import fs from 'fs';
 import path from 'path';
+import { NextResponse } from 'next/server';
 
 // 临时调试函数 - 打印完整的URL信息
-export function debugUrl(url: URL): void {
+function debugUrl(url: URL): void {
   console.log('===== URL调试信息 =====');
   console.log('完整URL:', url.toString());
   console.log('路径:', url.pathname);

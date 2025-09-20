@@ -1,6 +1,6 @@
 'use client';
 
-import { Button, Input } from '@/components/ui';
+import { Button, Input, AlertModal } from '@/components/ui';
 import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { PublisherAuthStorage } from '@/auth';
@@ -20,16 +20,21 @@ export default function PublishTaskPage() {
     videoUrl: '',
     quantity: 100,
     requirements: '',
-    deadline: '24'
+    deadline: '24',
+    needImageComment: false
   });
 
   const [mentionInput, setMentionInput] = useState('');
   const [mentions, setMentions] = useState<string[]>([]);
 
   const handleAddMention = () => {
-    if (mentionInput.trim() && !mentions.includes(mentionInput.trim())) {
-      setMentions([...mentions, mentionInput.trim()]);
+    const trimmedMention = mentionInput.trim();
+    // 确保用户昵称ID唯一
+    if (trimmedMention && !mentions.includes(trimmedMention)) {
+      setMentions([...mentions, trimmedMention]);
       setMentionInput('');
+    } else if (mentions.includes(trimmedMention)) {
+      showAlert('提示', '该用户昵称ID已添加', '💡');
     }
   };
 
@@ -39,21 +44,49 @@ export default function PublishTaskPage() {
 
   const [isPublishing, setIsPublishing] = useState(false);
 
+  // 通用提示框状态
+  const [showAlertModal, setShowAlertModal] = useState(false);
+  const [alertConfig, setAlertConfig] = useState({
+    title: '',
+    message: '',
+    icon: '',
+    buttonText: '确认',
+    onButtonClick: () => {}
+  });
+
+  // 显示通用提示框
+  const showAlert = (
+    title: string, 
+    message: string, 
+    icon: string, 
+    buttonText?: string, 
+    onButtonClick?: () => void
+  ) => {
+    setAlertConfig({
+      title, 
+      message, 
+      icon,
+      buttonText: buttonText || '确认',
+      onButtonClick: onButtonClick || (() => {})
+    });
+    setShowAlertModal(true);
+  };
+
   // 发布任务
   const handlePublish = async () => {
     // 表单验证 - 完整验证逻辑
     if (!formData.videoUrl) {
-      alert('请输入视频链接');
+      showAlert('输入错误', '请输入视频链接', '⚠️');
       return;
     }
     
     if (!formData.requirements || formData.requirements.trim().length < 10) {
-      alert('请输入任务要求，至少10个字符');
+      showAlert('输入错误', '请输入任务要求，至少10个字符', '⚠️');
       return;
     }
     
-    if (formData.quantity < 1) {
-      alert('任务数量必须大于0');
+    if (formData.quantity <= 0) {
+      showAlert('输入错误', '任务数量必须大于0', '⚠️');
       return;
     }
 
@@ -73,10 +106,53 @@ export default function PublishTaskPage() {
       
       if (!token || !userInfo) {
         console.log('[任务发布] 认证失败: 用户未登录或会话已过期');
-        alert('用户未登录，请重新登录');
-        router.push('/publisher/login' as any);
+        showAlert('认证失败', '用户未登录，请重新登录', '❌');
+        // 使用setTimeout延迟跳转，确保用户看到提示
+        setTimeout(() => {
+          router.push('/publisher/login' as any);
+        }, 1500);
         return;
       }
+
+      // 计算总费用
+      const totalCost = taskPrice * formData.quantity;
+      
+      // 余额校验 - 获取当前用户的可用余额
+      console.log('[任务发布] 开始余额校验，总费用:', totalCost);
+      const balanceResponse = await fetch('/api/publisher/finance', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        cache: 'no-store'
+      });
+      
+      const balanceData = await balanceResponse.json();
+      console.log('[任务发布] 余额校验结果:', balanceData);
+      
+      if (!balanceData.success || !balanceData.data) {
+        console.log('[任务发布] 获取余额失败');
+        showAlert('系统错误', '获取账户余额失败，请稍后重试', '❌');
+        return;
+      }
+      
+      // 获取可用余额
+      const availableBalance = balanceData.data.balance?.available || 0;
+      console.log('[任务发布] 当前可用余额:', availableBalance);
+      
+      // 比较余额和总费用
+      if (availableBalance < totalCost) {
+        console.log('[任务发布] 余额不足，可用余额:', availableBalance, '总费用:', totalCost);
+        showAlert(
+          '余额不足', 
+          `您的账户可用余额为 ¥${availableBalance.toFixed(2)}，完成此任务需要 ¥${totalCost.toFixed(2)}，请先充值再发布任务。`, 
+          '⚠️'
+        );
+        return;
+      }
+      
+      console.log('[任务发布] 余额充足，继续发布流程');
 
       // 构建API请求体
       const requestBody = {
@@ -87,7 +163,8 @@ export default function PublishTaskPage() {
         videoUrl: formData.videoUrl,
         quantity: formData.quantity,
         deadline: formData.deadline,
-        mentions: mentions
+        mentions: mentions,
+        needImageComment: formData.needImageComment
       };
 
       console.log('API请求体:', requestBody);
@@ -108,20 +185,37 @@ export default function PublishTaskPage() {
       console.log('API响应结果:', result);
       
       if (result.success) {
-        alert(`任务发布成功！订单号：${result.order?.orderNumber || ''}`);
-        router.push('/publisher/dashboard');
+        // 修改为用户点击确认后才跳转
+        showAlert(
+          '发布成功', 
+          `任务发布成功！订单号：${result.order?.orderNumber || ''}`, 
+          '✅',
+          '确定',
+          () => {
+            // 在用户点击确认按钮后跳转
+            router.push('/publisher/dashboard');
+          }
+        );
       } else {
-        alert(`任务发布失败: ${result.message || '未知错误'}`);
+        // 发布失败，显示错误提示
+        if (result.errorType === 'InsufficientBalance') {
+          // 特定处理余额不足的情况
+          showAlert('账户余额不足', '您的账户余额不足以支付任务费用，请先充值后再尝试发布任务。', '⚠️', '前往充值', () => {
+            router.push('/publisher/finance');
+          });
+        } else {
+          showAlert('发布失败', `任务发布失败: ${result.message || '未知错误'}`, '❌');
+        }
       }
     } catch (error) {
       console.error('发布任务时发生错误:', error);
-      alert('发布任务时发生错误，请稍后重试');
+      showAlert('网络错误', '发布任务时发生错误，请稍后重试', '⚠️');
     } finally {
       setIsPublishing(false);
     }
   };
 
-  const totalCost = (taskPrice * formData.quantity * 1.05).toFixed(2);
+  const totalCost = (taskPrice * formData.quantity).toFixed(2);
 
   // 如果没有找到任务类型，返回错误页面
   if (!taskId) {
@@ -193,7 +287,7 @@ export default function PublishTaskPage() {
           </label>
           <div className="flex items-center space-x-4">
             <button 
-              onClick={() => setFormData({...formData, quantity: Math.max(1, formData.quantity - 10)})}
+              onClick={() => setFormData({...formData, quantity: Math.max(0, formData.quantity - 10)})}
               className="w-10 h-10 rounded-full bg-blue-100 hover:bg-blue-200 text-blue-600 flex items-center justify-center text-lg font-bold transition-colors"
             >
               -
@@ -201,9 +295,9 @@ export default function PublishTaskPage() {
             <div className="flex-1">
               <Input
                 type="number"
-                min="1"
+                min="0"
                 value={formData.quantity.toString()}
-                onChange={(e) => setFormData({...formData, quantity: Math.max(1, parseInt(e.target.value) || 1)})}
+                onChange={(e) => setFormData({...formData, quantity: Math.max(0, parseInt(e.target.value) || 0)})}
                 className="w-full text-2xl font-bold text-gray-900 text-center py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
@@ -273,6 +367,25 @@ export default function PublishTaskPage() {
             value={formData.requirements}
             onChange={(e) => setFormData({...formData, requirements: e.target.value})}
           />
+          
+          {/* 图片评论勾选功能 */}
+          <div className="mt-4 flex items-center space-x-2">
+            <input
+              type="checkbox"
+              id="needImageComment"
+              checked={formData.needImageComment}
+              onChange={(e) => setFormData({...formData, needImageComment: e.target.checked})}
+              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+            />
+            <label htmlFor="needImageComment" className="block text-sm font-medium text-gray-700">
+              是否需要图片评论，图片评论请在任务要求中明确图片内容要求，然后评论时按照要求发送图片评论。
+            </label>
+          </div>
+          {formData.needImageComment && (
+            <div className="mt-2 text-sm text-gray-500">
+              请在任务要求中明确图片内容要求
+            </div>
+          )}
         </div>
 
         {/* 截止时间 */}
@@ -285,10 +398,9 @@ export default function PublishTaskPage() {
             value={formData.deadline}
             onChange={(e) => setFormData({...formData, deadline: e.target.value})}
           >
-            <option value="12">12小时内</option>
-            <option value="24">24小时内</option>
-            <option value="48">48小时内</option>
-            <option value="72">72小时内</option>
+            <option value="0.5">30分钟内</option>
+            <option value="12">12小时</option>
+            <option value="24">24小时</option>
           </select>
         </div>
 
@@ -299,10 +411,6 @@ export default function PublishTaskPage() {
             <div className="flex justify-between text-sm">
               <span className="text-gray-600">任务费用</span>
               <span className="font-medium">¥{(taskPrice * formData.quantity).toFixed(2)}</span>
-            </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-600">平台服务费 (5%)</span>
-              <span className="font-medium">¥{(taskPrice * formData.quantity * 0.05).toFixed(2)}</span>
             </div>
             <div className="border-t border-gray-200 pt-2">
               <div className="flex justify-between">
@@ -331,6 +439,20 @@ export default function PublishTaskPage() {
           取消
         </Button>
       </div>
+
+      {/* 通用提示框组件 */}
+      <AlertModal
+        isOpen={showAlertModal}
+        title={alertConfig.title}
+        message={alertConfig.message}
+        icon={alertConfig.icon}
+        buttonText={alertConfig.buttonText}
+        onButtonClick={() => {
+          alertConfig.onButtonClick();
+          setShowAlertModal(false);
+        }}
+        onClose={() => setShowAlertModal(false)}
+      />
     </div>
   );
 }

@@ -5,3 +5,4 @@ export { Card } from './Card';
 export { Input } from './Input';
 export { Loading, FullScreenLoading, PageLoading } from './Loading';
 export { useToast, ToastProvider, Toaster } from './Toast';
+export { default as AlertModal } from './AlertModal';

@@ -80,7 +80,7 @@ export default function TaskDetailPage() {
           'Content-Type': 'application/json',
           ...(authToken && { 'Authorization': `Bearer ${authToken}` })
         },
-        cache: 'no-store'
+        cache: 'no-store' as RequestCache
       };
       
       console.log(`[任务详情调试] 请求选项:`, {
