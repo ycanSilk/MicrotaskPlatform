@@ -65,7 +65,7 @@
       "mention": "科技前沿账号",
       "status": "main_progress",
       "quantity": 2,
-      "completedQuantity": 0,
+      "completedQuantity": 1,
       "unitPrice": 50,
       "taskRequirements": "使用提供的账号登录后，按照要求浏览指定内容，每天至少在线2小时",
       "publishTime": "2025-09-19T07:34:19.512Z",
@@ -103,9 +103,9 @@
           "id": "sub1758353659512002",
           "orderNumber": "SUB1758353659512002",
           "parentId": "pub003_1758353659512",
-          "status": "waiting_collect",
-          "commenterId": "",
-          "commenterName": "",
+          "status": "sub_progress",
+          "commenterId": "com004",
+          "commenterName": "test123",
           "commentContent": "",
           "commentTime": "",
           "screenshotUrl": "",
@@ -114,7 +114,8 @@
             "username": "tech_account_002",
             "password": "encrypted_password_placeholder",
             "loginMethod": "phone_verification"
-          }
+          },
+          "userId": "com004"
         }
       ]
     },

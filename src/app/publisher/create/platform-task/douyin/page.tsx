@@ -27,11 +27,11 @@ const TASK_TYPES = [
   },
   {
     id: 'account_rental',
-    title: '真人号出租',
+    title: '真人账号租赁',
     icon: '🔑',
-    price: 50.0,
+    price: 60.0,
     description: '提供真实用户账号租赁服务，支持自定义租赁时间',
-    requirements: '账号真实有效，无违规记录，按约定时间使用',
+    requirements: '账号真实有效，无违规记录，按约定时间使用，手机扫码登录，租号有风险，不得使用账号进行任何形式的违规活动',
     estimatedTime: '自定义',
     difficulty: '简单'
   },
@@ -59,15 +59,6 @@ const TASK_TYPES = [
 
 // 任务卡片组件
 const TaskCard = ({ task, onClick }: { task: any, onClick: () => void }) => {
-  const getDifficultyColor = (difficulty: string) => {
-    switch (difficulty) {
-      case '简单': return 'bg-green-100 text-green-800';
-      case '中等': return 'bg-yellow-100 text-yellow-800';
-      case '困难': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
-
   return (
     <div 
       onClick={onClick}
@@ -81,12 +72,6 @@ const TaskCard = ({ task, onClick }: { task: any, onClick: () => void }) => {
           </div>
           <div>
             <h3 className="font-bold text-gray-900 text-lg">{task.title}</h3>
-            <div className="flex items-center space-x-2 mt-1">
-              <span className={`px-2 py-1 rounded-full text-xs font-medium ${getDifficultyColor(task.difficulty)}`}>
-                {task.difficulty}
-              </span>
-              <span className="text-gray-500 text-sm">约{task.estimatedTime}</span>
-            </div>
           </div>
         </div>
         <div className="text-right">
@@ -178,7 +163,7 @@ export default function CreateTask() {
             <div>
               <h3 className="font-medium text-blue-900 mb-1">任务说明</h3>
               <p className="text-blue-700 text-sm leading-relaxed">
-                上评任务单价为¥3.0，中评任务单价为¥2.0，真人号出租单价为¥50.0/天（支持自定义租赁时间），定制视频发送单价为¥50.0/条（纯推送模式）或¥200.0/条（定制推送模式）。请根据您的需求选择合适的任务类型。
+                请根据您的需求选择合适的任务类型。
               </p>
             </div>
           </div>

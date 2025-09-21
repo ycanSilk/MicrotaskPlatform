@@ -354,7 +354,7 @@ export default function PublishTaskPage() {
         {/* 任务要求 */}
         <div className="bg-white rounded-2xl p-4 shadow-sm">
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            任务要求
+            评论词粘贴
           </label>
           <textarea
             className="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"

@@ -1,0 +1,267 @@
+{
+  "modelVersion": "1.0.0",
+  "description": "评论员收益系统和邀请系统数据模型",
+  "lastUpdated": "2024-01-16",
+  
+  "commenterAccounts": {
+    "description": "评论员账户信息",
+    "data": [
+      {
+        "userId": "com001",
+        "availableBalance": 125.80,
+        "frozenBalance": 10.00,
+        "totalEarnings": 235.80,
+        "completedTasks": 45,
+        "lastUpdated": "2024-01-15T18:30:00Z",
+        "inviteCode": "CM001",
+        "totalInvited": 5
+      },
+      {
+        "userId": "com002",
+        "availableBalance": 68.50,
+        "frozenBalance": 0,
+        "totalEarnings": 120.30,
+        "completedTasks": 23,
+        "lastUpdated": "2024-01-15T16:45:00Z",
+        "inviteCode": "CM002",
+        "totalInvited": 2,
+        "referrerId": "com001"
+      },
+      {
+        "userId": "com003",
+        "availableBalance": 89.20,
+        "frozenBalance": 0,
+        "totalEarnings": 158.70,
+        "completedTasks": 15,
+        "lastUpdated": "2024-01-15T14:20:00Z",
+        "inviteCode": "CM003",
+        "totalInvited": 1,
+        "referrerId": "com001"
+      }
+    ],
+    "indexes": ["userId", "inviteCode", "referrerId"]
+  },
+  
+  "earningsRecords": {
+    "description": "评论员收益记录",
+    "data": [
+      {
+        "id": "er001",
+        "userId": "com001",
+        "taskId": "task001",
+        "taskName": "美食探店推广",
+        "amount": 15.80,
+        "status": "completed",
+        "earnedTime": "2024-01-15T14:30:00Z",
+        "description": "完成美食探店评论任务"
+      },
+      {
+        "id": "er002",
+        "userId": "com001",
+        "taskId": "task002",
+        "taskName": "护肤产品体验",
+        "amount": 12.50,
+        "status": "completed",
+        "earnedTime": "2024-01-15T10:20:00Z",
+        "description": "完成护肤产品评论任务"
+      },
+      {
+        "id": "er003",
+        "userId": "com001",
+        "taskId": "invite_bonus",
+        "taskName": "邀请好友奖励",
+        "amount": 5.00,
+        "status": "completed",
+        "earnedTime": "2024-01-14T16:45:00Z",
+        "description": "邀请用户com004注册并完成首单任务"
+      }
+    ],
+    "indexes": ["userId", "taskId", "earnedTime"],
+    "relationships": {
+      "userId": {"model": "commenterAccounts", "field": "userId"}
+    }
+  },
+  
+  "withdrawalRecords": {
+    "description": "评论员提现记录",
+    "data": [
+      {
+        "id": "wd001",
+        "userId": "com001",
+        "amount": 50.00,
+        "fee": 2.00,
+        "totalAmount": 52.00,
+        "method": "wechat",
+        "status": "completed",
+        "requestTime": "2024-01-10T10:15:00Z",
+        "completeTime": "2024-01-10T14:30:00Z",
+        "description": "微信提现"
+      },
+      {
+        "id": "wd002",
+        "userId": "com001",
+        "amount": 30.00,
+        "fee": 2.00,
+        "totalAmount": 32.00,
+        "method": "alipay",
+        "status": "pending",
+        "requestTime": "2024-01-15T09:30:00Z",
+        "completeTime": null,
+        "description": "支付宝提现"
+      },
+      {
+        "id": "wd003",
+        "userId": "com002",
+        "amount": 20.00,
+        "fee": 2.00,
+        "totalAmount": 22.00,
+        "method": "wechat",
+        "status": "completed",
+        "requestTime": "2024-01-12T16:45:00Z",
+        "completeTime": "2024-01-12T18:20:00Z",
+        "description": "微信提现"
+      }
+    ],
+    "indexes": ["userId", "status", "requestTime"],
+    "relationships": {
+      "userId": {"model": "commenterAccounts", "field": "userId"}
+    }
+  },
+  
+  "teamMembers": {
+    "description": "评论员团队成员信息",
+    "data": [
+      {
+        "id": 1,
+        "userId": "com002",
+        "inviterId": "com001",
+        "nickname": "小王",
+        "avatar": "👨",
+        "joinDate": "2024-01-10",
+        "status": "活跃",
+        "statusColor": "text-green-600",
+        "completedTasks": 23,
+        "totalEarnings": 127.50,
+        "myCommission": 6.38,
+        "level": "Lv.2 评论员"
+      },
+      {
+        "id": 2,
+        "userId": "com003",
+        "inviterId": "com001",
+        "nickname": "小李",
+        "avatar": "👩",
+        "joinDate": "2024-01-12",
+        "status": "活跃",
+        "statusColor": "text-green-600",
+        "completedTasks": 15,
+        "totalEarnings": 89.20,
+        "myCommission": 4.46,
+        "level": "Lv.1 评论员"
+      },
+      {
+        "id": 3,
+        "userId": "com004",
+        "inviterId": "com001",
+        "nickname": "小张",
+        "avatar": "🧑",
+        "joinDate": "2024-01-14",
+        "status": "新手",
+        "statusColor": "text-orange-600",
+        "completedTasks": 3,
+        "totalEarnings": 15.60,
+        "myCommission": 0.78,
+        "level": "新手评论员"
+      }
+    ],
+    "indexes": ["inviterId", "userId", "status"],
+    "relationships": {
+      "inviterId": {"model": "commenterAccounts", "field": "userId"},
+      "userId": {"model": "commenterAccounts", "field": "userId"}
+    }
+  },
+  
+  "commissionHistory": {
+    "description": "评论员佣金明细记录",
+    "data": [
+      {
+        "id": 1,
+        "inviterId": "com001",
+        "memberId": "com002",
+        "memberName": "小王",
+        "taskId": "task003",
+        "taskName": "科技产品评测",
+        "taskEarning": 20.80,
+        "commission": 1.04,
+        "date": "2024-01-15 09:15",
+        "type": "task",
+        "status": "completed"
+      },
+      {
+        "id": 2,
+        "inviterId": "com001",
+        "memberId": "com003",
+        "memberName": "小李",
+        "taskId": "task004",
+        "taskName": "旅游体验分享",
+        "taskEarning": 18.60,
+        "commission": 0.93,
+        "date": "2024-01-14 15:30",
+        "type": "task",
+        "status": "completed"
+      },
+      {
+        "id": 3,
+        "inviterId": "com001",
+        "memberId": "com004",
+        "memberName": "小张",
+        "taskId": "register_bonus",
+        "taskName": "注册完成奖励",
+        "taskEarning": 0,
+        "commission": 5.00,
+        "date": "2024-01-14 16:45",
+        "type": "register",
+        "status": "completed"
+      }
+    ],
+    "indexes": ["inviterId", "memberId", "date", "type"],
+    "relationships": {
+      "inviterId": {"model": "commenterAccounts", "field": "userId"},
+      "memberId": {"model": "commenterAccounts", "field": "userId"}
+    }
+  },
+  
+  "configuration": {
+    "withdrawal": {
+      "minAmount": 10.00,
+      "maxAmount": 2000.00,
+      "fee": 2.00,
+      "dailyLimit": 3
+    },
+    "commission": {
+      "taskRate": 0.05,
+      "registerBonus": 5.00
+    }
+  },
+  
+  "associationQueries": {
+    "description": "支持的关联查询示例",
+    "examples": [
+      {
+        "name": "获取用户完整财务信息",
+        "query": "SELECT * FROM commenterAccounts JOIN earningsRecords ON commenterAccounts.userId = earningsRecords.userId JOIN withdrawalRecords ON commenterAccounts.userId = withdrawalRecords.userId WHERE commenterAccounts.userId = ?",
+        "params": ["userId"]
+      },
+      {
+        "name": "获取用户团队信息及佣金统计",
+        "query": "SELECT commenterAccounts.*, teamMembers.*, SUM(commissionHistory.commission) as totalCommission FROM commenterAccounts LEFT JOIN teamMembers ON commenterAccounts.userId = teamMembers.inviterId LEFT JOIN commissionHistory ON commenterAccounts.userId = commissionHistory.inviterId GROUP BY commenterAccounts.userId, teamMembers.id",
+        "params": []
+      },
+      {
+        "name": "获取指定日期范围内的佣金明细",
+        "query": "SELECT * FROM commissionHistory WHERE inviterId = ? AND date BETWEEN ? AND ?",
+        "params": ["inviterId", "startDate", "endDate"]
+      }
+    ]
+  }
+}
