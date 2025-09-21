@@ -1,15 +1,117 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { CommenterAuthStorage } from '@/auth/commenter/auth';
+import { FinanceModelAdapter } from '@/data/commenteruser/finance_model_adapter';
 
 export default function CommenterInvitePage() {
   const [activeTab, setActiveTab] = useState('invite');
   const [copied, setCopied] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
   
-  // 模拟用户数据
-  const myInviteCode = 'CM001';
-  const inviteLink = `https://douyin-task.com/register?invite=${myInviteCode}`;
+  // 动态数据状态
+  const [myInviteCode, setMyInviteCode] = useState('');
+  const [inviteLink, setInviteLink] = useState('');
+  const [teamMembers, setTeamMembers] = useState<any[]>([]);
+  const [commissionHistory, setCommissionHistory] = useState<any[]>([]);
   
+  // 统计数据状态
+  const [totalInvited, setTotalInvited] = useState(0);
+  const [activeMembers, setActiveMembers] = useState(0);
+  const [totalCommission, setTotalCommission] = useState(0);
+  const [todayCommission, setTodayCommission] = useState(0);
+  const [monthCommission, setMonthCommission] = useState(0);
+
+  // 初始化数据
+  useEffect(() => {
+    const initializeData = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        
+        // 验证token并获取当前用户ID
+        const token = CommenterAuthStorage.getToken();
+        if (!token) {
+          throw new Error('请先登录');
+        }
+
+        const decodedToken = CommenterAuthStorage.verifyToken(token);
+        if (!decodedToken || !decodedToken.userId) {
+          throw new Error('无效的登录状态');
+        }
+
+        const currentUserId = decodedToken.userId;
+        setUserId(currentUserId);
+
+        // 获取用户账户信息
+        const userAccount = await FinanceModelAdapter.getInstance().getUserAccount(currentUserId);
+        if (userAccount && userAccount.inviteCode) {
+          setMyInviteCode(userAccount.inviteCode);
+          setInviteLink(`https://douyin-task.com/register?invite=${userAccount.inviteCode}`);
+        }
+
+        // 获取团队成员数据
+        try {
+          const teamResponse = await fetch('/api/commenter/team-members');
+          if (!teamResponse.ok) {
+            throw new Error('获取团队成员数据失败');
+          }
+          const teamData = await teamResponse.json();
+          setTeamMembers(teamData.teamMembers || []);
+          setTotalInvited(teamData.totalInvited || 0);
+          setActiveMembers(teamData.activeMembers || 0);
+        } catch (teamError) {
+          console.error('获取团队成员数据错误:', teamError);
+          // 如果API调用失败，使用financeAdapter直接获取数据作为备选
+          const members = await FinanceModelAdapter.getInstance().getUserTeamMembers(currentUserId);
+          setTeamMembers(members || []);
+          setTotalInvited(members ? members.length : 0);
+          setActiveMembers(members ? members.filter(m => m.status === '活跃').length : 0);
+        }
+
+        // 获取佣金历史数据
+        try {
+          const commissionResponse = await fetch('/api/commenter/commission-history');
+          if (!commissionResponse.ok) {
+            throw new Error('获取佣金历史数据失败');
+          }
+          const commissionData = await commissionResponse.json();
+          setCommissionHistory(commissionData.commissionHistory || []);
+          setTotalCommission(commissionData.totalCommission || 0);
+          setTodayCommission(commissionData.todayCommission || 0);
+          setMonthCommission(commissionData.monthCommission || 0);
+        } catch (commissionError) {
+          console.error('获取佣金历史数据错误:', commissionError);
+          // 如果API调用失败，使用financeAdapter直接获取数据作为备选
+          const history = await FinanceModelAdapter.getInstance().getUserCommissionHistory(currentUserId);
+          setCommissionHistory(history || []);
+          setTotalCommission(history ? history.reduce((sum, item) => sum + item.commission, 0) : 0);
+          
+          // 计算今日佣金（模拟当前日期）
+          const today = new Date().toISOString().split('T')[0];
+          setTodayCommission(history ? 
+            history.filter(item => item.date.startsWith(today)).reduce((sum, item) => sum + item.commission, 0) : 0
+          );
+          
+          // 计算本月佣金
+          const currentMonth = new Date().toISOString().substring(0, 7); // YYYY-MM
+          setMonthCommission(history ? 
+            history.filter(item => item.date.startsWith(currentMonth)).reduce((sum, item) => sum + item.commission, 0) : 0
+          );
+        }
+      } catch (err) {
+        setError(err instanceof Error ? err.message : '加载数据失败');
+        console.error('页面初始化错误:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    initializeData();
+  }, []);
+
   // 复制邀请码/链接功能
   const copyToClipboard = async (text: string, type: string) => {
     try {
@@ -21,143 +123,41 @@ export default function CommenterInvitePage() {
       alert('复制失败，请手动复制');
     }
   };
-  
-  // 模拟团队成员数据
-  const teamMembers = [
-    {
-      id: 1,
-      nickname: '小王',
-      avatar: '👨',
-      joinDate: '2024-01-10',
-      status: '活跃',
-      statusColor: 'text-green-600',
-      completedTasks: 23,
-      totalEarnings: 127.50,
-      myCommission: 6.38,
-      level: 'Lv.2 评论员'
-    },
-    {
-      id: 2,
-      nickname: '小李',
-      avatar: '👩',
-      joinDate: '2024-01-12',
-      status: '活跃',
-      statusColor: 'text-green-600',
-      completedTasks: 15,
-      totalEarnings: 89.20,
-      myCommission: 4.46,
-      level: 'Lv.1 评论员'
-    },
-    {
-      id: 3,
-      nickname: '小张',
-      avatar: '🧑',
-      joinDate: '2024-01-14',
-      status: '新手',
-      statusColor: 'text-orange-600',
-      completedTasks: 3,
-      totalEarnings: 15.60,
-      myCommission: 0.78,
-      level: '新手评论员'
-    },
-    {
-      id: 4,
-      nickname: '小刘',
-      avatar: '👩‍💼',
-      joinDate: '2024-01-08',
-      status: '活跃',
-      statusColor: 'text-green-600',
-      completedTasks: 45,
-      totalEarnings: 234.80,
-      myCommission: 11.74,
-      level: 'Lv.3 评论员'
-    },
-    {
-      id: 5,
-      nickname: '小陈',
-      avatar: '👨‍💻',
-      joinDate: '2024-01-15',
-      status: '休眠',
-      statusColor: 'text-gray-500',
-      completedTasks: 1,
-      totalEarnings: 3.50,
-      myCommission: 0.18,
-      level: '新手评论员'
-    }
-  ];
-  
-  // 模拟佣金明细数据
-  const commissionHistory = [
-    {
-      id: 1,
-      memberName: '小王',
-      taskName: '美食探店推广',
-      taskEarning: 3.50,
-      commission: 0.18,
-      date: '2024-01-15 14:30',
-      type: 'task'
-    },
-    {
-      id: 2,
-      memberName: '小李',
-      taskName: '护肤产品体验',
-      taskEarning: 5.20,
-      commission: 0.26,
-      date: '2024-01-15 10:20',
-      type: 'task'
-    },
-    {
-      id: 3,
-      memberName: '小刘',
-      taskName: '科技产品评测',
-      taskEarning: 6.80,
-      commission: 0.34,
-      date: '2024-01-15 09:15',
-      type: 'task'
-    },
-    {
-      id: 4,
-      memberName: '小张',
-      taskName: '旅游体验分享',
-      taskEarning: 4.20,
-      commission: 0.21,
-      date: '2024-01-14 16:45',
-      type: 'task'
-    },
-    {
-      id: 5,
-      memberName: '小王',
-      taskName: '注册完成奖励',
-      taskEarning: 0,
-      commission: 5.00,
-      date: '2024-01-10 09:15',
-      type: 'register'
-    },
-    {
-      id: 6,
-      memberName: '小李',
-      taskName: '注册完成奖励',
-      taskEarning: 0,
-      commission: 5.00,
-      date: '2024-01-12 11:30',
-      type: 'register'
-    }
-  ];
-  
-  // 计算统计数据
-  const totalInvited = teamMembers.length;
-  const activeMembers = teamMembers.filter(m => m.status === '活跃').length;
-  const totalCommission = commissionHistory.reduce((sum, item) => sum + item.commission, 0);
-  const todayCommission = commissionHistory
-    .filter(item => item.date.startsWith('2024-01-15'))
-    .reduce((sum, item) => sum + item.commission, 0);
-  const monthCommission = commissionHistory
-    .filter(item => item.date.startsWith('2024-01'))
-    .reduce((sum, item) => sum + item.commission, 0);
+
+  // 加载状态显示
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center h-screen">
+        <div className="text-blue-500 text-xl">加载中...</div>
+      </div>
+    );
+  }
+
+  // 错误状态显示
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center h-screen p-4">
+        <div className="text-red-500 text-lg mb-4">{error}</div>
+        <button 
+          onClick={() => window.location.reload()}
+          className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 transition-colors"
+        >
+          重新加载
+        </button>
+        {error === '请先登录' && (
+          <button 
+            onClick={() => window.location.href = '/login'}
+            className="mt-2 bg-gray-500 text-white py-2 px-4 rounded hover:bg-gray-600 transition-colors"
+          >
+            去登录
+          </button>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="pb-20">
-
       {/* 邀请奖励说明 */}
       <div className="mx-4 mt-4">
         <div className="bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-lg p-6">
@@ -195,7 +195,7 @@ export default function CommenterInvitePage() {
 
       {activeTab === 'invite' && (
         <>
-          {/* 邀请统计 */}
+          {/* 邀请统计 - 数据来自bound_user_invitations.json */}
           <div className="mx-4 mt-6">
             <div className="bg-white rounded-lg p-4 shadow-sm">
               <h3 className="font-bold text-gray-800 mb-4">我的邀请数据</h3>
@@ -235,9 +235,9 @@ export default function CommenterInvitePage() {
             </div>
           </div>
 
-          {/* 邀请链接 */}
-          <div className="mx-4 mt-6">
-            <div className="bg-white rounded-lg p-4 shadow-sm">
+          {/* 邀请统计 - 使用来自bound_user_invitations.json的实时数据 */}
+            <div className="mx-4 mt-6">
+              <div className="bg-white rounded-lg p-4 shadow-sm">
               <h3 className="font-bold text-gray-800 mb-4">邀请链接</h3>
               <div className="bg-gray-50 rounded-lg p-3 mb-3">
                 <div className="text-xs text-gray-600 break-all">{inviteLink}</div>
@@ -280,8 +280,6 @@ export default function CommenterInvitePage() {
             </div>
           </div>
 
-
-
           {/* 邀请成功率提示 */}
           <div className="mx-4 mt-6">
             <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-lg p-4">
@@ -298,7 +296,7 @@ export default function CommenterInvitePage() {
               </div>
             </div>
           </div>
-          
+
           {/* 邀请奖励规则 */}
           <div className="mx-4 mt-6">
             <div className="bg-white rounded-lg p-4 shadow-sm">
@@ -361,58 +359,68 @@ export default function CommenterInvitePage() {
               <h3 className="font-bold text-gray-800">我的团队成员 ({totalInvited}人)</h3>
             </div>
             <div className="divide-y">
-              {teamMembers.map((member) => (
-                <div key={member.id} className="p-4">
-                  {/* 成员基本信息 */}
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center text-lg">
-                        {member.avatar}
+              {teamMembers.length > 0 ? (
+                teamMembers.map((member) => (
+                  <div key={member.id || member.memberId} className="p-4">
+                    {/* 成员基本信息 */}
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center text-lg">
+                          {member.avatar || '👤'}
+                        </div>
+                        <div>
+                          <div className="font-medium text-gray-800">{member.nickname || '未知用户'}</div>
+                          <div className="text-xs text-gray-500">{member.joinDate || '未知时间'} 加入 · {member.level || '普通用户'}</div>
+                        </div>
                       </div>
-                      <div>
-                        <div className="font-medium text-gray-800">{member.nickname}</div>
-                        <div className="text-xs text-gray-500">{member.joinDate} 加入 · {member.level}</div>
+                      <div className="text-right">
+                        <div className={`text-sm font-medium ${member.statusColor || 'text-gray-600'}`}>{member.status || '未知状态'}</div>
+                        <div className="text-xs text-gray-500">已完成{member.completedTasks || 0}个任务</div>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <div className={`text-sm font-medium ${member.statusColor}`}>{member.status}</div>
-                      <div className="text-xs text-gray-500">已完成{member.completedTasks}个任务</div>
+                    
+                    {/* 成员数据统计 */}
+                    <div className="bg-gray-50 rounded-lg p-3">
+                      <div className="grid grid-cols-3 gap-4 text-center">
+                        <div>
+                          <div className="text-sm font-bold text-gray-800">¥{(member.totalEarnings || 0).toFixed(2)}</div>
+                          <div className="text-xs text-gray-500">总收益</div>
+                        </div>
+                        <div>
+                          <div className="text-sm font-bold text-green-600">¥{(member.myCommission || member.commission || 0).toFixed(2)}</div>
+                          <div className="text-xs text-gray-500">我的佣金</div>
+                        </div>
+                        <div>
+                          <div className="text-sm font-bold text-blue-600">{member.completedTasks || 0}</div>
+                          <div className="text-xs text-gray-500">完成任务</div>
+                        </div>
+                      </div>
                     </div>
+                    
+                    {/* 佣金贡献比例 */}
+                    {totalCommission > 0 && (
+                      <div className="mt-3">
+                        <div className="flex justify-between items-center mb-1">
+                          <span className="text-xs text-gray-500">佣金贡献</span>
+                          <span className="text-xs text-blue-600">{(((member.myCommission || member.commission || 0) / totalCommission) * 100).toFixed(1)}%</span>
+                        </div>
+                        <div className="bg-gray-200 h-1 rounded">
+                          <div 
+                            className="bg-blue-500 h-1 rounded" 
+                            style={{width: `${((member.myCommission || member.commission || 0) / totalCommission) * 100}%`}}
+                          ></div>
+                        </div>
+                      </div>
+                    )}
                   </div>
-                  
-                  {/* 成员数据统计 */}
-                  <div className="bg-gray-50 rounded-lg p-3">
-                    <div className="grid grid-cols-3 gap-4 text-center">
-                      <div>
-                        <div className="text-sm font-bold text-gray-800">¥{member.totalEarnings.toFixed(2)}</div>
-                        <div className="text-xs text-gray-500">总收益</div>
-                      </div>
-                      <div>
-                        <div className="text-sm font-bold text-green-600">¥{member.myCommission.toFixed(2)}</div>
-                        <div className="text-xs text-gray-500">我的佣金</div>
-                      </div>
-                      <div>
-                        <div className="text-sm font-bold text-blue-600">{member.completedTasks}</div>
-                        <div className="text-xs text-gray-500">完成任务</div>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  {/* 佣金贡献比例 */}
-                  <div className="mt-3">
-                    <div className="flex justify-between items-center mb-1">
-                      <span className="text-xs text-gray-500">佣金贡献</span>
-                      <span className="text-xs text-blue-600">{((member.myCommission / totalCommission) * 100).toFixed(1)}%</span>
-                    </div>
-                    <div className="bg-gray-200 h-1 rounded">
-                      <div 
-                        className="bg-blue-500 h-1 rounded" 
-                        style={{width: `${(member.myCommission / totalCommission) * 100}%`}}
-                      ></div>
-                    </div>
-                  </div>
+                ))
+              ) : (
+                <div className="p-8 text-center">
+                  <div className="text-gray-400 text-5xl mb-4">👥</div>
+                  <div className="text-gray-500">您还没有邀请任何成员</div>
+                  <div className="text-gray-400 text-sm mt-2">快去邀请好友加入吧，一起赚取佣金！</div>
                 </div>
-              ))}
+              )}
             </div>
           </div>
         </div>
@@ -433,7 +441,17 @@ export default function CommenterInvitePage() {
                 <div className="text-xs text-gray-500">本月佣金</div>
               </div>
               <div className="text-center p-3 bg-orange-50 rounded">
-                <div className="text-lg font-bold text-orange-600">¥{commissionHistory.filter(item => item.date.startsWith('2024-01-14')).reduce((sum, item) => sum + item.commission, 0).toFixed(2)}</div>
+                {/* 计算昨日佣金 */}
+                <div className="text-lg font-bold text-orange-600">¥{commissionHistory
+                  .filter(item => {
+                    const yesterday = new Date();
+                    yesterday.setDate(yesterday.getDate() - 1);
+                    const yesterdayStr = yesterday.toISOString().split('T')[0];
+                    return item.date.startsWith(yesterdayStr);
+                  })
+                  .reduce((sum, item) => sum + item.commission, 0)
+                  .toFixed(2)
+                }</div>
                 <div className="text-xs text-gray-500">昨日佣金</div>
               </div>
               <div className="text-center p-3 bg-purple-50 rounded">
@@ -444,31 +462,33 @@ export default function CommenterInvitePage() {
           </div>
           
           {/* 佣金来源分析 */}
-          <div className="bg-white rounded-lg p-4 shadow-sm mb-4">
-            <h3 className="font-bold text-gray-800 mb-4">佣金来源分析</h3>
-            <div className="space-y-3">
-              <div className="flex justify-between items-center">
-                <div className="flex items-center space-x-2">
-                  <div className="w-3 h-3 bg-blue-500 rounded"></div>
-                  <span className="text-sm text-gray-600">任务佣金</span>
+          {totalCommission > 0 && (
+            <div className="bg-white rounded-lg p-4 shadow-sm mb-4">
+              <h3 className="font-bold text-gray-800 mb-4">佣金来源分析</h3>
+              <div className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <div className="flex items-center space-x-2">
+                    <div className="w-3 h-3 bg-blue-500 rounded"></div>
+                    <span className="text-sm text-gray-600">任务佣金</span>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-sm font-bold text-gray-800">¥{commissionHistory.filter(item => item.type === 'task').reduce((sum, item) => sum + item.commission, 0).toFixed(2)}</div>
+                    <div className="text-xs text-gray-500">{((commissionHistory.filter(item => item.type === 'task').reduce((sum, item) => sum + item.commission, 0) / totalCommission) * 100).toFixed(1)}%</div>
+                  </div>
                 </div>
-                <div className="text-right">
-                  <div className="text-sm font-bold text-gray-800">¥{commissionHistory.filter(item => item.type === 'task').reduce((sum, item) => sum + item.commission, 0).toFixed(2)}</div>
-                  <div className="text-xs text-gray-500">{((commissionHistory.filter(item => item.type === 'task').reduce((sum, item) => sum + item.commission, 0) / totalCommission) * 100).toFixed(1)}%</div>
-                </div>
-              </div>
-              <div className="flex justify-between items-center">
-                <div className="flex items-center space-x-2">
-                  <div className="w-3 h-3 bg-green-500 rounded"></div>
-                  <span className="text-sm text-gray-600">注册奖励</span>
-                </div>
-                <div className="text-right">
-                  <div className="text-sm font-bold text-gray-800">¥{commissionHistory.filter(item => item.type === 'register').reduce((sum, item) => sum + item.commission, 0).toFixed(2)}</div>
-                  <div className="text-xs text-gray-500">{((commissionHistory.filter(item => item.type === 'register').reduce((sum, item) => sum + item.commission, 0) / totalCommission) * 100).toFixed(1)}%</div>
+                <div className="flex justify-between items-center">
+                  <div className="flex items-center space-x-2">
+                    <div className="w-3 h-3 bg-green-500 rounded"></div>
+                    <span className="text-sm text-gray-600">注册奖励</span>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-sm font-bold text-gray-800">¥{commissionHistory.filter(item => item.type === 'register').reduce((sum, item) => sum + item.commission, 0).toFixed(2)}</div>
+                    <div className="text-xs text-gray-500">{((commissionHistory.filter(item => item.type === 'register').reduce((sum, item) => sum + item.commission, 0) / totalCommission) * 100).toFixed(1)}%</div>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
+          )}
 
           {/* 佣金明细 */}
           <div className="bg-white rounded-lg shadow-sm">
@@ -479,45 +499,53 @@ export default function CommenterInvitePage() {
               </div>
             </div>
             <div className="divide-y max-h-96 overflow-y-auto">
-              {commissionHistory.map((record) => (
-                <div key={record.id} className="p-4">
-                  <div className="flex justify-between items-start mb-2">
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-2 mb-1">
-                        <span className="font-medium text-gray-800">{record.memberName}</span>
-                        {record.type === 'register' ? (
-                          <span className="bg-green-100 text-green-600 px-2 py-1 rounded text-xs">注册奖励</span>
-                        ) : (
-                          <span className="bg-blue-100 text-blue-600 px-2 py-1 rounded text-xs">任务佣金</span>
+              {commissionHistory.length > 0 ? (
+                commissionHistory.map((record) => (
+                  <div key={record.id} className="p-4">
+                    <div className="flex justify-between items-start mb-2">
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-2 mb-1">
+                          <span className="font-medium text-gray-800">{record.memberName}</span>
+                          {record.type === 'register' ? (
+                            <span className="bg-green-100 text-green-600 px-2 py-1 rounded text-xs">注册奖励</span>
+                          ) : (
+                            <span className="bg-blue-100 text-blue-600 px-2 py-1 rounded text-xs">任务佣金</span>
+                          )}
+                        </div>
+                        <div className="text-sm text-gray-600 mb-1">{record.taskName}</div>
+                        <div className="text-xs text-gray-500">{record.date}</div>
+                        {record.type === 'task' && (
+                          <div className="text-xs text-gray-400 mt-1">
+                            任务收益: ¥{(record.taskEarning || 0).toFixed(2)} × 5% = ¥{record.commission.toFixed(2)}
+                          </div>
                         )}
                       </div>
-                      <div className="text-sm text-gray-600 mb-1">{record.taskName}</div>
-                      <div className="text-xs text-gray-500">{record.date}</div>
-                      {record.type === 'task' && (
-                        <div className="text-xs text-gray-400 mt-1">
-                          任务收益: ¥{record.taskEarning.toFixed(2)} × 5% = ¥{record.commission.toFixed(2)}
+                      <div className="text-right ml-4">
+                        <div className={`font-bold ${record.type === 'register' ? 'text-green-600' : 'text-blue-600'}`}>+¥{record.commission.toFixed(2)}</div>
+                        <div className="text-xs text-gray-500">
+                          {record.type === 'register' ? '奖励' : '5%佣金'}
                         </div>
-                      )}
-                    </div>
-                    <div className="text-right ml-4">
-                      <div className={`font-bold ${
-                        record.type === 'register' ? 'text-green-600' : 'text-blue-600'
-                      }`}>+¥{record.commission.toFixed(2)}</div>
-                      <div className="text-xs text-gray-500">
-                        {record.type === 'register' ? '奖励' : '5%佣金'}
                       </div>
                     </div>
                   </div>
+                ))
+              ) : (
+                <div className="p-8 text-center">
+                  <div className="text-gray-400 text-5xl mb-4">💰</div>
+                  <div className="text-gray-500">暂无佣金记录</div>
+                  <div className="text-gray-400 text-sm mt-2">邀请好友完成任务，即可获得佣金奖励！</div>
                 </div>
-              ))}
+              )}
             </div>
             
             {/* 查看更多 */}
-            <div className="p-4 border-t bg-gray-50">
-              <button className="w-full text-blue-500 text-sm hover:text-blue-600">
-                查看全部佣金记录
-              </button>
-            </div>
+            {commissionHistory.length > 0 && (
+              <div className="p-4 border-t bg-gray-50">
+                <button className="w-full text-blue-500 text-sm hover:text-blue-600">
+                  查看全部佣金记录
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}

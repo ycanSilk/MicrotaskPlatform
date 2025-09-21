@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
+import { financeModelAdapter } from '@/data/commenteruser/finance_model_adapter';
+
 
 // 读取评论订单数据文件
 const getCommentOrders = () => {
@@ -88,6 +90,44 @@ export async function POST(request: Request) {
           if (action === 'approve') {
             sub.status = 'sub_completed';
             console.log('Approved subOrder, new status:', sub.status);
+            
+            // 自动结算收益
+            if (sub.commenterId && sub.commenterName) {
+              console.log('开始自动结算收益，用户ID:', sub.commenterId);
+              
+              // 确定任务类型 (根据任务名称或其他标识)
+              let taskType = 'task';
+              if (order.taskName?.includes('视频')) {
+                taskType = 'video';
+              } else if (order.taskName?.includes('租号')) {
+                taskType = 'account_rental';
+              } else if (order.taskName?.includes('评论')) {
+                taskType = 'comment';
+              }
+              
+              // 调用financeModelAdapter创建用户收益记录
+              const taskEarning = await financeModelAdapter.createUserEarningRecord(
+                sub.commenterId,
+                sub.id,
+                order.taskName || '评论任务',
+                order.amount || 1.0,
+                taskType
+              );
+              
+              if (taskEarning) {
+                console.log('收益结算成功:', {
+                  userId: sub.commenterId,
+                  userName: sub.commenterName,
+                  taskId: sub.id,
+                  taskName: order.taskName,
+                  amount: order.amount,
+                  taskType: taskType,
+                  earningId: taskEarning.id
+                });
+              } else {
+                console.error('收益结算失败，用户ID:', sub.commenterId);
+              }
+            }
           } else if (action === 'reject') {
             sub.status = 'waiting_collect';
             // 清除评论员信息以便重新抢单

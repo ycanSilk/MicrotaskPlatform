@@ -5,9 +5,9 @@ import { useRouter } from 'next/navigation';
 import { authenticateAdmin, AdminAuthStorage, getAdminHomePath } from '@/auth';
 
 export default function AdminLoginPage() {
-  const [formData, setFormData] = useState({
-    username: '',
-    password: '',
+  const [formData, setFormData] = useState({  
+    username: 'admin',  // 默认填充管理员测试用户名
+    password: 'admin123', // 默认填充管理员测试密码
     captcha: ''
   });
   const [captchaCode, setCaptchaCode] = useState('');
@@ -25,9 +25,12 @@ export default function AdminLoginPage() {
     return result;
   }
 
-  // 初始化验证码
+  // 初始化验证码并自动填充
   useEffect(() => {
-    setCaptchaCode(generateCaptcha());
+    const newCaptcha = generateCaptcha();
+    setCaptchaCode(newCaptcha);
+    // 自动填充验证码到输入框
+    setFormData(prev => ({ ...prev, captcha: newCaptcha }));
   }, []);
 
   // 刷新验证码

@@ -185,6 +185,19 @@ export const CommenterAuthStorage = {
     }
   },
   
+  // 获取Token
+  getToken: (): string | null => {
+    if (typeof window === 'undefined') return null;
+    
+    try {
+      const auth = CommenterAuthStorage.getAuth();
+      return auth ? auth.token : null;
+    } catch (error) {
+      console.error('获取Token失败:', error);
+      return null;
+    }
+  },
+  
   // 清除认证信息
   clearAuth: (): void => {
     if (typeof window === 'undefined') return;
@@ -195,6 +208,27 @@ export const CommenterAuthStorage = {
       localStorage.removeItem('commenter_auth_expires');
     } catch (error) {
       console.error('清除评论员认证信息失败:', error);
+    }
+  },
+  
+  // 验证Token
+  verifyToken: (token: string): { userId: string; username: string; role: string; exp: number } | null => {
+    try {
+      // 在实际应用中，这里应该是真实的JWT验证
+      // 这里我们简单解码token来获取用户信息
+      const payload = JSON.parse(atob(token));
+      
+      // 检查token是否过期
+      // 注意：JWT的exp通常是以秒为单位的时间戳，而Date.now()返回毫秒
+      if (payload.exp && payload.exp < Date.now() / 1000) {
+        console.log('Token已过期');
+        return null;
+      }
+      
+      return payload;
+    } catch (error) {
+      console.error('验证Token失败:', error);
+      return null;
     }
   },
   
