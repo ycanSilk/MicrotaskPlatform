@@ -1,65 +1,133 @@
 'use client';
 
-import { Button, Input, AlertModal } from '@/components/ui';
-import { useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { PublisherAuthStorage } from '@/auth';
+import { Button, AlertModal } from '@/components/ui';
 
-// 模拟账号数据
-const AVAILABLE_ACCOUNTS = [
-  {
-    id: 'acc001',
-    type: '普通用户',
-    followers: '5000+',
-    engagement: '3.2%',
-    rating: 4.8,
-    description: '适合日常内容推广',
-    avatar: '👤',
-    available: true
-  },
-  {
-    id: 'acc002',
-    type: '达人账号',
-    followers: '50000+',
-    engagement: '4.5%',
-    rating: 4.9,
-    description: '适合产品推荐和推广',
-    avatar: '⭐',
-    available: true
-  },
-  {
-    id: 'acc003',
-    type: '专业领域账号',
-    followers: '20000+',
-    engagement: '5.7%',
-    rating: 4.7,
-    description: '特定领域内容推广',
-    avatar: '💼',
-    available: true
-  }
-];
+// 定义账号租赁订单类型
+interface AccountRentalOrder {
+  id: string;
+  orderNumber: string;
+  platform: string;
+  accountType: string;
+  followers: string;
+  engagement: string;
+  rating: number;
+  rentalDays: number;
+  totalPrice: number;
+  status: 'pending' | 'progress' | 'completed' | 'cancelled';
+  publishTime: string;
+  deadline: string;
+  accountDetails: {
+    username: string;
+    loginMethod: string;
+  };
+  usagePurpose: string;
+}
+
+// 模拟从用户终端传递过来的订单数据
+const generateMockOrders = (): AccountRentalOrder[] => {
+  return [
+    {
+      id: 'order001',
+      orderNumber: 'AR20250920458',
+      platform: '抖音',
+      accountType: '达人账号',
+      followers: '50000+',
+      engagement: '4.5%',
+      rating: 4.9,
+      rentalDays: 7,
+      totalPrice: 350,
+      status: 'progress',
+      publishTime: '2025-09-20T10:30:00Z',
+      deadline: '2025-09-27T23:59:59Z',
+      accountDetails: {
+        username: 'tech_account_001',
+        loginMethod: '手机验证登录'
+      },
+      usagePurpose: '用于产品推广和内容宣传，主要发布科技类产品评测视频'
+    },
+    {
+      id: 'order002',
+      orderNumber: 'AR20250918365',
+      platform: '抖音',
+      accountType: '专业领域账号',
+      followers: '20000+',
+      engagement: '5.7%',
+      rating: 4.7,
+      rentalDays: 3,
+      totalPrice: 150,
+      status: 'completed',
+      publishTime: '2025-09-18T14:20:00Z',
+      deadline: '2025-09-21T23:59:59Z',
+      accountDetails: {
+        username: 'finance_expert_001',
+        loginMethod: '密码登录'
+      },
+      usagePurpose: '用于金融知识分享和理财产品介绍'
+    },
+    {
+      id: 'order003',
+      orderNumber: 'AR20250921789',
+      platform: '抖音',
+      accountType: '普通用户',
+      followers: '5000+',
+      engagement: '3.2%',
+      rating: 4.8,
+      rentalDays: 5,
+      totalPrice: 250,
+      status: 'pending',
+      publishTime: '2025-09-21T09:15:00Z',
+      deadline: '2025-09-26T23:59:59Z',
+      accountDetails: {
+        username: 'daily_share_001',
+        loginMethod: '第三方登录'
+      },
+      usagePurpose: '用于日常内容分享和生活记录，主要面向年轻用户群体'
+    }
+  ];
+};
+
+// 状态文本映射
+const getStatusText = (status: string): string => {
+  const statusMap: Record<string, string> = {
+    'pending': '待确认',
+    'progress': '进行中',
+    'completed': '已完成',
+    'cancelled': '已取消'
+  };
+  return statusMap[status] || status;
+};
+
+// 状态样式映射
+const getStatusStyle = (status: string): string => {
+  const styleMap: Record<string, string> = {
+    'pending': 'bg-yellow-100 text-yellow-800',
+    'progress': 'bg-blue-100 text-blue-800',
+    'completed': 'bg-green-100 text-green-800',
+    'cancelled': 'bg-gray-100 text-gray-800'
+  };
+  return styleMap[status] || 'bg-gray-100 text-gray-800';
+};
+
+// 格式化日期
+const formatDate = (dateString: string): string => {
+  return new Date(dateString).toLocaleString('zh-CN', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+};
 
 export default function AccountRentalPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
+  const [orders, setOrders] = useState<AccountRentalOrder[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   
-  // 从URL参数获取任务信息
-  const taskId = searchParams.get('taskId');
-  const taskTitle = searchParams.get('title') || '真人号出租';
-  const taskIcon = searchParams.get('icon') || '🔑';
-  const basePrice = parseFloat(searchParams.get('price') || '50');
-  const taskDescription = searchParams.get('description') || '提供真实用户账号租赁服务，支持自定义租赁时间';
-  
-  const [formData, setFormData] = useState({
-    selectedAccount: '',
-    rentalDays: 1,
-    usagePurpose: '',
-    specificRequirements: '',
-    contactInfo: ''
-  });
-
-  const [isPublishing, setIsPublishing] = useState(false);
-
   // 通用提示框状态
   const [showAlertModal, setShowAlertModal] = useState(false);
   const [alertConfig, setAlertConfig] = useState({
@@ -68,314 +136,214 @@ export default function AccountRentalPage() {
     icon: ''
   });
 
-  // 计算总费用
-  const totalCost = (basePrice * formData.rentalDays).toFixed(2);
-
   // 显示通用提示框
   const showAlert = (title: string, message: string, icon: string) => {
     setAlertConfig({ title, message, icon });
     setShowAlertModal(true);
   };
 
-  // 提交租赁订单
-  const handleSubmitRental = async () => {
-    // 表单验证
-    if (!formData.selectedAccount) {
-      showAlert('输入错误', '请选择要租赁的账号', '⚠️');
-      return;
-    }
-    
-    if (!formData.usagePurpose || formData.usagePurpose.trim().length < 10) {
-      showAlert('输入错误', '请输入使用目的，至少10个字符', '⚠️');
-      return;
-    }
-    
-    if (formData.rentalDays < 1) {
-      showAlert('输入错误', '租赁天数必须大于0', '⚠️');
-      return;
-    }
-
-    // 显示加载状态
-    setIsPublishing(true);
-    console.log('开始提交租赁订单...');
-    console.log('表单数据:', formData);
-    console.log('任务ID:', taskId);
-
-    try {
-      // 使用PublisherAuthStorage获取认证token和用户信息
-      const auth = PublisherAuthStorage.getAuth();
-      const token = auth?.token;
-      const userInfo = PublisherAuthStorage.getCurrentUser();
-      
-      console.log('[账号租赁] 认证信息:', { token: token ? '存在' : '不存在', userInfo });
-      
-      if (!token || !userInfo) {
-        console.log('[账号租赁] 认证失败: 用户未登录或会话已过期');
-        showAlert('认证失败', '用户未登录，请重新登录', '❌');
-        router.push('/publisher/login' as any);
-        return;
+  // 加载订单数据
+  useEffect(() => {
+    const loadOrders = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        
+        // 使用PublisherAuthStorage获取认证token和用户信息
+        const auth = PublisherAuthStorage.getAuth();
+        const token = auth?.token;
+        
+        if (!token) {
+          showAlert('认证失败', '用户未登录，请重新登录', '❌');
+          router.push('/publisher/login' as any);
+          return;
+        }
+        
+        // 模拟API请求延迟
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        // 这里应该是实际的API请求，但现在使用模拟数据
+        // const response = await fetch('/api/publisher/account-rental/orders', {
+        //   method: 'GET',
+        //   headers: {
+        //     'Authorization': `Bearer ${token}`
+        //   }
+        // });
+        // const result = await response.json();
+        // if (result.success) {
+        //   setOrders(result.orders);
+        // } else {
+        //   throw new Error(result.message || '获取订单失败');
+        // }
+        
+        // 使用模拟数据
+        setOrders(generateMockOrders());
+      } catch (err) {
+        setError(err instanceof Error ? err.message : '获取订单失败');
+        showAlert('加载失败', err instanceof Error ? err.message : '获取订单失败，请稍后重试', '❌');
+      } finally {
+        setIsLoading(false);
       }
+    };
+    
+    loadOrders();
+  }, [router]);
 
-      // 构建API请求体
-      const requestBody = {
-        taskId: taskId || '',
-        taskTitle,
-        basePrice: basePrice,
-        rentalDays: formData.rentalDays,
-        selectedAccount: formData.selectedAccount,
-        usagePurpose: formData.usagePurpose,
-        specificRequirements: formData.specificRequirements,
-        contactInfo: formData.contactInfo,
-        totalCost: parseFloat(totalCost)
-      };
-
-      console.log('API请求体:', requestBody);
-      
-      // 调用API提交租赁订单
-      const response = await fetch('/api/publisher/account-rental', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(requestBody)
-      });
-      
-      console.log('API响应状态:', response.status);
-
-      const result = await response.json();
-      console.log('API响应结果:', result);
-      
-      if (result.success) {
-        showAlert('提交成功', `账号租赁订单提交成功！订单号：${result.order?.orderNumber || ''}`, '✅');
-        setTimeout(() => {
-          router.push('/publisher/dashboard');
-        }, 1500);
-      } else {
-        showAlert('提交失败', `账号租赁订单提交失败: ${result.message || '未知错误'}`, '❌');
-      }
-    } catch (error) {
-      console.error('提交租赁订单时发生错误:', error);
-      showAlert('网络错误', '提交租赁订单时发生错误，请稍后重试', '❌');
-    } finally {
-      setIsPublishing(false);
-    }
+  // 查看订单详情
+  const handleViewOrderDetail = (orderId: string) => {
+    router.push(`/publisher/dashboard/account-rental-detail?orderId=${orderId}`);
   };
 
-  // 获取选中的账号信息
-  const getSelectedAccountInfo = () => {
-    return AVAILABLE_ACCOUNTS.find(acc => acc.id === formData.selectedAccount);
+  // 返回上一页
+  const handleBack = () => {
+    router.back();
   };
-
-  // 如果没有找到任务类型，返回错误页面
-  if (!taskId || taskId !== 'account_rental') {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-2xl mb-2">❌</div>
-          <div className="text-lg font-medium text-gray-800 mb-2">任务信息不完整</div>
-          <Button 
-            onClick={() => router.push('/publisher/create')}
-            className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
-          >
-            返回选择任务
-          </Button>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
       {/* 页面头部 */}
       <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-4 py-6">
-        <div className="flex mb-4 items-center justify-center p-3 bg-white rounded-xl shadow-sm border border-gray-100 w-20 hover:shadow-md transition-all">
+        <div className="flex items-center mb-4">
           <button 
-            onClick={() => router.back()}
-            className="flex items-center justify-center w-full h-full text-blue-500 hover:text-blue-600 font-medium text-sm transition-colors"
+            onClick={handleBack}
+            className="p-2 bg-white bg-opacity-20 rounded-full hover:bg-opacity-30 transition-colors mr-3"
           >
-            ← 返回
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
           </button>
-        </div>
-        <div className="flex items-center space-x-3 mb-4">
-          <h1 className="text-xl font-bold">发布{taskTitle}</h1>
+          <h1 className="text-xl font-bold">租号订单列表</h1>
         </div>
         
-        {/* 任务信息展示 */}
         <div className="bg-white bg-opacity-10 rounded-2xl p-4">
-          <div className="flex items-center space-x-3 mb-3">
-            <div className="w-10 h-10 bg-white bg-opacity-20 rounded-xl flex items-center justify-center text-xl">
-              {taskIcon}
+          <div className="flex items-center space-x-2 mb-2">
+            <div className="w-8 h-8 bg-white bg-opacity-20 rounded-lg flex items-center justify-center text-lg">
+              🔑
             </div>
-            <div>
-              <h3 className="font-bold text-white">{taskTitle}</h3>
-              <p className="text-blue-100 text-sm">单价: ¥{basePrice}/天</p>
-            </div>
+            <p className="text-blue-100">这里展示您通过用户终端发布的租号订单信息</p>
           </div>
-          <p className="text-blue-100 text-sm">{taskDescription}</p>
+          <p className="text-blue-100 text-sm">您可以查看每个订单的状态和详细信息，进行相应操作</p>
         </div>
       </div>
 
-      <div className="px-4 py-6 space-y-6">
-        {/* 账号选择 */}
-        <div className="bg-white rounded-2xl p-4 shadow-sm">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            选择账号 <span className="text-red-500">*</span>
-          </label>
-          <div className="grid grid-cols-1 gap-3">
-            {AVAILABLE_ACCOUNTS.map(account => (
+      {/* 订单列表 */}
+      <div className="px-4 py-6">
+        {/* 加载状态 */}
+        {isLoading && (
+          <div className="flex flex-col items-center justify-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mb-4"></div>
+            <p className="text-gray-600">加载订单中...</p>
+          </div>
+        )}
+
+        {/* 错误状态 */}
+        {error && !isLoading && (
+          <div className="bg-red-50 border border-red-100 rounded-lg p-4 mb-6">
+            <div className="flex items-center text-red-600 mb-2">
+              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+              加载失败
+            </div>
+            <p className="text-red-700 text-sm">{error}</p>
+          </div>
+        )}
+
+        {/* 空状态 */}
+        {!isLoading && !error && orders.length === 0 && (
+          <div className="flex flex-col items-center justify-center py-16 bg-white rounded-lg shadow-sm">
+            <div className="text-gray-300 text-5xl mb-4">📋</div>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">暂无租号订单</h3>
+            <p className="text-gray-500 mb-6 text-center">您还没有通过用户终端发布任何租号订单</p>
+            <Button 
+              onClick={() => router.push('/publisher/create')}
+              className="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition-colors"
+            >
+              发布新任务
+            </Button>
+          </div>
+        )}
+
+        {/* 订单列表 */}
+        {!isLoading && !error && orders.length > 0 && (
+          <div className="space-y-4">
+            {orders.map((order) => (
               <div 
-                key={account.id}
-                onClick={() => setFormData({...formData, selectedAccount: account.id})}
-                className={`p-3 border rounded-xl cursor-pointer transition-all ${formData.selectedAccount === account.id ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-blue-300'}`}
+                key={order.id} 
+                className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden transition-all hover:shadow-md"
               >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-12 h-12 bg-gradient-to-r from-blue-400 to-purple-500 rounded-full flex items-center justify-center text-2xl">
-                      {account.avatar}
-                    </div>
-                    <div>
-                      <h3 className="font-bold text-gray-900">{account.type}</h3>
-                      <div className="flex items-center space-x-2 mt-1">
-                        <span className="text-gray-500 text-sm">粉丝: {account.followers}</span>
-                        <span className="text-gray-500 text-sm">互动率: {account.engagement}</span>
+                <div className="p-4">
+                  {/* 订单头部 */}
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center space-x-2">
+                      <div className="w-10 h-10 bg-gradient-to-r from-blue-400 to-purple-500 rounded-lg flex items-center justify-center text-xl">
+                        {order.platform === '抖音' ? '🎵' : '📱'}
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-gray-900">{order.platform} - {order.accountType}</h3>
+                        <p className="text-gray-500 text-sm">订单号: {order.orderNumber}</p>
                       </div>
                     </div>
+                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusStyle(order.status)}`}>
+                      {getStatusText(order.status)}
+                    </span>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <div className="flex items-center space-x-1 bg-yellow-100 text-yellow-800 px-2 py-1 rounded-lg">
-                      <span className="text-yellow-500">★</span>
-                      <span className="font-medium">{account.rating}</span>
+
+                  {/* 订单信息 */}
+                  <div className="grid grid-cols-2 gap-3 mb-4">
+                    <div className="flex flex-col">
+                      <span className="text-sm text-gray-500">粉丝数量</span>
+                      <span className="font-medium text-gray-900">{order.followers}</span>
                     </div>
-                    {formData.selectedAccount === account.id && (
-                      <div className="w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center text-white">
-                        ✓
+                    <div className="flex flex-col">
+                      <span className="text-sm text-gray-500">互动率</span>
+                      <span className="font-medium text-gray-900">{order.engagement}</span>
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-sm text-gray-500">账号评分</span>
+                      <div className="flex items-center">
+                        <span className="text-yellow-500 mr-1">★</span>
+                        <span className="font-medium text-gray-900">{order.rating}</span>
                       </div>
-                    )}
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-sm text-gray-500">租赁时长</span>
+                      <span className="font-medium text-gray-900">{order.rentalDays} 天</span>
+                    </div>
                   </div>
+
+                  {/* 使用目的 */}
+                  <div className="mb-4">
+                    <div className="text-sm text-gray-500 mb-1">使用目的</div>
+                    <div className="bg-gray-50 p-3 rounded-lg text-sm text-gray-700">
+                      {order.usagePurpose}
+                    </div>
+                  </div>
+
+                  {/* 订单时间和价格 */}
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="text-sm text-gray-500">
+                      发布时间: {formatDate(order.publishTime)}
+                    </div>
+                    <div className="font-bold text-lg text-orange-500">
+                      ¥{order.totalPrice}
+                    </div>
+                  </div>
+
+                  {/* 操作按钮 */}
+                  <Button 
+                    onClick={() => handleViewOrderDetail(order.id)}
+                    className="w-full py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                  >
+                    查看订单详情
+                  </Button>
                 </div>
-                <p className="mt-2 text-gray-600 text-sm">{account.description}</p>
               </div>
             ))}
           </div>
-        </div>
-
-        {/* 租赁时长 */}
-        <div className="bg-white rounded-2xl p-4 shadow-sm">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            租赁时长（天）
-          </label>
-          <div className="flex items-center space-x-4">
-            <button 
-              onClick={() => setFormData({...formData, rentalDays: Math.max(1, formData.rentalDays - 1)})}
-              className="w-10 h-10 rounded-full bg-blue-100 hover:bg-blue-200 text-blue-600 flex items-center justify-center text-lg font-bold transition-colors"
-            >
-              -
-            </button>
-            <div className="flex-1">
-              <Input
-                type="number"
-                min="1"
-                value={formData.rentalDays.toString()}
-                onChange={(e) => setFormData({...formData, rentalDays: Math.max(1, parseInt(e.target.value) || 1)})}
-                className="w-full text-2xl font-bold text-gray-900 text-center py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
-            <button 
-              onClick={() => setFormData({...formData, rentalDays: formData.rentalDays + 1})}
-              className="w-10 h-10 rounded-full bg-blue-100 hover:bg-blue-200 text-blue-600 flex items-center justify-center text-lg font-bold transition-colors"
-            >
-              +
-            </button>
-          </div>
-          <div className="mt-2 text-sm text-gray-500">
-            单价: ¥{basePrice}/天，可自定义租赁时间
-          </div>
-        </div>
-
-        {/* 使用目的 */}
-        <div className="bg-white rounded-2xl p-4 shadow-sm">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            使用目的 <span className="text-red-500">*</span>
-          </label>
-          <textarea
-            className="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-            rows={3}
-            placeholder="请详细描述账号使用目的和内容方向..."
-            value={formData.usagePurpose}
-            onChange={(e) => setFormData({...formData, usagePurpose: e.target.value})}
-          />
-        </div>
-
-        {/* 特定要求 */}
-        <div className="bg-white rounded-2xl p-4 shadow-sm">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            特定要求
-          </label>
-          <textarea
-            className="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-            rows={2}
-            placeholder="如有特殊内容要求或注意事项，请在此说明..."
-            value={formData.specificRequirements}
-            onChange={(e) => setFormData({...formData, specificRequirements: e.target.value})}
-          />
-        </div>
-
-        {/* 联系方式 */}
-        <div className="bg-white rounded-2xl p-4 shadow-sm">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            联系方式
-          </label>
-          <Input
-            placeholder="请输入有效的联系方式，以便我们与您沟通账号使用事宜"
-            value={formData.contactInfo}
-            onChange={(e) => setFormData({...formData, contactInfo: e.target.value})}
-            className="w-full"
-          />
-        </div>
-
-        {/* 费用预览 */}
-        <div className="bg-white rounded-2xl p-4 shadow-sm">
-          <h3 className="font-medium text-gray-900 mb-3">费用预览</h3>
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-600">基础租赁费用（{formData.rentalDays}天）</span>
-              <span className="font-medium">¥{totalCost}</span>
-            </div>
-            {getSelectedAccountInfo() && (
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-600">账号类型</span>
-                <span className="font-medium">{getSelectedAccountInfo()?.type}</span>
-              </div>
-            )}
-            <div className="border-t border-gray-200 pt-2">
-              <div className="flex justify-between">
-                <span className="font-medium text-gray-900">总计费用</span>
-                <span className="font-bold text-lg text-orange-500">¥{totalCost}</span>
-              </div>
-            </div>
-          </div>
-        </div>
+        )}
       </div>
 
-      {/* 底部固定提交按钮 */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t p-4 space-y-3">
-        <Button 
-          onClick={handleSubmitRental}
-          disabled={!formData.selectedAccount || !formData.usagePurpose}
-          className="w-full py-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-2xl font-bold text-lg disabled:opacity-50"
-        >
-          提交租赁订单 - ¥{totalCost}
-        </Button>
-        <Button 
-          onClick={() => router.back()}
-          variant="secondary"
-          className="w-full py-3 border border-gray-200 text-gray-700 rounded-2xl"
-        >
-          取消
-        </Button>
-      </div>
-      
       {/* 通用提示模态框 */}
       <AlertModal
         isOpen={showAlertModal}

@@ -2,6 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { PublisherAuthStorage } from '@/auth';
+import { Button, AlertModal, Tabs, TabsContent, TabsList, TabsTrigger, Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui';
 
 // 定义子任务数据类型 - 租号任务特定
 interface AccountRentalSubTask {
@@ -16,6 +18,8 @@ interface AccountRentalSubTask {
     username: string;
     password: string;
     loginMethod: string;
+    verificationCode?: string;
+    additionalInfo?: string;
   };
 }
 
@@ -40,6 +44,9 @@ interface AccountRentalTask {
     followerCount: string;
     requiresVerification: boolean;
     rentalDuration: string;
+    engagementRate?: string;
+    postFrequency?: string;
+    audienceDemographics?: string;
   };
   subOrders: AccountRentalSubTask[];
 }
@@ -52,6 +59,12 @@ export default function AccountRentalDetailPage() {
   const [loading, setLoading] = useState(true);
   const [task, setTask] = useState<AccountRentalTask | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState('overview');
+  const [selectedSubTask, setSelectedSubTask] = useState<string | null>(null);
+  const [showAccountDetails, setShowAccountDetails] = useState(false);
+  const [screenshotUrl, setScreenshotUrl] = useState('');
+  const [showSubmitModal, setShowSubmitModal] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   useEffect(() => {
     if (taskId) {
@@ -66,31 +79,22 @@ export default function AccountRentalDetailPage() {
     try {
       setLoading(true);
       
-      // 调用API获取任务详情
-      const url = `/api/publisher/task-detail?taskId=${id}`;
-      
-      // 获取认证token（如果存在）
-      let authToken = null;
-      if (typeof window !== 'undefined') {
-        try {
-          authToken = localStorage.getItem('publisher_auth_token');
-        } catch (e) {
-          console.warn(`获取认证token时出错: ${e}`);
-        }
-      }
+      // 使用PublisherAuthStorage获取认证信息
+      const auth = PublisherAuthStorage();
+      const token = auth.getToken();
       
       // 构建请求选项
       const requestOptions = {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          ...(authToken && { 'Authorization': `Bearer ${authToken}` })
+          ...(token && { 'Authorization': `Bearer ${token}` })
         },
         cache: 'no-store' as RequestCache
       };
       
       // 发送请求
-      const response = await fetch(url, requestOptions);
+      const response = await fetch(`/api/publisher/task-detail?id=${id}&type=account_rental`, requestOptions);
       
       // 检查响应是否成功
       if (!response.ok) {
@@ -115,9 +119,125 @@ export default function AccountRentalDetailPage() {
       setLoading(false);
     }
   };
+  
+  // 领取租号任务
+  const claimAccountRentalTask = async (taskId: string, subTaskId: string) => {
+    try {
+      const auth = PublisherAuthStorage();
+      const token = auth.getToken();
+      if (!token) {
+        throw new Error('认证失败，请重新登录');
+      }
+  
+      const response = await fetch('/api/publisher/claim-account-rental', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          taskId,
+          subTaskId
+        })
+      });
+  
+      if (!response.ok) {
+        throw new Error(`HTTP错误! 状态码: ${response.status}`);
+      }
+  
+      const data = await response.json();
+      // 重新获取任务详情以更新状态
+      fetchTaskDetail(taskId);
+      return data;
+    } catch (error) {
+      console.error('领取租号任务失败:', error);
+      setError(error instanceof Error ? error.message : '领取任务失败');
+      throw error;
+    }
+  };
+  
+  // 提交租号结果
+  const submitAccountRentalResult = async (taskId: string, subTaskId: string, screenshotUrl: string) => {
+    try {
+      const auth = PublisherAuthStorage();
+      const token = auth.getToken();
+      if (!token) {
+        throw new Error('认证失败，请重新登录');
+      }
+  
+      const response = await fetch('/api/publisher/submit-account-rental-result', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          taskId,
+          subTaskId,
+          screenshotUrl
+        })
+      });
+  
+      if (!response.ok) {
+        throw new Error(`HTTP错误! 状态码: ${response.status}`);
+      }
+  
+      const data = await response.json();
+      // 重新获取任务详情以更新状态
+      fetchTaskDetail(taskId);
+      return data;
+    } catch (error) {
+      console.error('提交租号结果失败:', error);
+      setError(error instanceof Error ? error.message : '提交结果失败');
+      throw error;
+    }
+  };
 
   const handleSubTaskAction = (subTaskId: string, action: string) => {
-    alert(`对子任务 ${subTaskId} 执行 ${action} 操作`);
+    if (!task) return;
+    
+    switch (action) {
+      case 'claim':
+        // 领取租号任务
+        handleClaimSubTask(subTaskId);
+        break;
+      case 'viewAccount':
+        // 查看账号详情
+        setSelectedSubTask(subTaskId);
+        setShowAccountDetails(true);
+        break;
+      case 'submitResult':
+        // 提交租赁结果
+        setSelectedSubTask(subTaskId);
+        setShowSubmitModal(true);
+        break;
+      default:
+        alert(`对子任务 ${subTaskId} 执行 ${action} 操作`);
+    }
+  };
+  
+  const handleClaimSubTask = async (subTaskId: string) => {
+    if (!task) return;
+    
+    try {
+      await claimAccountRentalTask(task.id, subTaskId);
+      setShowSuccessModal(true);
+    } catch (error) {
+      console.error('Failed to claim subtask:', error);
+    }
+  };
+  
+  const handleSubmitResult = async () => {
+    if (!task || !selectedSubTask || !screenshotUrl.trim()) return;
+    
+    try {
+      await submitAccountRentalResult(task.id, selectedSubTask, screenshotUrl.trim());
+      setShowSubmitModal(false);
+      setScreenshotUrl('');
+      setShowSuccessModal(true);
+    } catch (error) {
+      console.error('Failed to submit result:', error);
+    }
   };
 
   if (loading) {
@@ -290,6 +410,16 @@ export default function AccountRentalDetailPage() {
       </div>
 
       <div className="max-w-3xl mx-auto px-4 py-6">
+        {/* 标签页导航 */}
+        <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab} className="w-full mb-6">
+          <TabsList className="grid w-full max-w-md grid-cols-3">
+            <TabsTrigger value="overview">概览</TabsTrigger>
+            <TabsTrigger value="account-detail">账号详情</TabsTrigger>
+            <TabsTrigger value="rental-flow">租赁流程</TabsTrigger>
+          </TabsList>
+          
+          {/* 概览标签页 */}
+          <TabsContent value="overview" className="mt-4">
         {/* 任务基本信息 */}
         <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
           <div className="flex items-center justify-between mb-4">
@@ -351,34 +481,6 @@ export default function AccountRentalDetailPage() {
           </div>
         </div>
 
-        {/* 账号信息 */}
-        <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
-          <h2 className="text-lg font-bold text-gray-800 mb-4">账号信息</h2>
-          
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <p className="text-sm text-gray-600">平台</p>
-              <p className="font-medium">{task.accountInfo.platform}</p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-600">账号等级</p>
-              <p className="font-medium">{getAccountLevelText(task.accountInfo.accountLevel)}</p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-600">粉丝数量</p>
-              <p className="font-medium">{task.accountInfo.followerCount}</p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-600">需要验证</p>
-              <p className="font-medium">{task.accountInfo.requiresVerification ? '是' : '否'}</p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-600">租用时长</p>
-              <p className="font-medium">{task.accountInfo.rentalDuration}</p>
-            </div>
-          </div>
-        </div>
-
         {/* 子任务统计 */}
         <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
           <h2 className="text-lg font-bold text-gray-800 mb-4">子任务统计</h2>
@@ -401,66 +503,144 @@ export default function AccountRentalDetailPage() {
             </div>
           </div>
         </div>
+      </TabsContent>
+      
+      {/* 账号详情标签页 */}
+      <TabsContent value="account-detail" className="mt-4">
+        <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
+          <h2 className="text-lg font-bold text-gray-800 mb-4">账号详细信息</h2>
+          
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <p className="text-sm text-gray-600">平台</p>
+              <p className="font-medium">{task.accountInfo.platform}</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-600">账号等级</p>
+              <p className="font-medium">{getAccountLevelText(task.accountInfo.accountLevel)}</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-600">粉丝数量</p>
+              <p className="font-medium">{task.accountInfo.followerCount}</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-600">互动率</p>
+              <p className="font-medium">{task.accountInfo.engagementRate || '暂无数据'}</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-600">发布频率</p>
+              <p className="font-medium">{task.accountInfo.postFrequency || '暂无数据'}</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-600">受众人群</p>
+              <p className="font-medium">{task.accountInfo.audienceDemographics || '暂无数据'}</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-600">需要验证</p>
+              <p className="font-medium">{task.accountInfo.requiresVerification ? '是' : '否'}</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-600">租用时长</p>
+              <p className="font-medium">{task.accountInfo.rentalDuration}</p>
+            </div>
+          </div>
+        </div>
+      </TabsContent>
+      
+      {/* 租赁流程标签页 */}
+      <TabsContent value="rental-flow" className="mt-4">
 
-        {/* 子任务列表 */}
+        <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
+          <h2 className="text-lg font-bold text-gray-800 mb-4">租赁账号流程</h2>
+          
+          <div className="mb-6">
+            <h3 className="text-md font-semibold mb-2">租赁步骤</h3>
+            <div className="space-y-2">
+              <div className="flex items-center">
+                <div className="w-6 h-6 rounded-full bg-blue-500 text-white flex items-center justify-center mr-3">1</div>
+                <p>浏览可用账号，选择适合的账号</p>
+              </div>
+              <div className="flex items-center">
+                <div className="w-6 h-6 rounded-full bg-blue-500 text-white flex items-center justify-center mr-3">2</div>
+                <p>领取账号，获取账号登录信息</p>
+              </div>
+              <div className="flex items-center">
+                <div className="w-6 h-6 rounded-full bg-blue-500 text-white flex items-center justify-center mr-3">3</div>
+                <p>完成任务操作，截图保存</p>
+              </div>
+              <div className="flex items-center">
+                <div className="w-6 h-6 rounded-full bg-blue-500 text-white flex items-center justify-center mr-3">4</div>
+                <p>提交截图，等待审核</p>
+              </div>
+            </div>
+          </div>
+          
+          <div className="mb-6">
+            <h3 className="text-md font-semibold mb-2">注意事项</h3>
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+              <ul className="list-disc pl-5 space-y-1 text-sm text-gray-700">
+                <li>请在规定时间内完成任务，超时将无法提交</li>
+                <li>请严格按照任务要求操作，违规操作将被驳回</li>
+                <li>请妥善保管账号信息，不要泄露给他人</li>
+                <li>完成任务后请及时提交截图，以便尽快审核</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        
+        {/* 可用账号列表 */}
         <div className="bg-white rounded-lg shadow-sm p-4">
-          <h2 className="text-lg font-bold text-gray-800 mb-4">子任务列表</h2>
+          <h2 className="text-lg font-bold text-gray-800 mb-4">可用账号列表</h2>
           <div className="space-y-4">
             {task.subOrders.map((subTask) => (
               <div key={subTask.id} className="border border-gray-200 rounded-lg p-4">
                 <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center space-x-2">
-                        <span className="font-medium">订单编号： {subTask.id}</span>
-                        <span className={`px-2 py-1 rounded text-xs ${getStatusStyle(subTask.status)}`}>
-                          {getStatusText(subTask.status)}
-                        </span>
-                      </div>
-                  {subTask.status === 'sub_pending_review' && (
-                    <div className="flex space-x-2">
+                  <div className="flex items-center space-x-2">
+                    <span className="font-medium">订单编号： {subTask.id}</span>
+                    <span className={`px-2 py-1 rounded text-xs ${getStatusStyle(subTask.status)}`}>
+                      {getStatusText(subTask.status)}
+                    </span>
+                  </div>
+                  
+                  {/* 操作按钮 - 根据状态显示不同按钮 */}
+                  <div className="flex space-x-2">
+                    {subTask.status === 'waiting_collect' && (
                       <button
-                        onClick={() => handleSubTaskAction(subTask.id, '通过')}
-                        className="px-3 py-1 bg-green-500 text-white rounded text-sm hover:bg-green-600"
+                        onClick={() => handleSubTaskAction(subTask.id, 'claim')}
+                        className="px-3 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600"
                       >
-                        通过
+                        领取任务
                       </button>
-                      <button
-                        onClick={() => handleSubTaskAction(subTask.id, '驳回')}
-                        className="px-3 py-1 bg-red-500 text-white rounded text-sm hover:bg-red-600"
-                      >
-                        驳回
-                      </button>
-                    </div>
-                  )}
+                    )}
+                    
+                    {subTask.status === 'sub_progress' && (
+                      <>
+                        <button
+                          onClick={() => handleSubTaskAction(subTask.id, 'viewAccount')}
+                          className="px-3 py-1 bg-gray-500 text-white rounded text-sm hover:bg-gray-600"
+                        >
+                          查看账号
+                        </button>
+                        <button
+                          onClick={() => handleSubTaskAction(subTask.id, 'submitResult')}
+                          className="px-3 py-1 bg-green-500 text-white rounded text-sm hover:bg-green-600"
+                        >
+                          提交结果
+                        </button>
+                      </>
+                    )}
+                  </div>
                 </div>
                 
                 {subTask.commenterName ? (
-                    <div className="mb-3">
-                      <p className="text-sm text-gray-600">领取用户</p>
-                      <p className="font-medium">{subTask.commenterName}</p>
-                    </div>
-                  ) : (
-                    <div className="mb-3">
-                      <p className="text-sm text-gray-600">领取用户</p>
-                      <p className="font-medium text-gray-400">暂无信息</p>
-                    </div>
-                  )}
-                
-                {subTask.accountDetails ? (
                   <div className="mb-3">
-                    <p className="text-sm text-gray-600 mb-1">账号详情</p>
-                    <div className="bg-gray-50 p-3 rounded space-y-2">
-                      <p className="text-gray-800">用户名: {subTask.accountDetails.username || '暂无'}</p>
-                      <p className="text-gray-800">登录方式: {subTask.accountDetails.loginMethod ? getLoginMethodText(subTask.accountDetails.loginMethod) : '暂无'}</p>
-                      {/* 出于安全考虑，不显示密码 */}
-                      <p className="text-gray-800">密码: ************</p>
-                    </div>
+                    <p className="text-sm text-gray-600">领取用户</p>
+                    <p className="font-medium">{subTask.commenterName}</p>
                   </div>
                 ) : (
                   <div className="mb-3">
-                    <p className="text-sm text-gray-600 mb-1">账号详情</p>
-                    <div className="bg-gray-50 border border-gray-200 p-3 rounded flex items-center justify-center h-20">
-                      <p className="text-gray-400">暂无账号详情</p>
-                    </div>
+                    <p className="text-sm text-gray-600">领取用户</p>
+                    <p className="font-medium text-gray-400">暂无信息</p>
                   </div>
                 )}
                 
@@ -496,7 +676,107 @@ export default function AccountRentalDetailPage() {
             ))}
           </div>
         </div>
+      </TabsContent>
+    </Tabs>
       </div>
     </div>
+    
+    {/* 账号详情模态框 */}
+    <Dialog open={showAccountDetails} onOpenChange={setShowAccountDetails}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>账号登录信息</DialogTitle>
+          <DialogDescription>
+            请妥善保管账号信息，不要泄露给他人
+          </DialogDescription>
+        </DialogHeader>
+        
+        {selectedSubTask && (
+          <div className="mt-4 space-y-3">
+            {task.subOrders.find(sub => sub.id === selectedSubTask)?.accountDetails && (
+              <>
+                <div className="bg-gray-50 p-3 rounded-lg">
+                  <div className="mb-2">
+                    <p className="text-xs text-gray-500">用户名</p>
+                    <p className="font-medium">{task.subOrders.find(sub => sub.id === selectedSubTask)?.accountDetails?.username}</p>
+                  </div>
+                  <div className="mb-2">
+                    <p className="text-xs text-gray-500">密码</p>
+                    <p className="font-medium">{task.subOrders.find(sub => sub.id === selectedSubTask)?.accountDetails?.password}</p>
+                  </div>
+                  <div className="mb-2">
+                    <p className="text-xs text-gray-500">登录方式</p>
+                    <p className="font-medium">{getLoginMethodText(task.subOrders.find(sub => sub.id === selectedSubTask)?.accountDetails?.loginMethod || '')}</p>
+                  </div>
+                  {task.subOrders.find(sub => sub.id === selectedSubTask)?.accountDetails?.verificationCode && (
+                    <div className="mb-2">
+                      <p className="text-xs text-gray-500">验证码</p>
+                      <p className="font-medium">{task.subOrders.find(sub => sub.id === selectedSubTask)?.accountDetails?.verificationCode}</p>
+                    </div>
+                  )}
+                  {task.subOrders.find(sub => sub.id === selectedSubTask)?.accountDetails?.additionalInfo && (
+                    <div>
+                      <p className="text-xs text-gray-500">附加信息</p>
+                      <p className="font-medium">{task.subOrders.find(sub => sub.id === selectedSubTask)?.accountDetails?.additionalInfo}</p>
+                    </div>
+                  )}
+                </div>
+                
+                <div className="bg-yellow-50 border border-yellow-200 p-3 rounded-lg text-sm">
+                  <p className="text-yellow-700">⚠️ 完成任务后，请确保退出账号登录，保护账号安全。</p>
+                </div>
+              </>
+            )}
+            
+            <Button className="w-full" onClick={() => setShowAccountDetails(false)}>
+              关闭
+            </Button>
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
+    
+    {/* 提交结果模态框 */}
+    <Dialog open={showSubmitModal} onOpenChange={setShowSubmitModal}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>提交任务结果</DialogTitle>
+          <DialogDescription>
+            请上传完成任务的截图
+          </DialogDescription>
+        </DialogHeader>
+        
+        <div className="mt-4 space-y-3">
+          <div>
+            <label className="text-sm font-medium text-gray-700 block mb-1">截图链接</label>
+            <input
+              type="text"
+              value={screenshotUrl}
+              onChange={(e) => setScreenshotUrl(e.target.value)}
+              placeholder="请输入截图的URL地址"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+          
+          <div className="flex space-x-2">
+            <Button className="w-full" onClick={handleSubmitResult}>
+              提交
+            </Button>
+            <Button variant="secondary" className="w-full" onClick={() => setShowSubmitModal(false)}>
+              取消
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+    
+    {/* 成功提示模态框 */}
+    <AlertModal 
+      open={showSuccessModal} 
+      onOpenChange={setShowSuccessModal}
+      title="操作成功"
+      message="您的操作已成功完成！"
+      buttonText="确定"
+    />
   );
 }

@@ -155,7 +155,7 @@ export default function CommenterLayout({
 
       {/* 底部导航栏 */}
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t">
-        <div className="grid grid-cols-5 py-2">
+        <div className="grid grid-cols-6 py-2">
           <Link
             href="/commenter/hall"
             className={`flex flex-col items-center py-2 ${
@@ -163,7 +163,7 @@ export default function CommenterLayout({
             }`}
           >
             <span className="text-lg">🏠</span>
-            <span className="text-xs">大厅</span>
+            <span className="text-xs">抢单大厅</span>
           </Link>
           <Link
             href="/commenter/tasks"
@@ -182,6 +182,15 @@ export default function CommenterLayout({
           >
             <span className="text-lg">💰</span>
             <span className="text-xs">收益</span>
+          </Link>
+          <Link
+            href="/commenter/lease"
+            className={`flex flex-col items-center py-2 ${
+              isActive('/lease') ? 'text-blue-500' : 'text-gray-400'
+            }`}
+          >
+            <span className="text-lg">🏢</span>
+            <span className="text-xs">账号出租</span>
           </Link>
           <Link
             href="/commenter/invite"

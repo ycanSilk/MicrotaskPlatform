@@ -29,31 +29,22 @@ const TASK_TYPES = [
     id: 'account_rental',
     title: '真人账号租赁',
     icon: '🔑',
-    price: 60.0,
+    price: '60',
     description: '提供真实用户账号租赁服务，支持自定义租赁时间',
     requirements: '账号真实有效，无违规记录，按约定时间使用，手机扫码登录，租号有风险，不得使用账号进行任何形式的违规活动',
     estimatedTime: '自定义',
-    difficulty: '简单'
+    difficulty: '简单',
+    roleType: '出租'
   },
   {
-    id: 'video_push_basic',
-    title: '定制视频发送-纯推送模式',
-    icon: '📹',
-    price: 50.0,
-    description: '按要求制作并发送视频内容，纯推送模式',
-    requirements: '视频内容符合要求，按时发送，保证质量',
-    estimatedTime: '12小时',
-    difficulty: '中等'
-  },
-  {
-    id: 'video_push_custom',
-    title: '定制视频发送-定制推送模式',
+    id: 'video_publish',
+    title: '视频发布',
     icon: '🎬',
-    price: 200.0,
-    description: '按要求制作并发送视频内容，定制推送模式',
-    requirements: '视频内容高度定制，专业制作，精准推送',
-    estimatedTime: '24小时',
-    difficulty: '困难'
+    price: '自定义',
+    description: '按要求制作并发布视频内容',
+    requirements: '视频内容符合要求，按时发布，保证质量',
+    estimatedTime: '自定义',
+    difficulty: '中等'
   }
 ];
 
@@ -75,8 +66,12 @@ const TaskCard = ({ task, onClick }: { task: any, onClick: () => void }) => {
           </div>
         </div>
         <div className="text-right">
-          <div className="text-2xl font-bold text-orange-500">¥{task.price}</div>
-          <div className="text-gray-500 text-sm">单价</div>
+          <div className="text-2xl font-bold text-orange-500">
+            {task.price === '自定义' ? '自定义' : `¥${task.price}`}
+          </div>
+          <div className="text-gray-500 text-sm">
+            {task.price === '自定义' ? '支持任意金额' : '单价'}
+          </div>
         </div>
       </div>
 
@@ -90,10 +85,21 @@ const TaskCard = ({ task, onClick }: { task: any, onClick: () => void }) => {
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-2 text-gray-500 text-sm">
           <span>💡</span>
-          <span>系统定价，公平公正</span>
+          <span>
+            {task.id === 'video_publish' || task.id === 'account_rental' || task.id === 'account_request' ? 
+              '费用由双方自行设定，平台抽取20%服务费' : 
+              '系统定价，公平公正'}
+          </span>
         </div>
-        <div className="bg-blue-500 text-white px-4 py-2 rounded-lg text-sm font-medium">
-          立即发布
+        <div className="flex items-center space-x-2">
+          {task.roleType && (
+            <Badge className="bg-purple-100 text-purple-800 border-purple-200">
+              {task.roleType}
+            </Badge>
+          )}
+          <div className="bg-blue-500 text-white px-4 py-2 rounded-lg text-sm font-medium">
+            立即发布
+          </div>
         </div>
       </div>
     </div>
@@ -108,21 +114,22 @@ export default function CreateTask() {
   };
 
   const handleTaskClick = (task: any) => {
-    const params = new URLSearchParams({
-      taskId: task.id,
-      title: task.title,
-      icon: task.icon,
-      price: task.price.toString(),
-      description: task.description
-    });
-    
-    // 根据任务类型导航到不同的页面
-    if (task.id === 'account_rental') {
-      router.push(`/publisher/create/account-rental?${params.toString()}`);
-    } else if (task.id.includes('video_push')) {
-      router.push(`/publisher/create/video-send?${params.toString()}`);
+    // 处理任务选择
+    if (task.id === 'video_publish') {
+      // 视频发布任务 - 跳转到视频发送页面
+      router.push('/publisher/create/video-send');
+    } else if (task.id === 'account_rental' || task.id === 'account_request') {
+      // 账号租赁/求租任务 - 跳转到账号租赁页面
+      router.push('/publisher/create/account-rental');
     } else {
-      // 对于原有的评论任务，继续导航到publish页面
+      // 其他任务类型
+      const params = new URLSearchParams({
+        taskId: task.id,
+        title: task.title,
+        icon: task.icon,
+        price: task.price.toString(),
+        description: task.description
+      });
       router.push(`/publisher/create/publish?${params.toString()}`);
     }
   };
@@ -156,7 +163,7 @@ export default function CreateTask() {
       </div>
 
       {/* 提示信息 */}
-      <div className="px-4">
+      <div className="px-4 space-y-4">
         <div className="bg-blue-50 rounded-2xl p-4">
           <div className="flex items-start space-x-3">
             <span className="text-2xl">💡</span>
@@ -164,6 +171,30 @@ export default function CreateTask() {
               <h3 className="font-medium text-blue-900 mb-1">任务说明</h3>
               <p className="text-blue-700 text-sm leading-relaxed">
                 请根据您的需求选择合适的任务类型。
+              </p>
+            </div>
+          </div>
+        </div>
+        
+        <div className="bg-purple-50 rounded-2xl p-4">
+          <div className="flex items-start space-x-3">
+            <span className="text-2xl">💰</span>
+            <div>
+              <h3 className="font-medium text-purple-900 mb-1">费用规则</h3>
+              <p className="text-purple-700 text-sm leading-relaxed">
+                视频发布模块和账号租赁/求租费用由双方自行设定，平台从成交额中抽取20%作为服务费。
+              </p>
+            </div>
+          </div>
+        </div>
+        
+        <div className="bg-green-50 rounded-2xl p-4">
+          <div className="flex items-start space-x-3">
+            <span className="text-2xl">🤝</span>
+            <div>
+              <h3 className="font-medium text-green-900 mb-1">角色说明</h3>
+              <p className="text-green-700 text-sm leading-relaxed">
+                账号租赁功能支持"出租"与"求租"两种角色，双方可在公共池中相互查看相关信息并进行匹配。
               </p>
             </div>
           </div>
