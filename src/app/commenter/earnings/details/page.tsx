@@ -14,21 +14,29 @@ export interface EarningRecord {
   id: string;
   userId: string;
   taskId: string;
+  taskName?: string;
   amount: number;
-  type: 'task' | 'commission' | 'reward' | 'other';
   description: string;
   createdAt: string;
-  taskType?: string;
+  status?: string;
+  type?: string;
+  commissionInfo?: {
+    hasCommission: boolean;
+    commissionRate: number;
+    commissionAmount: number;
+    commissionRecipient: string;
+  };
 }
 
 export interface WithdrawalRecord {
   id: string;
   userId: string;
   amount: number;
+  fee: number;
+  method: string;
   status: 'pending' | 'approved' | 'rejected';
-  createdAt: string;
+  requestedAt: string;
   processedAt?: string;
-  method?: string;
 }
 
 const DetailsPage = () => {
@@ -71,21 +79,21 @@ const DetailsPage = () => {
               id: '1',
               userId: commenterUser.id,
               taskId: 'task-1',
+              taskName: '评论任务',
               amount: 12.5,
               type: 'task',
               description: '完成评论任务',
-              createdAt: new Date(Date.now() - 86400000).toISOString(),
-              taskType: 'review'
+              createdAt: new Date(Date.now() - 86400000).toISOString()
             },
             {
               id: '2',
               userId: commenterUser.id,
               taskId: 'task-2',
+              taskName: '点赞任务',
               amount: 8.0,
               type: 'task',
               description: '完成点赞任务',
-              createdAt: new Date(Date.now() - 172800000).toISOString(),
-              taskType: 'like'
+              createdAt: new Date(Date.now() - 172800000).toISOString()
             }
           ]);
         }
@@ -96,10 +104,11 @@ const DetailsPage = () => {
               id: '1',
               userId: commenterUser.id,
               amount: 100.0,
+              fee: 0.5,
+              method: '微信',
               status: 'approved',
-              createdAt: new Date(Date.now() - 3 * 86400000).toISOString(),
-              processedAt: new Date(Date.now() - 2 * 86400000).toISOString(),
-              method: '微信'
+              requestedAt: new Date(Date.now() - 3 * 86400000).toISOString(),
+              processedAt: new Date(Date.now() - 2 * 86400000).toISOString()
             }
           ]);
         }
@@ -157,12 +166,18 @@ const DetailsPage = () => {
   // 计算总收益
   const totalEarnings = earnings.reduce((sum, record) => sum + record.amount, 0);
 
+  // 准备stats数据
+  const stats = {
+    todayEarnings: 0,
+    weeklyEarnings: 0,
+    monthlyEarnings: 0
+  };
+  
   return (
-    <EarningsDetails 
+    <EarningsDetails
+      currentUserAccount={null}
       earnings={earnings}
-      withdrawals={withdrawals}
-      totalEarnings={totalEarnings}
-      setActiveTab={setActiveTab}
+      stats={stats}
     />
   );
 };

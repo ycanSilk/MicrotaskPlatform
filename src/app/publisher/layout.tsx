@@ -30,9 +30,27 @@ export default function PublisherLayout({
       try {
         console.log('Checking user authentication...');
         // 直接使用派单员认证存储检查，而不是通用检查
-        const authSession = PublisherAuthStorage.getAuth();
+        let authSession = PublisherAuthStorage.getAuth();
         
         console.log('Auth session from storage:', authSession);
+        
+        // 开发环境中提供模拟认证数据
+        // 注意：这仅用于开发预览，生产环境中请移除这段代码
+        if (process.env.NODE_ENV === 'development' && (!authSession || !authSession.user)) {
+          console.log('Development environment detected, using mock authentication data');
+          authSession = {
+            user: {
+              id: 'dev-publisher-123',
+              username: '开发者账号',
+              role: 'publisher',
+              balance: 1000.00,
+              status: 'active',
+              createdAt: new Date().toISOString()
+            },
+            token: 'dev-token',
+            expiresAt: Date.now() + (24 * 60 * 60 * 1000) // 24小时后过期
+          };
+        }
         
         if (!authSession || !authSession.user) {
           console.log('Publisher Layout: No user found, redirecting to login');
@@ -59,8 +77,20 @@ export default function PublisherLayout({
       } catch (error) {
         console.error('Publisher Layout: Error checking user:', error);
         if (isMounted) {
-          router.push('/auth/login/publisherlogin');
-          setIsLoading(false);
+          // 在开发环境中，即使有错误也尝试使用模拟数据继续
+          if (process.env.NODE_ENV === 'development') {
+            console.log('Development environment: Using mock data despite error');
+            setUser({
+              id: 'dev-publisher-123',
+              name: '开发者账号',
+              role: 'publisher',
+              balance: 1000.00,
+            });
+            setIsLoading(false);
+          } else {
+            router.push('/auth/login/publisherlogin');
+            setIsLoading(false);
+          }
         }
       }
     };

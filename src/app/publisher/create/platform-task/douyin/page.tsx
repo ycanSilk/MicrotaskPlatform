@@ -120,7 +120,7 @@ export default function CreateTask() {
       router.push('/publisher/create/video-send');
     } else if (task.id === 'account_rental' || task.id === 'account_request') {
       // 账号租赁/求租任务 - 跳转到账号租赁页面
-      router.push('/publisher/create/account-rental');
+      router.push('/publisher/create/video-task');
     } else {
       // 其他任务类型
       const params = new URLSearchParams({

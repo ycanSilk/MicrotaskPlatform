@@ -1,6 +1,12 @@
 import { CommenterAuthStorage } from '@/auth/commenter/auth';
 import boundUserInvitations from './bound_user_invitations.json';
 
+// 定义类型接口
+export interface DailyEarning {
+  date: string;
+  amount: number;
+}
+
 // 定义数据模型接口
 export interface CommenterAccount {
   userId: string;
@@ -8,6 +14,15 @@ export interface CommenterAccount {
   inviteCode: string;
   referrerId?: string;
   createdAt: string;
+  frozenBalance?: number;
+  totalEarnings?: number;
+  completedTasks?: number;
+  lastUpdated?: string;
+  todayEarnings?: number;
+  yesterdayEarnings?: number;
+  weeklyEarnings?: number;
+  monthlyEarnings?: number;
+  dailyEarnings?: DailyEarning[];
 }
 
 export interface TeamMember {
@@ -583,6 +598,7 @@ export class FinanceModelAdapter {
     await new Promise(resolve => setTimeout(resolve, 200));
     
     const withdrawal = this.mockWithdrawalRecords.find(w => w.id === withdrawalId);
+    
     if (!withdrawal) {
       throw new Error('提现记录不存在');
     }
@@ -596,6 +612,30 @@ export class FinanceModelAdapter {
     withdrawal.processedAt = new Date().toISOString();
     
     return withdrawal;
+  }
+
+  // 提交提现请求（用于withdraw页面）
+  public async submitWithdrawal(withdrawalRequest: {
+    userId: string;
+    amount: number;
+    method: string;
+    accountInfo?: any;
+    status: 'pending';
+    createdAt: string;
+  }): Promise<{ success: boolean; message?: string }> {
+    try {
+      // 调用现有方法创建提现记录
+      await this.createWithdrawal(
+        withdrawalRequest.userId,
+        withdrawalRequest.amount,
+        withdrawalRequest.method
+      );
+      
+      return { success: true };
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : '提现请求处理失败';
+      return { success: false, message: errorMessage };
+    }
   }
 }
 

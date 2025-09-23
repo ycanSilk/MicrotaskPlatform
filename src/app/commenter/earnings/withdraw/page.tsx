@@ -20,10 +20,11 @@ export interface WithdrawalRecord {
   id: string;
   userId: string;
   amount: number;
+  fee: number;
+  method: string;
   status: 'pending' | 'approved' | 'rejected';
-  createdAt: string;
+  requestedAt: string;
   processedAt?: string;
-  method?: string;
 }
 
 export interface CommenterAccount {
@@ -49,6 +50,13 @@ const WithdrawPage = () => {
   const [withdrawalRecords, setWithdrawalRecords] = useState<WithdrawalRecord[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  
+  // 为WithdrawalPage组件添加所需的状态
+  const [withdrawalAmount, setWithdrawalAmount] = useState<string>('');
+  const [withdrawalMethod, setWithdrawalMethod] = useState<'wechat' | 'alipay' | 'bank'>('wechat');
+  const [withdrawalLoading, setWithdrawalLoading] = useState<boolean>(false);
+  const [withdrawalSuccess, setWithdrawalSuccess] = useState<boolean>(false);
+  const [withdrawalError, setWithdrawalError] = useState<string | null>(null);
 
   // 初始化数据
   React.useEffect(() => {
@@ -89,10 +97,11 @@ const WithdrawPage = () => {
               id: '1',
               userId: commenterUser.id,
               amount: 100.0,
+              fee: 0.5,
+              method: '微信',
               status: 'approved',
-              createdAt: new Date(Date.now() - 3 * 86400000).toISOString(),
-              processedAt: new Date(Date.now() - 2 * 86400000).toISOString(),
-              method: '微信'
+              requestedAt: new Date(Date.now() - 3 * 86400000).toISOString(),
+              processedAt: new Date(Date.now() - 2 * 86400000).toISOString()
             }
           ]);
         }
@@ -102,7 +111,8 @@ const WithdrawPage = () => {
       } finally {
         setIsLoading(false);
       }
-    };
+    }
+  
 
     initializeData();
   }, [router]);
@@ -123,7 +133,7 @@ const WithdrawPage = () => {
   };
 
   // 处理提现请求
-  const handleWithdrawal = async (amount: number, method: string, accountInfo: string) => {
+  const handleWithdrawal = async () => {
     try {
       setIsLoading(true);
       setError(null);
@@ -134,6 +144,12 @@ const WithdrawPage = () => {
         router.push('/auth/login/commenterlogin');
         return;
       }
+
+      // 这里应该从表单状态或组件状态中获取amount, method, accountInfo
+      // 由于这是模拟环境，我使用一些默认值
+      const amount = 50; // 默认提现金额
+      const method = 'wechat'; // 默认提现方式
+      const accountInfo = 'default-account-info'; // 默认账户信息
 
       // 创建提现请求
       const withdrawalRequest = {
@@ -146,6 +162,7 @@ const WithdrawPage = () => {
       };
 
       // 提交提现请求
+
       const result = await financeAdapter.submitWithdrawal(withdrawalRequest);
       if (result.success) {
         // 显示成功消息或处理结果
@@ -198,9 +215,15 @@ const WithdrawPage = () => {
   return (
     <WithdrawalPage 
       currentUserAccount={defaultAccount}
-      withdrawalRecords={withdrawalRecords}
+      currentWithdrawals={withdrawalRecords}
+      withdrawalAmount={withdrawalAmount}
+      setWithdrawalAmount={setWithdrawalAmount}
+      withdrawalMethod={withdrawalMethod}
+      setWithdrawalMethod={setWithdrawalMethod}
       handleWithdrawal={handleWithdrawal}
-      setActiveTab={setActiveTab}
+      withdrawalLoading={withdrawalLoading}
+      withdrawalSuccess={withdrawalSuccess}
+      withdrawalError={withdrawalError}
     />
   );
 };

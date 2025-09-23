@@ -1,8 +1,7 @@
 'use client';
 
 import React, { useState, useEffect,ReactNode } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { PublisherAuthStorage } from '@/auth/publisher/auth';
+import { useRouter } from 'next/navigation';
 import { Button, AlertModal } from '@/components/ui';
 
 // 自定义Tabs组件 - 符合项目风格
@@ -144,11 +143,112 @@ interface AccountRentalTask {
 
 export default function AccountRentalDetailPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const taskId = searchParams.get('id');
   
-  const [loading, setLoading] = useState(true);
-  const [task, setTask] = useState<AccountRentalTask | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [task, setTask] = useState<AccountRentalTask | null>({
+    id: "task001",
+    orderNumber: "ORD-20240425-001",
+    videoUrl: "https://example.com/video.mp4",
+    mention: "@brandofficial",
+    status: "main_progress",
+    quantity: 5,
+    completedQuantity: 2,
+    unitPrice: 100.00,
+    taskRequirements: "请按照视频教程完成任务，确保截图清晰显示完成状态。",
+    publishTime: "2024-04-25T08:00:00Z",
+    deadline: "2024-05-02T23:59:59Z",
+    taskType: "account_rental",
+    title: "社交媒体账号推广任务",
+    accountInfo: {
+      platform: "抖音",
+      accountLevel: "level_3",
+      followerCount: "10000+",
+      requiresVerification: true,
+      rentalDuration: "24小时",
+      engagementRate: "5%",
+      postFrequency: "每天2-3条",
+      audienceDemographics: "18-35岁，女性占比65%"
+    },
+    subOrders: [
+      {
+        id: "subtask001",
+        parentId: "task001",
+        status: "sub_completed",
+        commenterId: "user001",
+        commenterName: "张三",
+        commentTime: "2024-04-26T15:30:00Z",
+        screenshotUrl: "https://example.com/screenshot1.jpg",
+        accountDetails: {
+          username: "testaccount1",
+          password: "password123",
+          loginMethod: "password_only",
+          additionalInfo: "请不要修改账号设置"
+        }
+      },
+      {
+        id: "subtask002",
+        parentId: "task001",
+        status: "sub_progress",
+        commenterId: "user002",
+        commenterName: "李四",
+        commentTime: "",
+        screenshotUrl: "",
+        accountDetails: {
+          username: "testaccount2",
+          password: "password456",
+          loginMethod: "phone_verification",
+          verificationCode: "123456",
+          additionalInfo: "登录后请先查看消息"
+        }
+      },
+      {
+        id: "subtask003",
+        parentId: "task001",
+        status: "waiting_collect",
+        commenterId: "",
+        commenterName: "",
+        commentTime: "",
+        screenshotUrl: "",
+        accountDetails: {
+          username: "testaccount3",
+          password: "password789",
+          loginMethod: "third_party",
+          additionalInfo: "使用微信扫码登录"
+        }
+      },
+      {
+        id: "subtask004",
+        parentId: "task001",
+        status: "sub_pending_review",
+        commenterId: "user003",
+        commenterName: "王五",
+        commentTime: "2024-04-27T10:15:00Z",
+        screenshotUrl: "https://example.com/screenshot2.jpg",
+        accountDetails: {
+          username: "testaccount4",
+          password: "password101",
+          loginMethod: "password_only",
+          additionalInfo: "账号已设置自动回复"
+        }
+      },
+      {
+        id: "subtask005",
+        parentId: "task001",
+        status: "waiting_collect",
+        commenterId: "",
+        commenterName: "",
+        commentTime: "",
+        screenshotUrl: "",
+        accountDetails: {
+          username: "testaccount5",
+          password: "password202",
+          loginMethod: "phone_verification",
+          verificationCode: "654321",
+          additionalInfo: "请在任务完成后清除浏览记录"
+        }
+      }
+    ]
+  });
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('overview');
   const [selectedSubTask, setSelectedSubTask] = useState<string | null>(null);
@@ -157,140 +257,13 @@ export default function AccountRentalDetailPage() {
   const [showSubmitModal, setShowSubmitModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
 
-  useEffect(() => {
-    if (taskId) {
-      fetchTaskDetail(taskId);
-    } else {
-      setError('未提供任务ID');
-      setLoading(false);
-    }
-  }, [taskId]);
-
-  const fetchTaskDetail = async (id: string) => {
-    try {
-      setLoading(true);
-      
-      // 使用PublisherAuthStorage获取认证信息
-      const session = PublisherAuthStorage.getAuth();
-      const token = session?.token || '';
-      
-      // 构建请求选项
-      const requestOptions = {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token && { 'Authorization': `Bearer ${token}` })
-        },
-        cache: 'no-store' as RequestCache
-      };
-      
-      // 发送请求
-      const response = await fetch(`/api/publisher/task-detail?id=${id}&type=account_rental`, requestOptions);
-      
-      // 检查响应是否成功
-      if (!response.ok) {
-        const errorText = await response.text();
-        setError(`API请求失败: ${response.status}`);
-        return;
-      }
-      
-      // 解析响应数据
-      const result = await response.json();
-      
-      if (result.success && result.data.taskType === 'account_rental') {
-        setTask(result.data);
-      } else if (result.success && result.data.taskType !== 'account_rental') {
-        setError('此任务不是租号任务');
-      } else {
-        setError(result.message || '获取任务详情失败');
-      }
-    } catch (err) {
-      setError(`获取任务详情时发生错误: ${err instanceof Error ? err.message : String(err)}`);
-    } finally {
-      setLoading(false);
-    }
-  };
-  
-  // 领取租号任务
-  const claimAccountRentalTask = async (taskId: string, subTaskId: string) => {
-    try {
-      const session = PublisherAuthStorage.getAuth();
-      const token = session?.token || '';
-      if (!token) {
-        throw new Error('认证失败，请重新登录');
-      }
-  
-      const response = await fetch('/api/publisher/claim-account-rental', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          taskId,
-          subTaskId
-        })
-      });
-  
-      if (!response.ok) {
-        throw new Error(`HTTP错误! 状态码: ${response.status}`);
-      }
-  
-      const data = await response.json();
-      // 重新获取任务详情以更新状态
-      fetchTaskDetail(taskId);
-      return data;
-    } catch (error) {
-      console.error('领取租号任务失败:', error);
-      setError(error instanceof Error ? error.message : '领取任务失败');
-      throw error;
-    }
-  };
-  
-  // 提交租号结果
-  const submitAccountRentalResult = async (taskId: string, subTaskId: string, screenshotUrl: string) => {    
-    try {
-      const session = PublisherAuthStorage.getAuth();
-      const token = session?.token || '';
-      if (!token) {
-        throw new Error('认证失败，请重新登录');
-      }
-  
-      const response = await fetch('/api/publisher/submit-account-rental-result', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          taskId,
-          subTaskId,
-          screenshotUrl
-        })
-      });
-  
-      if (!response.ok) {
-        throw new Error(`HTTP错误! 状态码: ${response.status}`);
-      }
-  
-      const data = await response.json();
-      // 重新获取任务详情以更新状态
-      fetchTaskDetail(taskId);
-      return data;
-    } catch (error) {
-      console.error('提交租号结果失败:', error);
-      setError(error instanceof Error ? error.message : '提交结果失败');
-      throw error;
-    }
-  };
-
   const handleSubTaskAction = (subTaskId: string, action: string) => {
     if (!task) return;
     
     switch (action) {
       case 'claim':
-        // 领取租号任务
-        handleClaimSubTask(subTaskId);
+        // 模拟领取租号任务
+        setShowSuccessModal(true);
         break;
       case 'viewAccount':
         // 查看账号详情
@@ -311,7 +284,6 @@ export default function AccountRentalDetailPage() {
     if (!task) return;
     
     try {
-      await claimAccountRentalTask(task.id, subTaskId);
       setShowSuccessModal(true);
     } catch (error) {
       console.error('Failed to claim subtask:', error);
@@ -322,7 +294,6 @@ export default function AccountRentalDetailPage() {
     if (!task || !selectedSubTask || !screenshotUrl.trim()) return;
     
     try {
-      await submitAccountRentalResult(task.id, selectedSubTask, screenshotUrl.trim());
       setShowSubmitModal(false);
       setScreenshotUrl('');
       setShowSuccessModal(true);

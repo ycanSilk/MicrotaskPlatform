@@ -1,169 +1,34 @@
 'use client';
-import React, { useState } from 'react';
-import type { EarningRecord, WithdrawalRecord } from '../page';
+import React, { useState, useRef } from 'react';
+import type { EarningRecord, WithdrawalRecord, CommenterAccount, Stats } from '../page';
 import { useRouter } from 'next/navigation';
 
 interface EarningsDetailsProps {
-  currentEarnings: EarningRecord[];
-  currentWithdrawals: WithdrawalRecord[];
+  currentUserAccount: CommenterAccount | null;
+  earnings: EarningRecord[];
+  stats: Stats;
 }
 
 type EarningsViewMode = 'all' | 'task' | 'commission';
+type ImportFormat = 'csv' | 'excel';
 
 const EarningsDetails: React.FC<EarningsDetailsProps> = ({
-  currentEarnings,
-  currentWithdrawals
+  currentUserAccount,
+  earnings,
+  stats
 }) => {
   const [viewMode, setViewMode] = useState<EarningsViewMode>('all');
+  const [importFormat, setImportFormat] = useState<ImportFormat>('csv');
+  const [isImporting, setIsImporting] = useState<boolean>(false);
+  const [importError, setImportError] = useState<string | null>(null);
+  const [importSuccess, setImportSuccess] = useState<boolean>(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
 
-  // 静态收益记录数据 - 包含更多佣金收益示例
-  const mockEarnings: EarningRecord[] = [
-    {
-      id: 'mock-1',
-      userId: 'user1',
-      taskId: 'task1',
-      taskName: '抖音评论任务 - 产品体验反馈',
-      amount: 12.50,
-      description: '完成产品体验评论任务',
-      createdAt: '2024-03-15T10:23:45Z',
-      status: 'completed',
-      type: 'comment',
-      commissionInfo: {
-        hasCommission: true,
-        commissionRate: 0.1,
-        commissionAmount: 1.25,
-        commissionRecipient: 'system'
-      }
-    },
-    {
-      id: 'mock-2',
-      userId: 'user1',
-      taskId: 'task2',
-      taskName: '视频推荐分享 - 科技产品评测',
-      amount: 8.75,
-      description: '分享科技产品评测视频',
-      createdAt: '2024-03-15T09:15:30Z',
-      status: 'completed',
-      type: 'video'
-    },
-    {
-      id: 'mock-3',
-      userId: 'user1',
-      taskId: 'task3',
-      taskName: '账号租赁 - 短视频内容互动',
-      amount: 20.00,
-      description: '账号租赁用于短视频互动',
-      createdAt: '2024-03-14T16:45:12Z',
-      status: 'completed',
-      type: 'account_rental'
-    },
-    {
-      id: 'mock-4',
-      userId: 'user1',
-      taskId: 'task4',
-      taskName: '应用体验反馈 - 生活服务类APP',
-      amount: 15.00,
-      description: '完成应用体验反馈任务',
-      createdAt: '2024-03-14T14:20:50Z',
-      status: 'completed',
-      type: 'comment',
-      commissionInfo: {
-        hasCommission: false,
-        commissionRate: 0,
-        commissionAmount: 0,
-        commissionRecipient: ''
-      }
-    },
-    {
-      id: 'mock-5',
-      userId: 'user1',
-      taskId: 'task5',
-      taskName: '品牌调研问卷 - 电子产品偏好',
-      amount: 10.00,
-      description: '完成品牌调研问卷',
-      createdAt: '2024-03-13T11:30:22Z',
-      status: 'completed',
-      type: 'comment'
-    },
-    {
-      id: 'mock-6',
-      userId: 'user1',
-      taskId: 'task6',
-      taskName: '新功能测试任务 - 社交应用',
-      amount: 25.00,
-      description: '测试社交应用新功能',
-      createdAt: '2024-03-13T09:10:15Z',
-      status: 'processing',
-      type: 'video'
-    },
-    {
-      id: 'mock-7',
-      userId: 'user1',
-      taskId: 'task7',
-      taskName: '邀请好友注册奖励',
-      amount: 5.00,
-      description: '邀请好友成功注册并完成首单',
-      createdAt: '2024-03-12T11:30:20Z',
-      status: 'completed',
-      type: 'commission',
-      commissionInfo: {
-        hasCommission: true,
-        commissionRate: 1.0,
-        commissionAmount: 5.00,
-        commissionRecipient: 'referral'
-      }
-    },
-    {
-      id: 'mock-8',
-      userId: 'user1',
-      taskId: 'task8',
-      taskName: '内容创作激励 - 优质评论奖励',
-      amount: 3.50,
-      description: '发布优质评论获得额外奖励',
-      createdAt: '2024-03-12T09:45:15Z',
-      status: 'completed',
-      type: 'commission',
-      commissionInfo: {
-        hasCommission: true,
-        commissionRate: 1.0,
-        commissionAmount: 3.50,
-        commissionRecipient: 'content_bonus'
-      }
-    }
-  ];
-
-  // 静态提现手续费记录数据
-  const mockWithdrawals: WithdrawalRecord[] = [
-    {
-      id: 'mock-wd-1',
-      userId: 'user1',
-      amount: 50.00,
-      fee: 1.00,
-      method: 'wechat',
-      status: 'approved',
-      requestedAt: '2024-03-10T15:30:00Z',
-      processedAt: '2024-03-11T10:15:00Z',
-      description: '微信提现',
-      totalAmount: 49.00
-    },
-    {
-      id: 'mock-wd-2',
-      userId: 'user1',
-      amount: 30.00,
-      fee: 0.60,
-      method: 'alipay',
-      status: 'approved',
-      requestedAt: '2024-03-05T14:20:00Z',
-      processedAt: '2024-03-06T09:45:00Z',
-      description: '支付宝提现',
-      totalAmount: 29.40
-    }
-  ];
-
-  // 使用传入的数据，如果为空则使用静态数据
-  const earningsToDisplay = currentEarnings.length > 0 ? currentEarnings : mockEarnings;
-  const withdrawalsToDisplay = currentWithdrawals.length > 0 ? currentWithdrawals : mockWithdrawals;
+  // 直接使用传入的数据，不再提供静态数据作为后备
+  const earningsToDisplay = earnings;
+  // 由于props中没有传入withdrawals，这里设置为空数组
+  const withdrawalsToDisplay: WithdrawalRecord[] = [];
 
   // 根据查看模式过滤收益记录
   const filteredEarnings = earningsToDisplay.filter(earning => {
@@ -203,6 +68,68 @@ const EarningsDetails: React.FC<EarningsDetailsProps> = ({
     router.push(`/commenter/earnings/details/${earningId}`);
   };
 
+  // 处理导入格式选择
+  const handleFormatChange = (format: ImportFormat) => {
+    setImportFormat(format);
+    setImportError(null);
+    setImportSuccess(false);
+  };
+
+  // 处理文件选择
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      importEarningsFile(file);
+      // 重置文件输入，以便可以重新选择同一个文件
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
+  // 处理导入操作
+  const importEarningsFile = async (file: File) => {
+    setIsImporting(true);
+    setImportError(null);
+    setImportSuccess(false);
+
+    try {
+      // 模拟文件处理过程
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      // 检查文件类型
+      const fileExtension = file.name.split('.').pop()?.toLowerCase();
+      if (importFormat === 'csv' && fileExtension !== 'csv') {
+        throw new Error('请上传CSV格式的文件');
+      }
+      if (importFormat === 'excel' && !['xlsx', 'xls'].includes(fileExtension || '')) {
+        throw new Error('请上传Excel格式的文件');
+      }
+
+      // 这里应该有实际的文件解析和数据处理逻辑
+      // 为了演示，我们简单模拟成功
+      console.log('导入文件:', file.name);
+      console.log('导入格式:', importFormat);
+      
+      // 模拟导入成功
+      setImportSuccess(true);
+      
+    } catch (error) {
+      setImportError(error instanceof Error ? error.message : '导入失败，请重试');
+    } finally {
+      setIsImporting(false);
+    }
+  };
+
+  // 触发文件选择对话框
+  const triggerFileSelect = () => {
+    setImportError(null);
+    setImportSuccess(false);
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+
   // 计算各类收益的总和
   const calculateTotalEarnings = (type: EarningsViewMode) => {
     if (type === 'all') {
@@ -227,26 +154,79 @@ const EarningsDetails: React.FC<EarningsDetailsProps> = ({
           <h3 className="font-bold text-gray-800">收益明细</h3>
         </div>
         <div className="p-4">
-          <div className="grid grid-cols-3 gap-2">
-            <button
-              onClick={() => setViewMode('all')}
-              className={`py-2 px-3 rounded-md text-sm font-medium transition-colors ${viewMode === 'all' ? 'bg-blue-500 text-white' : 'bg-white border border-gray-300 text-gray-600 hover:bg-blue-50'}`}
-            >
-              全部收益
-            </button>
-            <button
-              onClick={() => setViewMode('task')}
-              className={`py-2 px-3 rounded-md text-sm font-medium transition-colors ${viewMode === 'task' ? 'bg-green-500 text-white' : 'bg-white border border-gray-300 text-gray-600 hover:bg-green-50'}`}
-            >
-              任务收益
-            </button>
-            <button
-              onClick={() => setViewMode('commission')}
-              className={`py-2 px-3 rounded-md text-sm font-medium transition-colors ${viewMode === 'commission' ? 'bg-yellow-500 text-white' : 'bg-white border border-gray-300 text-gray-600 hover:bg-yellow-50'}`}
-            >
-              佣金收益
-            </button>
+          <div className="flex flex-col sm:flex-row justify-between gap-4 mb-6">
+            <div className="flex gap-2">
+              <button
+                className={`py-2 px-3 rounded-md text-sm font-medium transition-colors ${viewMode === 'all' ? 'bg-blue-500 text-white' : 'bg-white border border-gray-300 text-gray-600 hover:bg-blue-50'}`}
+                onClick={() => setViewMode('all')}
+              >
+                全部收益
+              </button>
+              <button
+                className={`py-2 px-3 rounded-md text-sm font-medium transition-colors ${viewMode === 'task' ? 'bg-green-500 text-white' : 'bg-white border border-gray-300 text-gray-600 hover:bg-green-50'}`}
+                onClick={() => setViewMode('task')}
+              >
+                任务收益
+              </button>
+              <button
+                className={`py-2 px-3 rounded-md text-sm font-medium transition-colors ${viewMode === 'commission' ? 'bg-yellow-500 text-white' : 'bg-white border border-gray-300 text-gray-600 hover:bg-yellow-50'}`}
+                onClick={() => setViewMode('commission')}
+              >
+                佣金收益
+              </button>
+            </div>
+            
+            {/* 导入功能区域 */}
+            <div className="flex gap-2 items-center">
+              <div className="flex gap-2 mr-2">
+                <button
+                  className={`px-3 py-1.5 text-sm rounded border ${importFormat === 'csv' ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-gray-300 bg-white text-gray-700'}`}
+                  onClick={() => handleFormatChange('csv')}
+                  disabled={isImporting}
+                >
+                  CSV
+                </button>
+                <button
+                  className={`px-3 py-1.5 text-sm rounded border ${importFormat === 'excel' ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-gray-300 bg-white text-gray-700'}`}
+                  onClick={() => handleFormatChange('excel')}
+                  disabled={isImporting}
+                >
+                  Excel
+                </button>
+              </div>
+              <button
+                className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors"
+                onClick={triggerFileSelect}
+                disabled={isImporting}
+              >
+                {isImporting ? (
+                  <span className="flex items-center gap-1.5">
+                    <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    导入中...
+                  </span>
+                ) : (
+                  '导入明细'
+                )}
+              </button>
+              <input
+                type="file"
+                ref={fileInputRef}
+                className="hidden"
+                onChange={handleFileChange}
+                accept={importFormat === 'csv' ? '.csv' : '.xlsx,.xls'}
+              />
+            </div>
           </div>
+          
+          {/* 导入结果提示 */}
+          {(importError || importSuccess) && (
+            <div className={`mb-4 p-3 rounded-md ${importError ? 'bg-red-50 text-red-700' : 'bg-green-50 text-green-700'}`}>
+              {importError || '导入成功'}
+            </div>
+          )}
         </div>
         
         {/* 收益总览 */}

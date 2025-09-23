@@ -32,104 +32,10 @@ const WithdrawalPage: React.FC<WithdrawalPageProps> = ({
   const router = useRouter();
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   
-  // 辅助函数：获取今日是否可提现 - 移除时间限制，始终可提现
-  const canWithdrawToday = (): boolean => {
-    return true;
-  };
 
-  // 辅助函数：获取提现配置 - 移除所有限制
-  const getWithdrawalConfig = () => {
-    return {
-      minAmount: 0,
-      fee: 0,
-      allowedDays: [0, 1, 2, 3, 4, 5, 6], // 所有天数
-      maxAmount: Infinity
-    };
-  };
 
-  // 丰富的模拟提现记录数据
-  const mockWithdrawals: WithdrawalRecord[] = [
-    {
-      id: 'wd-1',
-      userId: 'user1',
-      amount: 100.00,
-      fee: 0,
-      method: 'wechat',
-      status: 'approved',
-      requestedAt: '2024-03-10T10:00:00Z',
-      processedAt: '2024-03-10T11:30:00Z',
-      description: '微信提现'
-    },
-    {
-      id: 'wd-2',
-      userId: 'user1',
-      amount: 50.00,
-      fee: 0,
-      method: 'alipay',
-      status: 'approved',
-      requestedAt: '2024-02-28T15:30:00Z',
-      processedAt: '2024-02-29T09:00:00Z',
-      description: '支付宝提现'
-    },
-    {
-      id: 'wd-3',
-      userId: 'user1',
-      amount: 200.00,
-      fee: 0,
-      method: 'bank',
-      status: 'pending',
-      requestedAt: '2024-03-15T14:20:00Z',
-      processedAt: undefined,
-      description: '银行卡提现'
-    },
-    {
-      id: 'wd-4',
-      userId: 'user1',
-      amount: 150.00,
-      fee: 0,
-      method: 'wechat',
-      status: 'approved',
-      requestedAt: '2024-03-05T09:15:00Z',
-      processedAt: '2024-03-05T10:00:00Z',
-      description: '微信提现 - 日常开销'
-    },
-    {
-      id: 'wd-5',
-      userId: 'user1',
-      amount: 75.50,
-      fee: 0,
-      method: 'alipay',
-      status: 'approved',
-      requestedAt: '2024-03-01T16:40:00Z',
-      processedAt: '2024-03-02T08:30:00Z',
-      description: '支付宝提现 - 购物'
-    },
-    {
-      id: 'wd-6',
-      userId: 'user1',
-      amount: 300.00,
-      fee: 0,
-      method: 'bank',
-      status: 'rejected',
-      requestedAt: '2024-02-25T11:20:00Z',
-      processedAt: '2024-02-26T09:30:00Z',
-      description: '银行卡提现 - 失败'
-    },
-    {
-      id: 'wd-7',
-      userId: 'user1',
-      amount: 88.88,
-      fee: 0,
-      method: 'wechat',
-      status: 'approved',
-      requestedAt: '2024-02-20T14:50:00Z',
-      processedAt: '2024-02-20T15:30:00Z',
-      description: '微信提现 - 零花钱'
-    }
-  ];
-
-  // 使用传入的数据，如果为空则使用静态数据
-  const withdrawalsToDisplay = currentWithdrawals.length > 0 ? currentWithdrawals : mockWithdrawals;
+  // 使用传入的数据
+  const withdrawalsToDisplay = currentWithdrawals;
 
   // 格式化日期时间
   const formatDateTime = (dateString: string) => {
@@ -254,8 +160,6 @@ const WithdrawalPage: React.FC<WithdrawalPageProps> = ({
           {/* 提现说明 */}
           <div className="mb-6">
             <div className="text-gray-500" style={{ fontSize: '14px' }}>
-              <p>• 最低提现金额：{getWithdrawalConfig().minAmount}元</p>
-              <p>• 提现手续费：{getWithdrawalConfig().fee}元</p>
               <p>• 预计到账时间：1-2个工作日</p>
             </div>
           </div>
@@ -265,7 +169,7 @@ const WithdrawalPage: React.FC<WithdrawalPageProps> = ({
             <button
               onClick={handleWithdrawalClick}
               className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              disabled={withdrawalLoading || !canWithdrawToday()}
+              disabled={withdrawalLoading}
               style={{ fontSize: '14px' }}
             >
               {withdrawalLoading ? (
