@@ -208,7 +208,12 @@ const EarningDetailsPage: React.FC<EarningDetailsProps> = ({ params }) => {
 
   // 处理返回按钮点击
   const handleBack = () => {
-    router.back();
+    // 优先返回上一页，如果没有历史记录则跳转到收益页面的明细选项卡
+    if (window.history.length > 1) {
+      router.back();
+    } else {
+      router.push('/commenter/earnings?tab=details');
+    }
   };
 
   if (isLoading) {
@@ -253,7 +258,7 @@ const EarningDetailsPage: React.FC<EarningDetailsProps> = ({ params }) => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-gray-50 py-8 pb-20">
       <div className="max-w-md mx-auto px-4 sm:px-6 lg:px-8">
         {/* 顶部导航 */}
         <div className="flex items-center justify-between mb-4">

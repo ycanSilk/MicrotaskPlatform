@@ -10,14 +10,63 @@ interface WithdrawalDetailsPageProps {
 // 模拟获取提现记录详情的函数
 import { financeModelAdapter } from '@/data/commenteruser/finance_model_adapter';
 
+// 丰富的静态提现明细数据
+const mockWithdrawalDetails: Record<string, WithdrawalRecord> = {
+  'wd-1': {
+    id: 'wd-1',
+    userId: 'user1',
+    amount: 100.50,
+    fee: 2.00,
+    method: 'wechat',
+    status: 'approved',
+    requestedAt: '2024-03-10T10:25:30Z',
+    processedAt: '2024-03-10T11:45:15Z',
+    description: '月度提现 - 生活费用',
+    totalAmount: 998.50
+  },
+  'wd-2': {
+    id: 'wd-2',
+    userId: 'user1',
+    amount: 50.00,
+    fee: 1.00,
+    method: 'alipay',
+    status: 'approved',
+    requestedAt: '2024-02-28T15:30:00Z',
+    processedAt: '2024-02-29T09:00:00Z',
+    description: '购物消费',
+    totalAmount: 499.00
+  },
+  'wd-3': {
+    id: 'wd-3',
+    userId: 'user1',
+    amount: 20.00,
+    fee: 0.50,
+    method: 'bank',
+    status: 'pending',
+    requestedAt: '2024-03-15T14:20:00Z',
+    processedAt: undefined,
+    description: '房租支付',
+    totalAmount: 199.50
+  }
+};
+
 const getWithdrawalDetails = async (withdrawalId: string): Promise<WithdrawalRecord | null> => {
   // 模拟异步操作
   await new Promise(resolve => setTimeout(resolve, 200));
   
-  // 在实际系统中，这里应该调用API获取单个提现记录
-  // 由于当前是模拟环境，我们先获取所有提现记录，然后筛选
-  const allWithdrawals = await financeModelAdapter.getUserWithdrawalRecords('');
-  return allWithdrawals.find(w => w.id === withdrawalId) || null;
+  // 优先返回静态数据
+  if (mockWithdrawalDetails[withdrawalId]) {
+    return mockWithdrawalDetails[withdrawalId];
+  }
+  
+  // 如果静态数据中没有，则尝试从financeModelAdapter获取
+  try {
+    const allWithdrawals = await financeModelAdapter.getUserWithdrawalRecords('');
+    return allWithdrawals.find(w => w.id == withdrawalId) || null;
+  } catch (error) {
+    console.error('获取提现记录失败:', error);
+    return null;
+  }
 };
 
 // 格式化日期时间
@@ -126,9 +175,13 @@ const WithdrawalDetailsPage: React.FC<WithdrawalDetailsPageProps> = () => {
     loadWithdrawalDetails();
   }, [withdrawalId]);
   
-  // 返回上一页
+  // 返回上一页 - 优化返回逻辑
   const handleBack = () => {
-    router.push('/commenter/earnings');
+    if (window.history.length > 1) {
+      router.back();
+    } else {
+      router.push('/commenter/earnings');
+    }
   };
   
   if (isLoading) {
@@ -194,7 +247,7 @@ const WithdrawalDetailsPage: React.FC<WithdrawalDetailsPageProps> = () => {
   
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-3xl mx-auto px-4 py-8">
+      <div className="max-w-3xl mx-auto px-4 py-8 pb-20">
         {/* 页面头部 */}
         <div className="flex items-center mb-6">
           <button 
@@ -242,11 +295,23 @@ const WithdrawalDetailsPage: React.FC<WithdrawalDetailsPageProps> = () => {
             
             {/* 提现账号 */}
             <div className="p-4 flex justify-between items-center">
-              <div className="text-sm text-gray-500">提现方式</div>
+              <div className="text-sm text-gray-500">提现账号</div>
               <div className="text-sm font-medium text-gray-900">
-                {getWithdrawalMethodLabel(withdrawalDetails.method)}
+                {withdrawalDetails.method === 'wechat' ? '微信昵称：微用户888' : 
+                 withdrawalDetails.method === 'alipay' ? '支付宝账号：user***@example.com' : 
+                 '银行卡：招商银行(尾号8888)'}
               </div>
             </div>
+            
+            {/* 实际到账金额 */}
+            {withdrawalDetails.totalAmount !== undefined && (
+              <div className="p-4 flex justify-between items-center">
+                <div className="text-sm text-gray-500">实际到账</div>
+                <div className="text-sm font-medium text-green-600">
+                  ¥{withdrawalDetails.totalAmount.toFixed(2)}
+                </div>
+              </div>
+            )}
             
             {/* 交易单号 */}
             <div className="p-4 flex justify-between items-center">
@@ -307,7 +372,7 @@ const WithdrawalDetailsPage: React.FC<WithdrawalDetailsPageProps> = () => {
         </div>
         
         {/* 底部操作按钮 */}
-        <div className="flex justify-center space-x-4">
+        <div className="flex justify-center space-x-4 pt-4">
           {withdrawalDetails.status === 'pending' && (
             <button
               type="button"
@@ -319,7 +384,13 @@ const WithdrawalDetailsPage: React.FC<WithdrawalDetailsPageProps> = () => {
           <button
             type="button"
             className="inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-            onClick={() => router.push('/commenter/earnings')}
+            onClick={() => {
+              if (window.history.length > 1) {
+                router.back();
+              } else {
+                router.push('/commenter/earnings');
+              }
+            }}
           >
             返回提现页
           </button>

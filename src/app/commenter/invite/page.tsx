@@ -3,8 +3,10 @@
 import React, { useState, useEffect } from 'react';
 import { CommenterAuthStorage } from '@/auth/commenter/auth';
 import { FinanceModelAdapter } from '@/data/commenteruser/finance_model_adapter';
+import { useRouter } from 'next/navigation';
 
 export default function CommenterInvitePage() {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState('invite');
   const [copied, setCopied] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -158,6 +160,19 @@ export default function CommenterInvitePage() {
 
   return (
     <div className="pb-20">
+      {/* 返回按钮 */}
+      <button
+        onClick={() => {
+          if (window.history.length > 1) {
+            router.back();
+          } else {
+            router.push('/commenter' as any);
+          }
+        }}
+        className="absolute top-4 left-4 p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors z-10"
+      >
+        ← 返回
+      </button>
       {/* 邀请奖励说明 */}
       <div className="mx-4 mt-4">
         <div className="bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-lg p-6">

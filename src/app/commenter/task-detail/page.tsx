@@ -171,9 +171,14 @@ export default function TaskDetailPage() {
     fetchTaskDetail();
   }, [taskId]);
   
-  // 返回任务列表
+  // 返回任务列表 - 优化返回逻辑
   const handleBack = () => {
-    router.push('/commenter/tasks');
+    // 优先使用浏览器的返回功能，如果没有历史记录再跳转到任务列表
+    if (window.history.length > 1) {
+      router.back();
+    } else {
+      router.push('/commenter/tasks');
+    }
   };
   
   if (isLoading) {
@@ -234,7 +239,7 @@ export default function TaskDetailPage() {
   });
   
   return (
-    <div className="py-10 px-4">
+    <div className="py-10 px-4 pb-20">
       {/* 顶部返回按钮 */}
       <div className="mb-6">
         <button 

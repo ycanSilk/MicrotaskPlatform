@@ -1,3 +1,4 @@
+'use client';
 import React, { useState } from 'react';
 import type { EarningRecord, WithdrawalRecord } from '../page';
 import { useRouter } from 'next/navigation';

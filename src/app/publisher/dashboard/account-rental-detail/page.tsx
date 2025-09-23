@@ -1,9 +1,100 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect,ReactNode } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { PublisherAuthStorage } from '@/auth';
-import { Button, AlertModal, Tabs, TabsContent, TabsList, TabsTrigger, Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui';
+import { PublisherAuthStorage } from '@/auth/publisher/auth';
+import { Button, AlertModal } from '@/components/ui';
+
+// 自定义Tabs组件 - 符合项目风格
+interface TabsProps {
+  defaultValue?: string;
+  value?: string;
+  onValueChange?: (value: string) => void;
+  children: React.ReactNode;
+  className?: string;
+}
+const Tabs = ({ children, className }: TabsProps) => {
+  return <div className={className}>{children}</div>;
+};
+
+interface TabsListProps {
+  children: React.ReactNode;
+  className?: string;
+}
+const TabsList = ({ children, className }: TabsListProps) => {
+  return <div className={className}>{children}</div>;
+};
+
+interface TabsTriggerProps {
+  value: string;
+  onClick?: () => void;
+  children: React.ReactNode;
+  className?: string;
+}
+const TabsTrigger = ({ children, onClick, className }: TabsTriggerProps) => {
+  return <button onClick={onClick} className={className}>{children}</button>;
+};
+
+interface TabsContentProps {
+  value: string;
+  children: React.ReactNode;
+  className?: string;
+}
+const TabsContent = ({ children, className }: TabsContentProps) => {
+  return <div className={className}>{children}</div>;
+};
+
+// 自定义Dialog组件 - 符合项目风格
+interface DialogProps {
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  children: React.ReactNode;
+}
+const Dialog = ({ children, open }: DialogProps) => {
+  if (!open) return null;
+  return (
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-6">
+      {children}
+    </div>
+  );
+};
+
+interface DialogContentProps {
+  children: React.ReactNode;
+  className?: string;
+}
+const DialogContent = ({ children, className }: DialogContentProps) => {
+  return <div className={`bg-white rounded-lg p-6 w-full max-w-md mx-auto shadow-xl ${className}`}>{children}</div>;
+};
+
+interface DialogHeaderProps {
+  children: React.ReactNode;
+}
+const DialogHeader = ({ children }: DialogHeaderProps) => {
+  return <div className="mb-4">{children}</div>;
+};
+
+interface DialogTitleProps {
+  children: React.ReactNode;
+}
+const DialogTitle = ({ children }: DialogTitleProps) => {
+  return <h2 className="text-xl font-bold text-gray-900">{children}</h2>;
+};
+
+interface DialogDescriptionProps {
+  children: React.ReactNode;
+}
+const DialogDescription = ({ children }: DialogDescriptionProps) => {
+  return <p className="text-gray-500">{children}</p>;
+};
+
+interface DialogTriggerProps {
+  children: React.ReactNode;
+  onClick?: () => void;
+}
+const DialogTrigger = ({ children, onClick }: DialogTriggerProps) => {
+  return <button onClick={onClick}>{children}</button>;
+};
 
 // 定义子任务数据类型 - 租号任务特定
 interface AccountRentalSubTask {
@@ -80,8 +171,8 @@ export default function AccountRentalDetailPage() {
       setLoading(true);
       
       // 使用PublisherAuthStorage获取认证信息
-      const auth = PublisherAuthStorage();
-      const token = auth.getToken();
+      const session = PublisherAuthStorage.getAuth();
+      const token = session?.token || '';
       
       // 构建请求选项
       const requestOptions = {
@@ -123,8 +214,8 @@ export default function AccountRentalDetailPage() {
   // 领取租号任务
   const claimAccountRentalTask = async (taskId: string, subTaskId: string) => {
     try {
-      const auth = PublisherAuthStorage();
-      const token = auth.getToken();
+      const session = PublisherAuthStorage.getAuth();
+      const token = session?.token || '';
       if (!token) {
         throw new Error('认证失败，请重新登录');
       }
@@ -157,10 +248,10 @@ export default function AccountRentalDetailPage() {
   };
   
   // 提交租号结果
-  const submitAccountRentalResult = async (taskId: string, subTaskId: string, screenshotUrl: string) => {
+  const submitAccountRentalResult = async (taskId: string, subTaskId: string, screenshotUrl: string) => {    
     try {
-      const auth = PublisherAuthStorage();
-      const token = auth.getToken();
+      const session = PublisherAuthStorage.getAuth();
+      const token = session?.token || '';
       if (!token) {
         throw new Error('认证失败，请重新登录');
       }
@@ -419,90 +510,91 @@ export default function AccountRentalDetailPage() {
           </TabsList>
           
           {/* 概览标签页 */}
-          <TabsContent value="overview" className="mt-4">
-        {/* 任务基本信息 */}
-        <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-bold text-gray-800">{task.title}</h2>
-            <span className={`px-3 py-1 rounded-full text-sm ${getStatusStyle(task.status)}`}>
-              {getStatusText(task.status)}
-            </span>
-          </div>
-          
-          <div className="grid grid-cols-2 gap-4 mb-4">
-            <div>
-              <p className="text-sm text-gray-600">任务编号</p>
-              <p className="font-medium">{task.orderNumber}</p>
+        <TabsContent value="overview" className="mt-4">
+
+          {/* 任务基本信息 */}
+          <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-bold text-gray-800">{task.title}</h2>
+              <span className={`px-3 py-1 rounded-full text-sm ${getStatusStyle(task.status)}`}>
+                {getStatusText(task.status)}
+              </span>
             </div>
-            <div>
-              <p className="text-sm text-gray-600">任务类型</p>
-              <p className="font-medium">账号租用任务</p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-600">单价</p>
-              <p className="font-medium">¥{task.unitPrice.toFixed(2)}</p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-600">总数量</p>
-              <p className="font-medium">{task.quantity} 个账号</p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-600">已完成</p>
-              <p className="font-medium">{task.completedQuantity} 个</p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-600">发布时间</p>
-              <p className="font-medium">{new Date(task.publishTime).toLocaleString('zh-CN')}</p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-600">截止时间</p>
-              <p className="font-medium">{new Date(task.deadline).toLocaleString('zh-CN')}</p>
-            </div>
-          </div>
-          
-          <div>
-            <div className="mb-4">
-                <p className="text-sm text-gray-600">视频链接</p>
-                <a 
-                  href={task.videoUrl} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="text-blue-600 hover:text-blue-800 underline break-all"
-                >
-                  {task.videoUrl || '暂无链接'}
-                </a>
+            
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              <div>
+                <p className="text-sm text-gray-600">任务编号</p>
+                <p className="font-medium">{task.orderNumber}</p>
               </div>
               <div>
-                <p className="text-sm text-gray-600 mb-2">任务要求</p>
-                <div className="bg-gray-50 p-3 rounded-lg">
-                  <p className="text-gray-800">{task.taskRequirements}</p>
-                </div>
+                <p className="text-sm text-gray-600">任务类型</p>
+                <p className="font-medium">账号租用任务</p>
               </div>
+              <div>
+                <p className="text-sm text-gray-600">单价</p>
+                <p className="font-medium">¥{task.unitPrice.toFixed(2)}</p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-600">总数量</p>
+                <p className="font-medium">{task.quantity} 个账号</p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-600">已完成</p>
+                <p className="font-medium">{task.completedQuantity} 个</p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-600">发布时间</p>
+                <p className="font-medium">{new Date(task.publishTime).toLocaleString('zh-CN')}</p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-600">截止时间</p>
+                <p className="font-medium">{new Date(task.deadline).toLocaleString('zh-CN')}</p>
+              </div>
+            </div>
+            
+            <div>
+              <div className="mb-4">
+                  <p className="text-sm text-gray-600">视频链接</p>
+                  <a 
+                    href={task.videoUrl} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-blue-600 hover:text-blue-800 underline break-all"
+                  >
+                    {task.videoUrl || '暂无链接'}
+                  </a>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600 mb-2">任务要求</p>
+                  <div className="bg-gray-50 p-3 rounded-lg">
+                    <p className="text-gray-800">{task.taskRequirements}</p>
+                  </div>
+                </div>
+            </div>
           </div>
-        </div>
 
-        {/* 子任务统计 */}
-        <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
-          <h2 className="text-lg font-bold text-gray-800 mb-4">子任务统计</h2>
-          <div className="grid grid-cols-4 gap-4">
-            <div className="bg-green-50 border border-green-100 rounded-lg p-3 text-center">
-              <div className="text-2xl font-bold text-green-600">{statusCounts.completed}</div>
-              <div className="text-sm text-green-700">已完成</div>
-            </div>
-            <div className="bg-blue-50 border border-blue-100 rounded-lg p-3 text-center">
-              <div className="text-2xl font-bold text-blue-600">{statusCounts.inProgress}</div>
-              <div className="text-sm text-blue-700">进行中</div>
-            </div>
-            <div className="bg-orange-50 border border-orange-100 rounded-lg p-3 text-center">
-              <div className="text-2xl font-bold text-orange-600">{statusCounts.inReview}</div>
-              <div className="text-sm text-orange-700">待审核</div>
-            </div>
-            <div className="bg-yellow-50 border border-yellow-100 rounded-lg p-3 text-center">
-              <div className="text-2xl font-bold text-yellow-600">{statusCounts.waitingCollect}</div>
-              <div className="text-sm text-yellow-700">待领取</div>
+          {/* 子任务统计 */}
+          <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
+            <h2 className="text-lg font-bold text-gray-800 mb-4">子任务统计</h2>
+            <div className="grid grid-cols-4 gap-4">
+              <div className="bg-green-50 border border-green-100 rounded-lg p-3 text-center">
+                <div className="text-2xl font-bold text-green-600">{statusCounts.completed}</div>
+                <div className="text-sm text-green-700">已完成</div>
+              </div>
+              <div className="bg-blue-50 border border-blue-100 rounded-lg p-3 text-center">
+                <div className="text-2xl font-bold text-blue-600">{statusCounts.inProgress}</div>
+                <div className="text-sm text-blue-700">进行中</div>
+              </div>
+              <div className="bg-orange-50 border border-orange-100 rounded-lg p-3 text-center">
+                <div className="text-2xl font-bold text-orange-600">{statusCounts.inReview}</div>
+                <div className="text-sm text-orange-700">待审核</div>
+              </div>
+              <div className="bg-yellow-50 border border-yellow-100 rounded-lg p-3 text-center">
+                <div className="text-2xl font-bold text-yellow-600">{statusCounts.waitingCollect}</div>
+                <div className="text-sm text-yellow-700">待领取</div>
+              </div>
             </div>
           </div>
-        </div>
       </TabsContent>
       
       {/* 账号详情标签页 */}
@@ -677,106 +769,106 @@ export default function AccountRentalDetailPage() {
           </div>
         </div>
       </TabsContent>
-    </Tabs>
+        </Tabs>
+        
+        {/* 账号详情模态框 */}
+        <Dialog open={showAccountDetails} onOpenChange={setShowAccountDetails}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>账号登录信息</DialogTitle>
+              <DialogDescription>
+                请妥善保管账号信息，不要泄露给他人
+              </DialogDescription>
+            </DialogHeader>
+            
+            {selectedSubTask && (
+              <div className="mt-4 space-y-3">
+                {task.subOrders.find(sub => sub.id === selectedSubTask)?.accountDetails && (
+                  <>
+                    <div className="bg-gray-50 p-3 rounded-lg">
+                      <div className="mb-2">
+                        <p className="text-xs text-gray-500">用户名</p>
+                        <p className="font-medium">{task.subOrders.find(sub => sub.id === selectedSubTask)?.accountDetails?.username}</p>
+                      </div>
+                      <div className="mb-2">
+                        <p className="text-xs text-gray-500">密码</p>
+                        <p className="font-medium">{task.subOrders.find(sub => sub.id === selectedSubTask)?.accountDetails?.password}</p>
+                      </div>
+                      <div className="mb-2">
+                        <p className="text-xs text-gray-500">登录方式</p>
+                        <p className="font-medium">{getLoginMethodText(task.subOrders.find(sub => sub.id === selectedSubTask)?.accountDetails?.loginMethod || '')}</p>
+                      </div>
+                      {task.subOrders.find(sub => sub.id === selectedSubTask)?.accountDetails?.verificationCode && (
+                        <div className="mb-2">
+                          <p className="text-xs text-gray-500">验证码</p>
+                          <p className="font-medium">{task.subOrders.find(sub => sub.id === selectedSubTask)?.accountDetails?.verificationCode}</p>
+                        </div>
+                      )}
+                      {task.subOrders.find(sub => sub.id === selectedSubTask)?.accountDetails?.additionalInfo && (
+                        <div>
+                          <p className="text-xs text-gray-500">附加信息</p>
+                          <p className="font-medium">{task.subOrders.find(sub => sub.id === selectedSubTask)?.accountDetails?.additionalInfo}</p>
+                        </div>
+                      )}
+                    </div>
+                    
+                    <div className="bg-yellow-50 border border-yellow-200 p-3 rounded-lg text-sm">
+                      <p className="text-yellow-700">⚠️ 完成任务后，请确保退出账号登录，保护账号安全。</p>
+                    </div>
+                  </>
+                )}
+                
+                <Button className="w-full" onClick={() => setShowAccountDetails(false)}>
+                  关闭
+                </Button>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
+        
+        {/* 提交结果模态框 */}
+        <Dialog open={showSubmitModal} onOpenChange={setShowSubmitModal}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>提交任务结果</DialogTitle>
+              <DialogDescription>
+                请上传完成任务的截图
+              </DialogDescription>
+            </DialogHeader>
+            
+            <div className="mt-4 space-y-3">
+              <div>
+                <label className="text-sm font-medium text-gray-700 block mb-1">截图链接</label>
+                <input
+                  type="text"
+                  value={screenshotUrl}
+                  onChange={(e) => setScreenshotUrl(e.target.value)}
+                  placeholder="请输入截图的URL地址"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              
+              <div className="flex space-x-2">
+                <Button className="w-full" onClick={handleSubmitResult}>
+                  提交
+                </Button>
+                <Button variant="secondary" className="w-full" onClick={() => setShowSubmitModal(false)}>
+                  取消
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+        
+        {/* 成功提示模态框 */}
+        <AlertModal
+          isOpen={showSuccessModal}
+          onClose={() => setShowSuccessModal(false)}
+          title="操作成功"
+          message="您的操作已成功完成！"
+          buttonText="确定"
+        />
       </div>
     </div>
-    
-    {/* 账号详情模态框 */}
-    <Dialog open={showAccountDetails} onOpenChange={setShowAccountDetails}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>账号登录信息</DialogTitle>
-          <DialogDescription>
-            请妥善保管账号信息，不要泄露给他人
-          </DialogDescription>
-        </DialogHeader>
-        
-        {selectedSubTask && (
-          <div className="mt-4 space-y-3">
-            {task.subOrders.find(sub => sub.id === selectedSubTask)?.accountDetails && (
-              <>
-                <div className="bg-gray-50 p-3 rounded-lg">
-                  <div className="mb-2">
-                    <p className="text-xs text-gray-500">用户名</p>
-                    <p className="font-medium">{task.subOrders.find(sub => sub.id === selectedSubTask)?.accountDetails?.username}</p>
-                  </div>
-                  <div className="mb-2">
-                    <p className="text-xs text-gray-500">密码</p>
-                    <p className="font-medium">{task.subOrders.find(sub => sub.id === selectedSubTask)?.accountDetails?.password}</p>
-                  </div>
-                  <div className="mb-2">
-                    <p className="text-xs text-gray-500">登录方式</p>
-                    <p className="font-medium">{getLoginMethodText(task.subOrders.find(sub => sub.id === selectedSubTask)?.accountDetails?.loginMethod || '')}</p>
-                  </div>
-                  {task.subOrders.find(sub => sub.id === selectedSubTask)?.accountDetails?.verificationCode && (
-                    <div className="mb-2">
-                      <p className="text-xs text-gray-500">验证码</p>
-                      <p className="font-medium">{task.subOrders.find(sub => sub.id === selectedSubTask)?.accountDetails?.verificationCode}</p>
-                    </div>
-                  )}
-                  {task.subOrders.find(sub => sub.id === selectedSubTask)?.accountDetails?.additionalInfo && (
-                    <div>
-                      <p className="text-xs text-gray-500">附加信息</p>
-                      <p className="font-medium">{task.subOrders.find(sub => sub.id === selectedSubTask)?.accountDetails?.additionalInfo}</p>
-                    </div>
-                  )}
-                </div>
-                
-                <div className="bg-yellow-50 border border-yellow-200 p-3 rounded-lg text-sm">
-                  <p className="text-yellow-700">⚠️ 完成任务后，请确保退出账号登录，保护账号安全。</p>
-                </div>
-              </>
-            )}
-            
-            <Button className="w-full" onClick={() => setShowAccountDetails(false)}>
-              关闭
-            </Button>
-          </div>
-        )}
-      </DialogContent>
-    </Dialog>
-    
-    {/* 提交结果模态框 */}
-    <Dialog open={showSubmitModal} onOpenChange={setShowSubmitModal}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>提交任务结果</DialogTitle>
-          <DialogDescription>
-            请上传完成任务的截图
-          </DialogDescription>
-        </DialogHeader>
-        
-        <div className="mt-4 space-y-3">
-          <div>
-            <label className="text-sm font-medium text-gray-700 block mb-1">截图链接</label>
-            <input
-              type="text"
-              value={screenshotUrl}
-              onChange={(e) => setScreenshotUrl(e.target.value)}
-              placeholder="请输入截图的URL地址"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-          
-          <div className="flex space-x-2">
-            <Button className="w-full" onClick={handleSubmitResult}>
-              提交
-            </Button>
-            <Button variant="secondary" className="w-full" onClick={() => setShowSubmitModal(false)}>
-              取消
-            </Button>
-          </div>
-        </div>
-      </DialogContent>
-    </Dialog>
-    
-    {/* 成功提示模态框 */}
-    <AlertModal 
-      open={showSuccessModal} 
-      onOpenChange={setShowSuccessModal}
-      title="操作成功"
-      message="您的操作已成功完成！"
-      buttonText="确定"
-    />
   );
 }

@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Card, Button } from '@/components/ui';
 import { useRouter } from 'next/navigation';
+import { CommenterAuthStorage } from '@/auth/commenter/auth';
 
 export default function AccountRentalPage() {
   const router = useRouter();
@@ -61,7 +62,21 @@ export default function AccountRentalPage() {
   };
 
   return (
-    <div className="p-4">
+    <div className="p-4 pb-20">
+      {/* 返回按钮 */}
+      <button
+        onClick={() => {
+          if (window.history.length > 1) {
+            router.back();
+          } else {
+            router.push('/commenter' as any);
+          }
+        }}
+        className="mb-4 p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
+      >
+        ← 返回
+      </button>
+      
       {/* 页面标题 */}
       <div className="mb-6 flex justify-between items-center">
         <div>

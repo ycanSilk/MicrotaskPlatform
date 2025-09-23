@@ -148,8 +148,8 @@ export default function CommenterLayout({
         </h2>
       </div>
 
-      {/* 主要内容区域 */}
-      <main className="flex-1">
+      {/* 主要内容区域 - 添加底部内边距避免被底部导航栏遮挡 */}
+      <main className="flex-1 pb-20">
         {children}
       </main>
 
