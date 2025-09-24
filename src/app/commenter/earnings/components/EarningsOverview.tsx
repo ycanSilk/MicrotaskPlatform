@@ -7,11 +7,30 @@ interface EarningsOverviewProps {
   dailyEarnings: DailyEarning[];
   stats: {
     todayEarnings: number;
+    yesterdayEarnings: number;
     weeklyEarnings: number;
     monthlyEarnings: number;
   };
   setActiveTab: (tab: 'overview' | 'details' | 'withdraw') => void;
 }
+
+// 默认用户账户数据，确保组件始终有数据可显示
+const defaultUserAccount: CommenterAccount = {
+  userId: 'com001',
+  availableBalance: 1234.56,
+  totalEarnings: 5678.90,
+  completedTasks: 123,
+  frozenBalance: 0,
+  lastUpdated: new Date().toISOString()
+};
+
+// 默认统计数据，确保组件始终有数据可显示
+const defaultStats = {
+  todayEarnings: 123.45,
+  yesterdayEarnings: 105.67,
+  weeklyEarnings: 890.12,
+  monthlyEarnings: 3456.78
+};
 
 const EarningsOverview: React.FC<EarningsOverviewProps> = ({
   currentUserAccount,
@@ -19,6 +38,9 @@ const EarningsOverview: React.FC<EarningsOverviewProps> = ({
   stats,
   setActiveTab
 }) => {
+  // 使用传入的数据或默认数据
+  const accountData = currentUserAccount || defaultUserAccount;
+  const statsData = stats || defaultStats;
   // 辅助函数：计算佣金收益 (假设佣金占30%)
   const calculateCommissionEarnings = (totalEarnings: number): number => {
     return totalEarnings * 0.3;
@@ -41,16 +63,19 @@ const EarningsOverview: React.FC<EarningsOverviewProps> = ({
       return dailyEarnings;
     }
     
-    // 生成最近7天的模拟数据
+    // 生成最近7天的模拟数据（使用固定的示例数据而不是随机数，确保展示效果稳定）
     const mockData: DailyEarning[] = [];
     const today = new Date();
+    
+    // 预设的模拟数据，展示不同金额的分布
+    const presetAmounts = [68, 92, 45, 105, 88, 73, 96];
     
     for (let i = 6; i >= 0; i--) {
       const date = new Date();
       date.setDate(today.getDate() - i);
       mockData.push({
         date: date.toISOString().split('T')[0],
-        amount: Math.floor(Math.random() * 100) + 10 // 10-109的随机金额
+        amount: presetAmounts[6 - i] // 使用预设的金额数据
       });
     }
     
@@ -90,28 +115,28 @@ const EarningsOverview: React.FC<EarningsOverviewProps> = ({
           <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg p-6 shadow-md">
           <div className="text-center">
             <div>今日收益</div>
-            <div>总收益：¥{stats.todayEarnings.toFixed(2)}</div>
-            <div>任务收益：¥{calculateTaskEarnings(stats.todayEarnings).toFixed(2)}</div>
-            <div>佣金收益：¥{calculateCommissionEarnings(stats.todayEarnings).toFixed(2)}</div>
+            <div>总收益：¥{statsData.todayEarnings.toFixed(2)}</div>
+            <div>任务收益：¥{calculateTaskEarnings(statsData.todayEarnings).toFixed(2)}</div>
+            <div>佣金收益：¥{calculateCommissionEarnings(statsData.todayEarnings).toFixed(2)}</div>
           </div>
         </div>
           <div className="bg-orange-50 border border-orange-100 rounded-lg p-4 text-center shadow-sm">
             <div style={{color: '#DD6B20'}}>昨日</div>
-            <div style={{color: '#DD6B20'}}>总收益：¥{stats.todayEarnings.toFixed(2)}</div>
-            <div style={{color: '#C05621' }}>任务收益：¥{calculateTaskEarnings(stats.todayEarnings).toFixed(2)}</div>
-            <div style={{color: '#ED8936' }}>佣金收益：¥{calculateCommissionEarnings(stats.todayEarnings).toFixed(2)}</div>
+            <div style={{color: '#DD6B20'}}>总收益：¥{statsData.yesterdayEarnings.toFixed(2)}</div>
+            <div style={{color: '#C05621' }}>任务收益：¥{calculateTaskEarnings(statsData.yesterdayEarnings).toFixed(2)}</div>
+            <div style={{color: '#ED8936' }}>佣金收益：¥{calculateCommissionEarnings(statsData.yesterdayEarnings).toFixed(2)}</div>
           </div>
           <div className="bg-green-50 border border-green-100 rounded-lg p-4 text-center shadow-sm">
             <div style={{  color: '#2F855A'}}>本周</div>
-            <div style={{ color: '#2F855A'}}>总收益：¥{stats.weeklyEarnings.toFixed(2)}</div>
-            <div style={{color: '#276749' }}>任务收益：¥{calculateTaskEarnings(stats.weeklyEarnings).toFixed(2)}</div>
-            <div style={{color: '#48BB78' }}>佣金收益：¥{calculateCommissionEarnings(stats.weeklyEarnings).toFixed(2)}</div>
+            <div style={{ color: '#2F855A'}}>总收益：¥{statsData.weeklyEarnings.toFixed(2)}</div>
+            <div style={{color: '#276749' }}>任务收益：¥{calculateTaskEarnings(statsData.weeklyEarnings).toFixed(2)}</div>
+            <div style={{color: '#48BB78' }}>佣金收益：¥{calculateCommissionEarnings(statsData.weeklyEarnings).toFixed(2)}</div>
           </div>
           <div className="bg-blue-50 border border-blue-100 rounded-lg p-4 text-center shadow-sm">
             <div style={{  color: '#2B6CB0'}}>本月</div>
-            <div style={{ color: '#2B6CB0'}}>总收益：¥{stats.monthlyEarnings.toFixed(2)}</div>           
-            <div style={{color: '#2C5282' }}>任务收益：¥{calculateTaskEarnings(stats.monthlyEarnings).toFixed(2)}</div>
-            <div style={{color: '#4299E1' }}>佣金收益：¥{calculateCommissionEarnings(stats.monthlyEarnings).toFixed(2)}</div>
+            <div style={{ color: '#2B6CB0'}}>总收益：¥{statsData.monthlyEarnings.toFixed(2)}</div>            
+            <div style={{color: '#2C5282' }}>任务收益：¥{calculateTaskEarnings(statsData.monthlyEarnings).toFixed(2)}</div>
+            <div style={{color: '#4299E1' }}>佣金收益：¥{calculateCommissionEarnings(statsData.monthlyEarnings).toFixed(2)}</div>
           </div>
         </div>
       </div>
@@ -121,7 +146,7 @@ const EarningsOverview: React.FC<EarningsOverviewProps> = ({
         <div className="bg-white rounded-lg p-4 shadow-sm flex justify-between items-center">
           <div>
             <div style={{  color: '#4A5568' }}>可提现余额</div>
-            <div style={{ color: '#2F855A' }}>¥{currentUserAccount?.availableBalance?.toFixed(2) || '0.00'}</div>
+            <div style={{ color: '#2F855A' }}>¥{accountData.availableBalance.toFixed(2)}</div>
           </div>
           <button 
             className="bg-green-500 text-white px-6 py-2 rounded font-medium hover:bg-green-600 transition-colors"
@@ -138,15 +163,15 @@ const EarningsOverview: React.FC<EarningsOverviewProps> = ({
           <h3 style={{ color: '#1A202C', marginBottom: '16px' }}>收益统计</h3>
           <div className="grid grid-cols-3 gap-4">
             <div className="text-center p-3 bg-blue-50 rounded">
-              <div style={{ color: '#2B6CB0' }}>¥{currentUserAccount?.totalEarnings?.toFixed(2) || '0.00'}</div>
+              <div style={{ color: '#2B6CB0' }}>¥{(accountData.totalEarnings || 0).toFixed(2)}</div>
               <div style={{  color: '#4A5568' }}>累计收益</div>
             </div>
             <div className="text-center p-3 bg-orange-50 rounded">
-              <div style={{ color: '#DD6B20' }}>{currentUserAccount?.completedTasks || 0}</div>
+              <div style={{ color: '#DD6B20' }}>{accountData.completedTasks}</div>
               <div style={{  color: '#4A5568' }}>完成任务</div>
             </div>
             <div className="text-center p-3 bg-green-50 rounded">
-              <div style={{ color: '#2F855A' }}>¥{currentUserAccount ? calculateCommissionEarnings(currentUserAccount.totalEarnings || 0).toFixed(2) : '0.00'}</div>
+              <div style={{ color: '#2F855A' }}>¥{calculateCommissionEarnings(accountData.totalEarnings || 0).toFixed(2)}</div>
               <div style={{  color: '#4A5568' }}>累计佣金</div>
             </div>
           </div>
@@ -204,13 +229,13 @@ const EarningsOverview: React.FC<EarningsOverviewProps> = ({
                             <div className="w-full h-full flex flex-col justify-end items-center">
                               {/* 柱状图 - 高度与金额成正比 */}
                               <div 
-                                className="bg-blue-500 transition-all duration-300 hover:bg-blue-600 relative"
+                                className="bg-blue-500 transition-all duration-300 hover:bg-blue-600 relative border border-blue-600"
                                 style={{ 
                                   height: `${heightPercentage}%`, 
                                   // 确保即使很小的值也有一个最小高度以便可视化
                                   minHeight: heightPercentage > 0 ? '10px' : '0', 
                                   width: '80%',
-                                  // 添加边框以便更好地可视化
+                                  // 添加边框以便更好地可视化，包括右边框
                                   borderTopLeftRadius: '4px',
                                   borderTopRightRadius: '4px'
                                 }}

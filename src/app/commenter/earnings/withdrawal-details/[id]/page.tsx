@@ -7,9 +7,6 @@ interface WithdrawalDetailsPageProps {
   // 这里可以定义页面需要的props
 }
 
-// 模拟获取提现记录详情的函数
-import { financeModelAdapter } from '@/data/commenteruser/finance_model_adapter';
-
 // 丰富的静态提现明细数据
 const mockWithdrawalDetails: Record<string, WithdrawalRecord> = {
   'wd-1': {
@@ -50,23 +47,18 @@ const mockWithdrawalDetails: Record<string, WithdrawalRecord> = {
   }
 };
 
-const getWithdrawalDetails = async (withdrawalId: string): Promise<WithdrawalRecord | null> => {
-  // 模拟异步操作
-  await new Promise(resolve => setTimeout(resolve, 200));
-  
-  // 优先返回静态数据
-  if (mockWithdrawalDetails[withdrawalId]) {
-    return mockWithdrawalDetails[withdrawalId];
-  }
-  
-  // 如果静态数据中没有，则尝试从financeModelAdapter获取
-  try {
-    const allWithdrawals = await financeModelAdapter.getUserWithdrawalRecords('');
-    return allWithdrawals.find(w => w.id == withdrawalId) || null;
-  } catch (error) {
-    console.error('获取提现记录失败:', error);
-    return null;
-  }
+// 默认提现详情数据，用于任何未找到的ID
+const defaultWithdrawalDetails: WithdrawalRecord = {
+  id: 'default-wd',
+  userId: 'user1',
+  amount: 88.88,
+  fee: 1.50,
+  method: 'wechat',
+  status: 'approved',
+  requestedAt: '2024-03-12T14:30:00Z',
+  processedAt: '2024-03-12T16:15:00Z',
+  description: '测试提现记录',
+  totalAmount: 87.38
 };
 
 // 格式化日期时间
@@ -147,33 +139,11 @@ const getStatusInfo = (status: string) => {
 const WithdrawalDetailsPage: React.FC<WithdrawalDetailsPageProps> = () => {
   const router = useRouter();
   const params = useParams();
-  const [withdrawalDetails, setWithdrawalDetails] = React.useState<WithdrawalRecord | null>(null);
-  const [isLoading, setIsLoading] = React.useState(true);
-  const [error, setError] = React.useState<string | null>(null);
-  
   const withdrawalId = params.id as string;
   
-  // 加载提现详情
-  React.useEffect(() => {
-    const loadWithdrawalDetails = async () => {
-      setIsLoading(true);
-      setError(null);
-      
-      try {
-        const details = await getWithdrawalDetails(withdrawalId);
-        if (!details) {
-          throw new Error('提现记录不存在或已被删除');
-        }
-        setWithdrawalDetails(details);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : '加载失败，请重试');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    loadWithdrawalDetails();
-  }, [withdrawalId]);
+  // 直接使用静态数据，不进行异步加载和验证
+  // 如果找不到对应ID的数据，使用默认数据
+  const withdrawalDetails = mockWithdrawalDetails[withdrawalId] || defaultWithdrawalDetails;
   
   // 返回上一页 - 优化返回逻辑
   const handleBack = () => {
@@ -184,61 +154,6 @@ const WithdrawalDetailsPage: React.FC<WithdrawalDetailsPageProps> = () => {
     }
   };
   
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50">
-        <div className="max-w-3xl mx-auto px-4 py-8">
-          <div className="flex items-center mb-6">
-            <button onClick={handleBack} className="mr-2">
-              <svg className="h-6 w-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
-            <h1 className="text-xl font-bold text-gray-900">提现详情</h1>
-          </div>
-          <div className="bg-white rounded-lg shadow-sm p-8 text-center">
-            <div className="animate-spin inline-block w-8 h-8 border-4 border-gray-200 border-t-blue-600 rounded-full mb-4"></div>
-            <p className="text-gray-500">加载中...</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-  
-  if (error || !withdrawalDetails) {
-    return (
-      <div className="min-h-screen bg-gray-50">
-        <div className="max-w-3xl mx-auto px-4 py-8">
-          <div className="flex items-center mb-6">
-            <button onClick={handleBack} className="mr-2">
-              <svg className="h-6 w-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
-            <h1 className="text-xl font-bold text-gray-900">提现详情</h1>
-          </div>
-          <div className="bg-white rounded-lg shadow-sm p-8 text-center">
-            <div className="inline-flex items-center justify-center h-16 w-16 rounded-full bg-red-100 text-red-500 mb-4">
-              <svg className="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-              </svg>
-            </div>
-            <h3 className="text-lg font-medium text-gray-900">加载失败</h3>
-            <p className="mt-2 text-sm text-gray-500">{error || '无法加载提现详情'}</p>
-            <div className="mt-6">
-              <button
-                type="button"
-                className="inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                onClick={() => router.push('/commenter/earnings')}
-              >
-                返回提现页
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
   
   const methodLabel = getWithdrawalMethodLabel(withdrawalDetails.method);
   const statusInfo = getStatusInfo(withdrawalDetails.status);

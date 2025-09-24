@@ -28,12 +28,12 @@ export default function CommenterLayout({
         console.log('初始化评论员认证');
         console.log('当前路径:', pathname);
         
-        // 如果已经在登录页面，不执行认证检查
-        if (pathname?.includes('/auth/login/commenterlogin')) {
-          console.log('已在登录页面，跳过认证检查');
-          setIsLoading(false);
-          return;
-        }
+        // 如果已经在登录页面或invite页面，不执行认证检查
+      if (pathname?.includes('/auth/login/commenterlogin') || pathname?.includes('/commenter/invite')) {
+        console.log('已在登录页面或invite页面，跳过认证检查');
+        setIsLoading(false);
+        return;
+      }
 
         // 获取评论员认证信息
         const auth = CommenterAuthStorage.getAuth();

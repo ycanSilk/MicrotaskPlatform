@@ -34,8 +34,48 @@ const WithdrawalPage: React.FC<WithdrawalPageProps> = ({
   
 
 
-  // 使用传入的数据
-  const withdrawalsToDisplay = currentWithdrawals;
+  // 静态提现记录数据，当没有传入数据时使用
+  const staticWithdrawalRecords: WithdrawalRecord[] = [
+    {
+      id: 'wd-1',
+      userId: 'user1',
+      amount: 100.50,
+      fee: 2.00,
+      method: 'wechat',
+      status: 'approved',
+      requestedAt: '2024-03-10T10:25:30Z',
+      processedAt: '2024-03-10T11:45:15Z',
+      description: '月度提现 - 生活费用',
+      totalAmount: 998.50
+    },
+    {
+      id: 'wd-2',
+      userId: 'user1',
+      amount: 50.00,
+      fee: 1.00,
+      method: 'alipay',
+      status: 'approved',
+      requestedAt: '2024-02-28T15:30:00Z',
+      processedAt: '2024-02-29T09:00:00Z',
+      description: '购物消费',
+      totalAmount: 499.00
+    },
+    {
+      id: 'wd-3',
+      userId: 'user1',
+      amount: 20.00,
+      fee: 0.50,
+      method: 'bank',
+      status: 'pending',
+      requestedAt: '2024-03-15T14:20:00Z',
+      processedAt: undefined,
+      description: '房租支付',
+      totalAmount: 199.50
+    }
+  ];
+
+  // 使用传入的数据，如果没有则使用静态数据
+  const withdrawalsToDisplay = currentWithdrawals && currentWithdrawals.length > 0 ? currentWithdrawals : staticWithdrawalRecords;
 
   // 格式化日期时间
   const formatDateTime = (dateString: string) => {
@@ -69,9 +109,16 @@ const WithdrawalPage: React.FC<WithdrawalPageProps> = ({
     }
   };
 
+  const [selectedWithdrawal, setSelectedWithdrawal] = useState<WithdrawalRecord | null>(null);
+  const [showWithdrawalDetails, setShowWithdrawalDetails] = useState(false);
+
   // 处理查看提现记录详情
   const handleViewWithdrawalDetails = (id: string) => {
-    router.push(`/commenter/earnings/withdrawal-details/${id}`);
+    const withdrawal = withdrawalsToDisplay.find(w => w.id === id);
+    if (withdrawal) {
+      setSelectedWithdrawal(withdrawal);
+      setShowWithdrawalDetails(true);
+    }
   };
 
   // 获取提现状态信息
@@ -253,6 +300,60 @@ const WithdrawalPage: React.FC<WithdrawalPageProps> = ({
                 style={{ fontSize: '14px' }}
               >
                 我知道了
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 提现详情模态框 */}
+      {showWithdrawalDetails && selectedWithdrawal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <div className="mb-4">
+              <h3 className="font-bold text-gray-800 mb-4" style={{ fontSize: '16px' }}>提现详情</h3>
+              <div className="space-y-3">
+                <div className="flex justify-between">
+                  <span className="text-gray-500" style={{ fontSize: '14px' }}>提现金额</span>
+                  <span className="font-medium" style={{ fontSize: '14px' }}>-¥{selectedWithdrawal.amount.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-500" style={{ fontSize: '14px' }}>手续费</span>
+                  <span className="font-medium" style={{ fontSize: '14px' }}>-¥{selectedWithdrawal.fee.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-500" style={{ fontSize: '14px' }}>提现方式</span>
+                  <span className="font-medium" style={{ fontSize: '14px' }}>{getWithdrawalMethodLabel(selectedWithdrawal.method)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-500" style={{ fontSize: '14px' }}>状态</span>
+                  <span className={`font-medium px-2 py-0.5 rounded-full ${getStatusInfo(selectedWithdrawal.status).color}`} style={{ fontSize: '14px' }}>
+                    {getStatusInfo(selectedWithdrawal.status).label}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-500" style={{ fontSize: '14px' }}>申请时间</span>
+                  <span className="font-medium" style={{ fontSize: '14px' }}>{formatDateTime(selectedWithdrawal.requestedAt)}</span>
+                </div>
+                {selectedWithdrawal.processedAt && (
+                  <div className="flex justify-between">
+                    <span className="text-gray-500" style={{ fontSize: '14px' }}>处理时间</span>
+                    <span className="font-medium" style={{ fontSize: '14px' }}>{formatDateTime(selectedWithdrawal.processedAt)}</span>
+                  </div>
+                )}
+                <div className="flex justify-between">
+                  <span className="text-gray-500" style={{ fontSize: '14px' }}>说明</span>
+                  <span className="font-medium" style={{ fontSize: '14px' }}>{selectedWithdrawal.description || '无说明'}</span>
+                </div>
+              </div>
+            </div>
+            <div className="flex justify-center">
+              <button
+                onClick={() => setShowWithdrawalDetails(false)}
+                className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-md transition-colors"
+                style={{ fontSize: '14px' }}
+              >
+                关闭
               </button>
             </div>
           </div>

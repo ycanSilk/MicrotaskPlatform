@@ -1,7 +1,6 @@
 'use client';
-import React, { useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
-import type { EarningRecord } from '../../page';
+import React from 'react';
+import { useRouter } from 'next/navigation';
 
 interface EarningDetailsProps {
   params: {
@@ -9,146 +8,56 @@ interface EarningDetailsProps {
   };
 }
 
+// 静态收益详情数据
+interface EarningRecord {
+  id: string;
+  userId: string;
+  taskId: string;
+  taskName: string;
+  amount: number;
+  description: string;
+  createdAt: string;
+  status: string;
+  type: string;
+  commissionInfo?: {
+    hasCommission: boolean;
+    commissionRate: number;
+    commissionAmount: number;
+    commissionRecipient: string;
+  };
+}
+
 const EarningDetailsPage: React.FC<EarningDetailsProps> = ({ params }) => {
-  const { id } = params;
   const router = useRouter();
-  const [earningDetails, setEarningDetails] = useState<EarningRecord | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  // 模拟获取收益详情的API调用
-  useEffect(() => {
-    const fetchEarningDetails = async () => {
-      setIsLoading(true);
-      try {
-        // 在实际项目中，这里应该是一个真实的API调用
-        // 这里我们使用模拟数据
-        const mockEarnings: EarningRecord[] = [
-          {
-            id: 'mock-1',
-            userId: 'user1',
-            taskId: 'task1',
-            taskName: '抖音评论任务 - 产品体验反馈',
-            amount: 12.50,
-            description: '完成产品体验评论任务',
-            createdAt: '2024-03-15T10:23:45Z',
-            status: 'completed',
-            type: 'comment',
-            commissionInfo: {
-              hasCommission: true,
-              commissionRate: 0.1,
-              commissionAmount: 1.25,
-              commissionRecipient: 'system'
-            }
-          },
-          {
-            id: 'mock-2',
-            userId: 'user1',
-            taskId: 'task2',
-            taskName: '视频推荐分享 - 科技产品评测',
-            amount: 8.75,
-            description: '分享科技产品评测视频',
-            createdAt: '2024-03-15T09:15:30Z',
-            status: 'completed',
-            type: 'video'
-          },
-          {
-            id: 'mock-3',
-            userId: 'user1',
-            taskId: 'task3',
-            taskName: '账号租赁 - 短视频内容互动',
-            amount: 20.00,
-            description: '账号租赁用于短视频互动',
-            createdAt: '2024-03-14T16:45:12Z',
-            status: 'completed',
-            type: 'account_rental'
-          },
-          {
-            id: 'mock-4',
-            userId: 'user1',
-            taskId: 'task4',
-            taskName: '应用体验反馈 - 生活服务类APP',
-            amount: 15.00,
-            description: '完成应用体验反馈任务',
-            createdAt: '2024-03-14T14:20:50Z',
-            status: 'completed',
-            type: 'comment',
-            commissionInfo: {
-              hasCommission: false,
-              commissionRate: 0,
-              commissionAmount: 0,
-              commissionRecipient: ''
-            }
-          },
-          {
-            id: 'mock-5',
-            userId: 'user1',
-            taskId: 'task5',
-            taskName: '品牌调研问卷 - 电子产品偏好',
-            amount: 10.00,
-            description: '完成品牌调研问卷',
-            createdAt: '2024-03-13T11:30:22Z',
-            status: 'completed',
-            type: 'comment'
-          },
-          {
-            id: 'mock-6',
-            userId: 'user1',
-            taskId: 'task6',
-            taskName: '新功能测试任务 - 社交应用',
-            amount: 25.00,
-            description: '测试社交应用新功能',
-            createdAt: '2024-03-13T09:10:15Z',
-            status: 'processing',
-            type: 'video'
-          },
-          {
-            id: 'mock-7',
-            userId: 'user1',
-            taskId: 'task7',
-            taskName: '邀请好友注册奖励',
-            amount: 5.00,
-            description: '邀请好友成功注册并完成首单',
-            createdAt: '2024-03-12T11:30:20Z',
-            status: 'completed',
-            type: 'commission',
-            commissionInfo: {
-              hasCommission: true,
-              commissionRate: 1.0,
-              commissionAmount: 5.00,
-              commissionRecipient: 'referral'
-            }
-          },
-          {
-            id: 'mock-8',
-            userId: 'user1',
-            taskId: 'task8',
-            taskName: '内容创作激励 - 优质评论奖励',
-            amount: 3.50,
-            description: '发布优质评论获得额外奖励',
-            createdAt: '2024-03-12T09:45:15Z',
-            status: 'completed',
-            type: 'commission',
-            commissionInfo: {
-              hasCommission: true,
-              commissionRate: 1.0,
-              commissionAmount: 3.50,
-              commissionRecipient: 'content_bonus'
-            }
-          }
-        ];
-
-        // 查找匹配的收益记录
-        const foundEarning = mockEarnings.find(earning => earning.id === id);
-        setEarningDetails(foundEarning || null);
-      } catch (error) {
-        console.error('获取收益详情失败:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchEarningDetails();
-  }, [id]);
+  
+  // 直接定义静态收益详情数据，不进行数据验证
+  const earningDetails: EarningRecord = {
+    id: params.id || 'earning-001',
+    userId: 'user12345',
+    taskId: 'task-12345',
+    taskName: '抖音评论任务 - 产品体验反馈',
+    amount: 15.80,
+    description: '完成产品体验评论任务，提供优质反馈内容',
+    createdAt: '2024-03-18T14:30:45Z',
+    status: 'completed',
+    type: 'comment',
+    commissionInfo: {
+      hasCommission: true,
+      commissionRate: 0.08,
+      commissionAmount: 1.26,
+      commissionRecipient: 'system'
+    }
+  };
+  
+  // 使用mock-1的数据作为备用
+  if (params.id === 'mock-1') {
+    earningDetails.taskName = '抖音评论任务 - 产品体验反馈';
+    earningDetails.amount = 12.50;
+    earningDetails.description = '完成产品体验评论任务';
+    earningDetails.createdAt = '2024-03-15T10:23:45Z';
+    earningDetails.commissionInfo!.commissionRate = 0.1;
+    earningDetails.commissionInfo!.commissionAmount = 1.25;
+  }
 
   // 格式化日期时间
   const formatDateTime = (dateString: string) => {
@@ -215,47 +124,6 @@ const EarningDetailsPage: React.FC<EarningDetailsProps> = ({ params }) => {
       router.push('/commenter/earnings?tab=details');
     }
   };
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50 py-8">
-        <div className="max-w-md mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-white shadow-md rounded-lg p-6">
-            <div className="text-center py-8">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-              <p className="text-gray-600">加载中...</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (!earningDetails) {
-    return (
-      <div className="min-h-screen bg-gray-50 py-8">
-        <div className="max-w-md mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-white shadow-md rounded-lg p-6">
-            <div className="text-center py-8">
-              <div className="flex justify-center mb-4">
-                <div className="h-16 w-16 rounded-full bg-gray-100 flex items-center justify-center">
-                  <span className="text-gray-400 text-2xl">⚠️</span>
-                </div>
-              </div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">收益记录不存在</h3>
-              <p className="text-gray-500 mb-6">无法找到此收益记录的详细信息</p>
-              <button
-                onClick={handleBack}
-                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-              >
-                返回列表
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-gray-50 py-8 pb-20">

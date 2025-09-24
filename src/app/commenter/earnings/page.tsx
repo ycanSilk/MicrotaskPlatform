@@ -67,6 +67,7 @@ export interface WithdrawalRecord {
 // 统计数据类型定义
 export interface Stats {
   todayEarnings: number;
+  yesterdayEarnings: number;
   weeklyEarnings: number;
   monthlyEarnings: number;
 }
@@ -84,6 +85,7 @@ export default function CommenterEarningsPage() {
   const [dailyEarnings, setDailyEarnings] = useState<DailyEarning[]>([]);
   const [stats, setStats] = useState({
     todayEarnings: 0,
+    yesterdayEarnings: 0,
     weeklyEarnings: 0,
     monthlyEarnings: 0
   });
@@ -120,6 +122,7 @@ export default function CommenterEarningsPage() {
           setCurrentUserAccount(accountInfo);
           setStats({
             todayEarnings: accountInfo.todayEarnings || 0,
+            yesterdayEarnings: accountInfo.yesterdayEarnings || 0,
             weeklyEarnings: accountInfo.weeklyEarnings || 0,
             monthlyEarnings: accountInfo.monthlyEarnings || 0
           });
@@ -153,8 +156,38 @@ export default function CommenterEarningsPage() {
   // 处理选项卡切换
   const handleTabChange = (tab: 'overview' | 'details' | 'withdraw') => {
     setActiveTab(tab);
-    router.push(`/commenter/earnings/${tab}`);
+    // 只更新URL哈希值而不进行完整的路由跳转，这样可以保持在当前页面并保留顶部栏
+    window.location.hash = tab;
   };
+
+  // 初始化时，从URL hash中恢复选项卡状态
+  useEffect(() => {
+    const hash = window.location.hash;
+    if (hash === '#details') {
+      setActiveTab('details');
+    } else if (hash === '#withdraw') {
+      setActiveTab('withdraw');
+    } else {
+      setActiveTab('overview');
+    }
+  }, []);
+
+  // 监听hash变化，确保从其他页面跳转过来时也能正确显示对应选项卡
+  useEffect(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash;
+      if (hash === '#details') {
+        setActiveTab('details');
+      } else if (hash === '#withdraw') {
+        setActiveTab('withdraw');
+      } else {
+        setActiveTab('overview');
+      }
+    };
+
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
 
   // 处理提现功能
   const handleWithdrawal = async () => {
@@ -211,24 +244,24 @@ export default function CommenterEarningsPage() {
 
   return (
     <div>
-      <div className="pb-20">
+      <div className="">
         {/* 收益类型切换 */}
         <div className="mx-4 mt-4 grid grid-cols-3 gap-2">
           <button 
             onClick={() => handleTabChange('overview')}
-            className={`py-3 px-4 rounded font-medium transition-colors bg-blue-500 text-white shadow-md`}
+            className={`py-3 px-4 rounded font-medium transition-colors ${activeTab === 'overview' ? 'bg-blue-500 text-white shadow-md' : 'bg-white border border-gray-300 text-gray-600 hover:bg-blue-50'}`}
           >
             概览
           </button>
           <button 
             onClick={() => handleTabChange('details')}
-            className={`py-3 px-4 rounded font-medium transition-colors bg-white border border-gray-300 text-gray-600 hover:bg-blue-50`}
+            className={`py-3 px-4 rounded font-medium transition-colors ${activeTab === 'details' ? 'bg-blue-500 text-white shadow-md' : 'bg-white border border-gray-300 text-gray-600 hover:bg-blue-50'}`}
           >
             明细
           </button>
           <button 
             onClick={() => handleTabChange('withdraw')}
-            className={`py-3 px-4 rounded font-medium transition-colors bg-white border border-gray-300 text-gray-600 hover:bg-blue-50`}
+            className={`py-3 px-4 rounded font-medium transition-colors ${activeTab === 'withdraw' ? 'bg-blue-500 text-white shadow-md' : 'bg-white border border-gray-300 text-gray-600 hover:bg-blue-50'}`}
           >
             提现
           </button>
@@ -240,7 +273,7 @@ export default function CommenterEarningsPage() {
           {error}
         </div>
       )}
-
+    
       {/* 根据activeTab渲染不同组件 */}
       {activeTab === 'overview' && (
         <EarningsOverview 

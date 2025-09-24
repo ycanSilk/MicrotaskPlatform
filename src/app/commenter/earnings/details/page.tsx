@@ -169,6 +169,7 @@ const DetailsPage = () => {
   // 准备stats数据
   const stats = {
     todayEarnings: 0,
+    yesterdayEarnings: 0,
     weeklyEarnings: 0,
     monthlyEarnings: 0
   };
