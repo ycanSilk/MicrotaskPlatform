@@ -121,8 +121,18 @@ export default function CreateTask() {
     } else if (task.id === 'account_rental' || task.id === 'account_request') {
       // 账号租赁/求租任务 - 跳转到账号租赁页面
       router.push('/publisher/create/video-task');
+    } else if (task.id === 'comment_top') {
+      // 上评任务 - 跳转到上评任务发布页面
+      const params = new URLSearchParams({
+        taskId: task.id,
+        title: task.title,
+        icon: task.icon,
+        price: task.price.toString(),
+        description: task.description
+      });
+      router.push(`/publisher/create/publish-top-comment?${params.toString()}`);
     } else {
-      // 其他任务类型
+      // 其他任务类型（包括中评任务）
       const params = new URLSearchParams({
         taskId: task.id,
         title: task.title,

@@ -5,47 +5,29 @@ import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { PublisherAuthStorage } from '@/auth';
 
-export default function PublishTaskPage() {
+export default function PublishTopCommentTaskPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   
   // 从URL参数获取任务信息
   const taskId = searchParams.get('taskId');
-  const taskTitle = searchParams.get('title') || '中评任务发布页';
-  const taskIcon = searchParams.get('icon') || '📝';
-  const taskPrice = parseFloat(searchParams.get('price') || '0');
-  const taskDescription = searchParams.get('description') || '任务描述';
+  const taskTitle = searchParams.get('title') || '上评任务';
+  const taskIcon = searchParams.get('icon') || '⭐';
+  const taskPrice = parseFloat(searchParams.get('price') || '3.0');
+  const taskDescription = searchParams.get('description') || '真人账号发布高质量评论';
   
-  // 新的表单数据结构，包含三个独立的评论输入框
   const [formData, setFormData] = useState({
     videoUrl: '',
     quantity: 100,
-    comments: {
-      comment1: '🔺终端评论1，XXXXXXXXX',
-      comment2: '🔺终端评论2，xxxxxxxxx',
-      comment3: '🔺终端评论3，@xxx xxx'
-    },
+    requirements: '',
     deadline: '24',
-    needImageComment: false
-  });
-
-  const [mentionInput, setMentionInput] = useState('');
-  const [mentions, setMentions] = useState<string[]>([]);
-
-  const handleAddMention = () => {
-    const trimmedMention = mentionInput.trim();
-    // 确保用户昵称ID唯一
-    if (trimmedMention && !mentions.includes(trimmedMention)) {
-      setMentions([...mentions, trimmedMention]);
-      setMentionInput('');
-    } else if (mentions.includes(trimmedMention)) {
-      showAlert('提示', '该用户昵称ID已添加', '💡');
+    needImageComment: false,
+    comments: {
+      comment1: '',
+      comment2: '',
+      comment3: ''
     }
-  };
-
-  const removeMention = (mention: string) => {
-    setMentions(mentions.filter(m => m !== mention));
-  };
+  });
 
   const [isPublishing, setIsPublishing] = useState(false);
 
@@ -78,38 +60,53 @@ export default function PublishTaskPage() {
   };
 
   // AI优化评论功能
-  const handleAIOptimizeComments = () => {
-    // 模拟AI优化评论的逻辑
-    // 实际项目中可能需要调用AI API
-    setFormData(prevData => ({
-      ...prevData,
-      comments: {
-        comment1: prevData.comments.comment1 + ' [AI优化]',
-        comment2: prevData.comments.comment2 + ' [AI优化]',
-        comment3: prevData.comments.comment3 + ' [AI优化]'
-      }
-    }));
-    showAlert('优化成功', '评论内容已通过AI优化！', '✨');
-  };
-
-  // 推荐评论功能
-  const handleRecommendComments = () => {
-    // 生成随机推荐评论
-    const randomComments = {
-      comment1: `🔺终端评论1，这款产品真的不错，质量很好，使用体验非常满意！`,
-      comment2: `🔺终端评论2，已经使用一段时间了，效果很好，值得推荐给大家！`,
-      comment3: mentions.length > 0 
-        ? `🔺终端评论3，@${mentions[0]} 这个产品真的很棒，你也可以试试看！` 
-        : `🔺终端评论3，@xxx 这款产品值得购买，性价比很高！`
-    };
+  const handleAIOptimizeComment = (commentIndex: number) => {
+    const currentComment = commentIndex === 1 ? formData.comments.comment1 : 
+                           commentIndex === 2 ? formData.comments.comment2 : formData.comments.comment3;
     
-    setFormData(prevData => ({
-      ...prevData,
-      comments: randomComments
-    }));
-    showAlert('推荐成功', '已为您生成随机推荐评论！', '🎉');
+    if (!currentComment.trim()) {
+      showAlert('提示', '请先输入评论内容再进行AI优化', '💡');
+      return;
+    }
+    
+    // 这里是模拟AI优化评论的逻辑
+    const optimizedComment = `${currentComment}，整体感觉非常满意！做工精细，性价比高，值得推荐给身边的朋友。👍`;
+    
+    if (commentIndex === 1) {
+      setFormData({...formData, comments: {...formData.comments, comment1: optimizedComment}});
+    } else if (commentIndex === 2) {
+      setFormData({...formData, comments: {...formData.comments, comment2: optimizedComment}});
+    } else {
+      setFormData({...formData, comments: {...formData.comments, comment3: optimizedComment}});
+    }
+    
+    showAlert('优化成功', '评论内容已优化', '✅');
   };
-
+  
+  // 推荐评论功能
+  const handleRecommendComment = (commentIndex: number) => {
+    // 模拟随机评论推荐
+    const recommendations = [
+      "产品质量很好，使用体验不错，值得购买！",
+      "这个产品真的很赞，做工精细，功能实用，强烈推荐！",
+      "收到货后很满意，物流也很快，客服态度很好。",
+      "使用了一段时间，效果很好，性价比高，值得推荐。",
+      "产品超出预期，包装精美，使用简单，很满意这次购物！"
+    ];
+    
+    const randomComment = recommendations[Math.floor(Math.random() * recommendations.length)];
+    
+    if (commentIndex === 1) {
+      setFormData({...formData, comments: {...formData.comments, comment1: randomComment}});
+    } else if (commentIndex === 2) {
+      setFormData({...formData, comments: {...formData.comments, comment2: randomComment}});
+    } else {
+      setFormData({...formData, comments: {...formData.comments, comment3: randomComment}});
+    }
+    
+    showAlert('推荐成功', '已为您推荐评论内容', '✅');
+  };
+  
   // 发布任务
   const handlePublish = async () => {
     // 表单验证 - 完整验证逻辑
@@ -118,12 +115,14 @@ export default function PublishTaskPage() {
       return;
     }
     
-    // 验证三个评论框的内容
-    const allComments = Object.values(formData.comments);
-    const hasEmptyComment = allComments.some(comment => !comment || comment.trim().length < 5);
+    // 合并三个评论输入框的内容作为requirements
+    let allComments = '';
+    if (formData.comments.comment1) allComments += formData.comments.comment1 + '\n';
+    if (formData.comments.comment2) allComments += formData.comments.comment2 + '\n';
+    if (formData.comments.comment3) allComments += formData.comments.comment3;
     
-    if (hasEmptyComment) {
-      showAlert('输入错误', '请确保所有评论内容都已填写完整', '⚠️');
+    if (!allComments || allComments.trim().length < 10) {
+      showAlert('输入错误', '请至少输入一段评论内容，至少10个字符', '⚠️');
       return;
     }
     
@@ -196,18 +195,22 @@ export default function PublishTaskPage() {
       
       console.log('[任务发布] 余额充足，继续发布流程');
 
-      // 构建API请求体 - 将三个评论合并为一个requirements字段
-      const requirements = allComments.join('\n\n');
+      // 合并三个评论输入框的内容作为requirements
+      let allComments = '';
+      if (formData.comments.comment1) allComments += formData.comments.comment1 + '\n';
+      if (formData.comments.comment2) allComments += formData.comments.comment2 + '\n';
+      if (formData.comments.comment3) allComments += formData.comments.comment3;
       
+      // 构建API请求体
       const requestBody = {
         taskId: taskId || '',
         taskTitle,
         taskPrice: taskPrice,
-        requirements: requirements,
+        requirements: allComments,
         videoUrl: formData.videoUrl,
         quantity: formData.quantity,
         deadline: formData.deadline,
-        mentions: mentions,
+        mentions: [], // 上评任务不需要@标记
         needImageComment: formData.needImageComment
       };
 
@@ -353,147 +356,101 @@ export default function PublishTaskPage() {
             </button>
           </div>
           <div className="mt-2 text-sm text-gray-500">
-            {taskId === 'comment_top' && '上评任务单价为¥3.0'}
-            {taskId === 'comment_middle' && '中评任务单价为¥2.0'}
+            上评任务单价为¥3.0
           </div>
-        </div>
-
-        {/* @用户标记 */}
-        <div className="bg-white rounded-2xl p-4 shadow-sm">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            @用户标记
-          </label>
-          <div className="space-y-3">
-            <Input
-              placeholder="输入用户ID或昵称"
-              value={mentionInput}
-              onChange={(e) => setMentionInput(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && handleAddMention()}
-              className="w-full"
-            />
-            <Button 
-              onClick={handleAddMention}
-              className="w-full py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-            >
-              添加用户标记
-            </Button>
-          </div>
-          {mentions.length > 0 && (
-            <div className="flex flex-wrap gap-2 mt-3">
-              {mentions.map((mention, index) => (
-                <div key={index} className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm flex items-center space-x-1">
-                  <span>@{mention}</span>
-                  <button 
-                    onClick={() => removeMention(mention)}
-                    className="text-blue-600 hover:text-blue-800"
-                  >
-                    ✕
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
         </div>
 
         {/* 派单示例模块 */}
         <div className="bg-white rounded-2xl p-4 shadow-sm">
-          <label className="block text-sm font-medium text-gray-700 mb-3">
-            派单示例模块
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            派单示例
           </label>
-          
-          {/* AI优化和推荐评论功能按钮 */}
-          <div className="flex space-x-3 mb-4">
-            <Button 
-              onClick={handleAIOptimizeComments}
-              className="flex-1 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
-            >
-              AI优化评论
-            </Button>
-            <Button 
-              onClick={handleRecommendComments}
-              className="flex-1 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors"
-            >
-              推荐评论
-            </Button>
+          <div className="text-sm text-gray-500 mb-3">
+            请输入3种不同类型的评论内容，系统会随机分配给评论员
           </div>
           
-          {/* 评论1 */}
+          {/* 第一种评论类型 */}
           <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              评论1
-            </label>
+            <div className="flex items-center justify-between mb-2">
+              <label className="text-sm font-medium text-gray-700">评论类型一 (强调产品质量)</label>
+              <div className="flex space-x-2">
+                <Button
+                  onClick={() => handleAIOptimizeComment(1)}
+                  className="text-xs bg-green-100 text-green-700 hover:bg-green-200"
+                >
+                  AI优化评论
+                </Button>
+                <Button
+                  onClick={() => handleRecommendComment(1)}
+                  className="text-xs bg-blue-100 text-blue-700 hover:bg-blue-200"
+                >
+                  推荐评论
+                </Button>
+              </div>
+            </div>
             <textarea
               className="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
               rows={3}
-              placeholder="请输入终端评论1的内容"
+              placeholder="请输入强调产品质量的评论内容，例如：产品质量非常好，做工精细，材质优良..."
               value={formData.comments.comment1}
               onChange={(e) => setFormData({...formData, comments: {...formData.comments, comment1: e.target.value}})}
             />
           </div>
           
-          {/* 评论2 */}
+          {/* 第二种评论类型 */}
           <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              评论2
-            </label>
+            <div className="flex items-center justify-between mb-2">
+              <label className="text-sm font-medium text-gray-700">评论类型二 (强调使用体验)</label>
+              <div className="flex space-x-2">
+                <Button
+                  onClick={() => handleAIOptimizeComment(2)}
+                  className="text-xs bg-green-100 text-green-700 hover:bg-green-200"
+                >
+                  AI优化评论
+                </Button>
+                <Button
+                  onClick={() => handleRecommendComment(2)}
+                  className="text-xs bg-blue-100 text-blue-700 hover:bg-blue-200"
+                >
+                  推荐评论
+                </Button>
+              </div>
+            </div>
             <textarea
               className="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
               rows={3}
-              placeholder="请输入终端评论2的内容，支持选择增加条数，可通过AI生成评论词，允许手动修改，支持多条评论，不限数量"
+              placeholder="请输入强调使用体验的评论内容，例如：使用起来非常流畅，操作简单，功能实用..."
               value={formData.comments.comment2}
               onChange={(e) => setFormData({...formData, comments: {...formData.comments, comment2: e.target.value}})}
             />
           </div>
           
-          {/* 评论3 */}
+          {/* 第三种评论类型 */}
           <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              评论3
-            </label>
+            <div className="flex items-center justify-between mb-2">
+              <label className="text-sm font-medium text-gray-700">评论类型三 (强调性价比)</label>
+              <div className="flex space-x-2">
+                <Button
+                  onClick={() => handleAIOptimizeComment(3)}
+                  className="text-xs bg-green-100 text-green-700 hover:bg-green-200"
+                >
+                  AI优化评论
+                </Button>
+                <Button
+                  onClick={() => handleRecommendComment(3)}
+                  className="text-xs bg-blue-100 text-blue-700 hover:bg-blue-200"
+                >
+                  推荐评论
+                </Button>
+              </div>
+            </div>
             <textarea
               className="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
               rows={3}
-              placeholder="请输入终端评论3的内容，集成@昵称添加框，支持固定@对象"
+              placeholder="请输入强调性价比的评论内容，例如：价格实惠，物超所值，比同类产品更具优势..."
               value={formData.comments.comment3}
               onChange={(e) => setFormData({...formData, comments: {...formData.comments, comment3: e.target.value}})}
             />
-            
-            {/* @用户标记集成到评论3下方 */}
-            <div className="mt-3">
-           
-              <div className="flex space-x-2">
-                <Input
-                  placeholder="输入用户ID或昵称"
-                  value={mentionInput}
-                  onChange={(e) => setMentionInput(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && handleAddMention()}
-                  className="flex-1"
-                  
-                />
-                <Button 
-                  onClick={handleAddMention}
-                  className="py-1 px-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-                  size="sm"
-                >
-                  添加
-                </Button>
-              </div>
-              {mentions.length > 0 && (
-                <div className="flex flex-wrap gap-2 mt-2">
-                  {mentions.map((mention, index) => (
-                    <div key={index} className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-xs flex items-center space-x-1">
-                      <span>@{mention}</span>
-                      <button 
-                        onClick={() => removeMention(mention)}
-                        className="text-blue-600 hover:text-blue-800"
-                      >
-                        ✕
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
           </div>
           
           {/* 图片评论勾选功能 */}
@@ -506,12 +463,12 @@ export default function PublishTaskPage() {
               className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
             />
             <label htmlFor="needImageComment" className="block text-sm font-medium text-gray-700">
-              是否需要图片评论，图片评论请在任务要求中明确图片内容要求，然后评论时按照要求发送图片评论。
+              是否需要图片评论，图片评论请在评论内容中明确图片内容要求，然后评论时按照要求发送图片评论。
             </label>
           </div>
           {formData.needImageComment && (
             <div className="mt-2 text-sm text-gray-500">
-              请在任务要求中明确图片内容要求
+              请在评论内容中明确图片内容要求
             </div>
           )}
         </div>
