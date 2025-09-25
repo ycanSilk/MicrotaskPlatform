@@ -1,77 +1,48 @@
-'use client'
+'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter, useParams } from 'next/navigation';
-import { CommissionRecord } from '../../../../types/invite';
+import { useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
+import { CommissionRecord } from '../../../../../types/invite';
 
 const CommissionDetailsPage = () => {
   const router = useRouter();
   const params = useParams();
-  const commissionId = params.id as string;
-  const [commissionDetail, setCommissionDetail] = useState<CommissionRecord | null>(null);
-  const [loading, setLoading] = useState(true);
+  const id = params.id as string;
 
-  useEffect(() => {
-    // 模拟获取佣金详情数据
-    const fetchCommissionDetail = async () => {
-      try {
-        setLoading(true);
-        // 由于是静态数据，这里我们创建一个模拟的佣金详情记录
-        // 实际项目中应该从API获取
-        const mockDetail: CommissionRecord = {
-          id: commissionId || '2001',
-          memberId: 'user' + (Math.floor(Math.random() * 1000) + 100),
-          memberName: '李四' + Math.floor(Math.random() * 100),
-          memberAvatar: `https://picsum.photos/id/${Math.floor(Math.random() * 100)}/40/40`,
-          type: Math.random() > 0.6 ? 'register' : Math.random() > 0.3 ? 'team' : 'task',
-          taskName: Math.random() > 0.3 ? '完成产品评价任务' : '填写市场调研问卷',
-          taskId: Math.random() > 0.5 ? 'task123' : 'task456',
-          commission: Math.random() * 50 + 5,
-          commissionRate: Math.random() * 0.1 + 0.03,
-          taskEarning: Math.random() > 0.3 ? Math.random() * 200 + 50 : undefined,
-          date: new Date(Date.now() - Math.floor(Math.random() * 30) * 24 * 60 * 60 * 1000).toISOString(),
-          status: 'completed',
-          description: Math.random() > 0.5 ? '来自推荐用户完成的优质任务奖励' : ''
-        };
-        setCommissionDetail(mockDetail);
-      } catch (error) {
-        console.error('Failed to fetch commission detail:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
+  // 定义多个静态佣金数据
+  const mockCommissionData: Record<string, CommissionRecord> = {
+    'comm-1': {
+      id: 'comm-1',
+      memberId: 'user001',
+      memberName: '张三',
+      memberAvatar: 'https://picsum.photos/id/64/40/40',
+      type: 'register',
+      taskName: '新用户注册',
+      commission: 10.00,
+      commissionRate: 0,
+      date: '2023-11-10T09:15:00.000Z',
+      status: 'completed',
+      description: '新用户注册奖励'
+    },
+    'comm-5': {
+      id: 'comm-5',
+      memberId: 'user123',
+      memberName: '李四',
+      memberAvatar: 'https://picsum.photos/id/64/40/40',
+      type: 'task',
+      taskName: '完成产品评价任务',
+      taskId: 'task123',
+      commission: 45.50,
+      commissionRate: 0.05,
+      taskEarning: 910.00,
+      date: '2023-11-15T10:30:00.000Z',
+      status: 'completed',
+      description: '来自推荐用户完成的优质任务奖励'
+    }
+  };
 
-    fetchCommissionDetail();
-  }, [commissionId]);
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="bg-white rounded-lg p-8 shadow-md">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500 mx-auto"></div>
-          <div className="mt-4 text-gray-600 text-center">加载中...</div>
-        </div>
-      </div>
-    );
-  }
-
-  if (!commissionDetail) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="bg-white rounded-lg p-8 shadow-md text-center">
-          <div className="text-gray-400 text-5xl mb-4">💰</div>
-          <div className="text-gray-500 text-lg mb-2">佣金记录不存在</div>
-          <div className="text-gray-400 text-sm mb-6">该佣金记录可能已被删除或不存在</div>
-          <button 
-            onClick={() => router.push('/commenter/invite')}
-            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors"
-          >
-            返回邀请页面
-          </button>
-        </div>
-      </div>
-    );
-  }
+  // 获取当前ID对应的佣金数据，如果不存在则使用默认数据
+  const commissionDetail: CommissionRecord = mockCommissionData[id] || mockCommissionData['comm-5'];
 
   const getTypeLabel = () => {
     switch (commissionDetail.type) {
@@ -137,7 +108,7 @@ const CommissionDetailsPage = () => {
         <div className="bg-white shadow overflow-hidden sm:rounded-lg">
           {/* 佣金基本信息 */}
           <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
-            <h2 className="text-lg leading-6 font-medium text-gray-900">佣金记录 #{commissionDetail.id}</h2>
+            <h2 className="text-lg leading-6 font-medium text-gray-900">佣金记录 #{id || commissionDetail.id}</h2>
           </div>
           <div className="p-6">
             {/* 佣金金额卡片 */}

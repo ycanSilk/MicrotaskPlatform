@@ -1,44 +1,60 @@
-'use client'
+'use client';
 
 import { useRouter } from 'next/navigation';
-import { InviteRecord } from '../../../../types/invite';
+import { useParams } from 'next/navigation';
+import { InviteRecord } from '../../../../../types/invite';
 
 const InviteDetailsPage = () => {
   const router = useRouter();
+  const params = useParams();
+  const id = params.id as string;
   
-  // 静态模板数据 - 已加入状态
-  const inviteDetail: InviteRecord = {
-    id: '1001',
-    inviteeId: 'user123',
-    inviteeName: '张小明',
-    inviteeAvatar: 'https://picsum.photos/id/64/40/40',
-    joinDate: new Date('2023-09-15T10:30:00.000Z').toISOString(),
-    inviteDate: new Date('2023-09-10T14:20:00.000Z').toISOString(),
-    status: 'joined',
-    rewardAmount: 5.00,
-    completedTasks: 15,
-    totalEarnings: 328.50,
-    myCommission: 45.50,
-    level: '一级'
+  // 定义多个静态邀请记录数据
+  const mockInviteData: Record<string, InviteRecord> = {
+    'invite-1': {
+      id: 'invite-1',
+      inviteeId: 'user123',
+      inviteeName: '张小明',
+      inviteeAvatar: 'https://picsum.photos/id/64/40/40',
+      joinDate: new Date('2023-09-15T10:30:00.000Z').toISOString(),
+      inviteDate: new Date('2023-09-10T14:20:00.000Z').toISOString(),
+      status: 'joined',
+      rewardAmount: 5.00,
+      completedTasks: 15,
+      totalEarnings: 328.50,
+      myCommission: 45.50,
+      level: '一级'
+    },
+    'invite-2': {
+      id: 'invite-2',
+      inviteeId: 'user124',
+      inviteeName: '李小华',
+      inviteeAvatar: 'https://picsum.photos/id/65/40/40',
+      inviteDate: new Date('2023-09-20T09:15:00.000Z').toISOString(),
+      status: 'pending',
+      rewardAmount: 5.00,
+      completedTasks: 0,
+      totalEarnings: 0,
+      myCommission: 0
+    },
+    'invite-3': {
+      id: 'invite-3',
+      inviteeId: 'user125',
+      inviteeName: '王小强',
+      inviteeAvatar: 'https://picsum.photos/id/66/40/40',
+      joinDate: new Date('2023-09-05T16:45:00.000Z').toISOString(),
+      inviteDate: new Date('2023-09-01T11:30:00.000Z').toISOString(),
+      status: 'active',
+      rewardAmount: 5.00,
+      completedTasks: 42,
+      totalEarnings: 1280.75,
+      myCommission: 182.50,
+      level: '一级'
+    }
   };
 
-  // 可以根据需要取消注释下面的代码来展示不同状态的模板数据
-  /*
-  // 静态模板数据 - 待注册状态
-  const inviteDetail: InviteRecord = {
-    id: '1002',
-    inviteeId: 'user124',
-    inviteeName: '李小华',
-    inviteeAvatar: 'https://picsum.photos/id/65/40/40',
-    inviteDate: new Date('2023-09-20T09:15:00.000Z').toISOString(),
-    status: 'pending',
-    rewardAmount: 5.00,
-    completedTasks: 0,
-    totalEarnings: 0,
-    myCommission: 0
-  };*/
-
-  // 为了模板展示效果，可以注释掉不存在的情况检查
+  // 获取当前ID对应的邀请记录数据，如果不存在则使用默认数据
+  const inviteDetail: InviteRecord = mockInviteData[id] || mockInviteData['invite-1'];
 
   return (
     <div className="min-h-screen bg-gray-50">
