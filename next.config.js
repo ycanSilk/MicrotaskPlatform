@@ -7,10 +7,10 @@ const nextConfig = {
   // API代理配置，用于解决跨域问题
   async rewrites() {
     return [
-      {
-        source: '/api/users/register',
-        destination: 'https://catchweight-graphemically-eldora.ngrok-free.dev/api/users/register',
-      },
+      { source: '/api/users/register', destination: 'https://catchweight-graphemically-eldora.ngrok-free.dev/api/users/register' },
+      { source: '/api/users/login', destination: 'https://catchweight-graphemically-eldora.ngrok-free.dev/api/users/login' },
+      { source: '/api/users', destination: 'https://catchweight-graphemically-eldora.ngrok-free.dev/api/users' },
+      { source: '/api/:path*', destination: 'https://catchweight-graphemically-eldora.ngrok-free.dev/api/:path*' },
     ]
   },
   // H5移动端优化
