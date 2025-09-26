@@ -1,6 +1,13 @@
 // 用户角色
 export type UserRole = 'admin' | 'publisher' | 'commenter';
 
+// 任务需求类型
+export interface TaskRequirement {
+  type: string;
+  count: number;
+  template?: string;
+}
+
 // 用户信息
 export interface User {
   id: string;
@@ -49,6 +56,33 @@ export interface Task {
   countdown?: number;
   createdAt: string;
   updatedAt: string;
+}
+
+// Tabs组件类型定义
+export interface TabsProps {
+  defaultValue?: string;
+  value?: string;
+  onValueChange?: (value: string) => void;
+  children: React.ReactNode;
+  className?: string;
+}
+
+export interface TabsListProps {
+  children: React.ReactNode;
+  className?: string;
+}
+
+export interface TabsTriggerProps {
+  value: string;
+  children: React.ReactNode;
+  disabled?: boolean;
+  className?: string;
+}
+
+export interface TabsContentProps {
+  value: string;
+  children: React.ReactNode;
+  className?: string;
 }
 
 export interface TaskRequirement {
@@ -149,6 +183,57 @@ export interface ButtonProps {
   className?: string;
   onClick?: () => void;
   type?: 'button' | 'submit' | 'reset';  // 添加type属性
+}
+
+export interface ToggleSwitchProps {
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+  disabled?: boolean;
+  label?: string;
+  className?: string;
+  activeColor?: string;
+  inactiveColor?: string;
+}
+
+export interface LabelProps {
+  children: React.ReactNode;
+  htmlFor?: string;
+  className?: string;
+  required?: boolean;
+}
+
+export interface NumberInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+  label?: string;
+  error?: string;
+  min?: number;
+  max?: number;
+  step?: number;
+}
+
+export interface TabsProps {
+  defaultValue?: string;
+  value?: string;
+  onValueChange?: (value: string) => void;
+  children: React.ReactNode;
+  className?: string;
+}
+
+export interface TabsListProps {
+  children: React.ReactNode;
+  className?: string;
+}
+
+export interface TabsTriggerProps {
+  value: string;
+  children: React.ReactNode;
+  disabled?: boolean;
+  className?: string;
+}
+
+export interface TabsContentProps {
+  value: string;
+  children: React.ReactNode;
+  className?: string;
 }
 
 export interface TaskCardProps {

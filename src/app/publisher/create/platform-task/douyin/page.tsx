@@ -1,7 +1,8 @@
 'use client';
 
-import { Card, Button, Input, Badge } from '@/components/ui';
+import { Card, Button, Input, Badge, AlertModal } from '@/components/ui';
 import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 
 // 系统预设任务类型
 const TASK_TYPES = [
@@ -24,6 +25,36 @@ const TASK_TYPES = [
     requirements: '评论内容真实有效，真人评论，包含表情符号',
     estimatedTime: '3分钟',
     difficulty: '简单'
+  },
+  {
+    id: 'task_combination_top_middle',
+    title: '上中评任务',
+    icon: '🌟',
+    price: 8.0,
+    description: '组合任务 - 1条上评 + 中评（数量可自定义选择，且支持@功能）',
+    requirements: '评论内容真实有效，真人评论，上评完成后需提交链接作为结算条件',
+    estimatedTime: '10分钟',
+    difficulty: '中等'
+  },
+  {
+    id: 'task_combination_middle_bottom',
+    title: '中下评任务',
+    icon: '🌓',
+    price: 7.0,
+    description: '组合任务 - 1条中评 + 2条下评（其中1条带@功能）',
+    requirements: '评论内容真实有效，真人评论，按照顺序完成任务',
+    estimatedTime: '8分钟',
+    difficulty: '中等'
+  },
+  {
+    id: 'task_combination_all',
+    title: '全包任务',
+    icon: '🎯',
+    price: '自定义',
+    description: '一站式任务服务，包含上、中、下评组合方案',
+    requirements: '根据具体方案提供全方位的评论服务',
+    estimatedTime: '自定义',
+    difficulty: '中等'
   },
   {
     id: 'account_rental',
@@ -108,6 +139,24 @@ const TaskCard = ({ task, onClick }: { task: any, onClick: () => void }) => {
 
 export default function CreateTask() {
   const router = useRouter();
+  
+  // 提示框状态
+  const [showAlertModal, setShowAlertModal] = useState(false);
+  const [alertConfig, setAlertConfig] = useState({
+    title: '',
+    message: '',
+    icon: ''
+  });
+  
+  // 显示暂未开发提示
+  const showNotDevelopedAlert = () => {
+    setAlertConfig({
+      title: '暂未开发',
+      message: '该功能暂未开发',
+      icon: '🔧'
+    });
+    setShowAlertModal(true);
+  };
 
   const handleBackToPlatforms = () => {
     router.push('/publisher/create');
@@ -116,10 +165,13 @@ export default function CreateTask() {
   const handleTaskClick = (task: any) => {
     // 处理任务选择
     if (task.id === 'video_publish') {
-      // 视频发布任务 - 跳转到视频发送页面
-      router.push('/publisher/create/video-send');
-    } else if (task.id === 'account_rental' || task.id === 'account_request') {
-      // 账号租赁/求租任务 - 跳转到账号租赁页面
+      // 视频发布任务 - 显示暂未开发提示
+      showNotDevelopedAlert();
+    } else if (task.id === 'account_rental') {
+      // 真人账号租赁任务 - 显示暂未开发提示
+      showNotDevelopedAlert();
+    } else if (task.id === 'account_request') {
+      // 账号求租任务 - 跳转到账号租赁页面
       router.push('/publisher/create/video-task');
     } else if (task.id === 'comment_top') {
       // 上评任务 - 跳转到上评任务发布页面
@@ -131,6 +183,36 @@ export default function CreateTask() {
         description: task.description
       });
       router.push(`/publisher/create/publish-top-comment?${params.toString()}`);
+    } else if (task.id === 'task_combination_top_middle') {
+      // 上中评任务 - 跳转到上中评任务发布页面
+      const params = new URLSearchParams({
+        taskId: task.id,
+        title: task.title,
+        icon: task.icon,
+        price: task.price.toString(),
+        description: task.description
+      });
+      router.push(`/publisher/create/task-combination-top-middle?${params.toString()}`);
+    } else if (task.id === 'task_combination_middle_bottom') {
+      // 中下评任务 - 跳转到中下评任务发布页面
+      const params = new URLSearchParams({
+        taskId: task.id,
+        title: task.title,
+        icon: task.icon,
+        price: task.price.toString(),
+        description: task.description
+      });
+      router.push(`/publisher/create/task-combination-middle-bottom?${params.toString()}`);
+    } else if (task.id === 'task_combination_all') {
+      // 全包任务 - 跳转到全包任务发布页面
+      const params = new URLSearchParams({
+        taskId: task.id,
+        title: task.title,
+        icon: task.icon,
+        price: task.price.toString(),
+        description: task.description
+      });
+      router.push(`/publisher/create/task-combination-all?${params.toString()}`);
     } else {
       // 其他任务类型（包括中评任务）
       const params = new URLSearchParams({
@@ -210,6 +292,15 @@ export default function CreateTask() {
           </div>
         </div>
       </div>
+      
+      {/* 通用提示模态框 */}
+      <AlertModal
+        isOpen={showAlertModal}
+        title={alertConfig.title}
+        message={alertConfig.message}
+        icon={alertConfig.icon}
+        onClose={() => setShowAlertModal(false)}
+      />
     </div>
   );
 }

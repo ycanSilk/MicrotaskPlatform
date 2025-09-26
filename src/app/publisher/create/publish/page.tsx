@@ -458,42 +458,7 @@ export default function PublishTaskPage() {
               onChange={(e) => setFormData({...formData, comments: {...formData.comments, comment3: e.target.value}})}
             />
             
-            {/* @用户标记集成到评论3下方 */}
-            <div className="mt-3">
-           
-              <div className="flex space-x-2">
-                <Input
-                  placeholder="输入用户ID或昵称"
-                  value={mentionInput}
-                  onChange={(e) => setMentionInput(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && handleAddMention()}
-                  className="flex-1"
-                  
-                />
-                <Button 
-                  onClick={handleAddMention}
-                  className="py-1 px-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-                  size="sm"
-                >
-                  添加
-                </Button>
-              </div>
-              {mentions.length > 0 && (
-                <div className="flex flex-wrap gap-2 mt-2">
-                  {mentions.map((mention, index) => (
-                    <div key={index} className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-xs flex items-center space-x-1">
-                      <span>@{mention}</span>
-                      <button 
-                        onClick={() => removeMention(mention)}
-                        className="text-blue-600 hover:text-blue-800"
-                      >
-                        ✕
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+       
           </div>
           
           {/* 图片评论勾选功能 */}

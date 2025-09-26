@@ -1,185 +1,242 @@
-'use client';
+'use client'
+import React from 'react';
+import Link from 'next/link';
+import { Card } from '@/components/ui';
 
-import { Card, Button, Badge } from '@/components/ui';
-import { useState } from 'react';
+// 功能模块卡片组件
+interface FeatureCardProps {
+  title: string;
+  icon: string;
+  description: string;
+  route: any;
+  count?: string | number | null;
+}
 
-// 用户筛选组件
-const UserFilters = ({ onFilterChange }: { onFilterChange: (filters: any) => void }) => {
-  const [activeFilter, setActiveFilter] = useState('all');
-  
-  const filters = [
-    { key: 'all', label: '全部用户', count: 1234 },
-    { key: 'commenter', label: '评论员', count: 856 },
-    { key: 'publisher', label: '派单员', count: 234 },
-    { key: 'online', label: '在线用户', count: 156 },
-  ];
-
+const FeatureCard = ({ title, icon, description, route, count = null }: FeatureCardProps) => {
   return (
-    <Card>
-      <div className="grid grid-cols-2 gap-2">
-        {filters.map((filter) => (
-          <button
-            key={filter.key}
-            onClick={() => {
-              setActiveFilter(filter.key);
-              onFilterChange({ type: filter.key });
-            }}
-            className={`p-3 rounded-lg text-center transition-colors ${
-              activeFilter === filter.key
-                ? 'bg-admin-100 text-admin-600 border border-admin-300'
-                : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
-            }`}
-          >
-            <div className="font-bold text-lg">{filter.count}</div>
-            <div className="text-xs">{filter.label}</div>
-          </button>
-        ))}
-      </div>
-    </Card>
-  );
-};
-
-// 用户卡片组件
-const UserCard = ({ user }: { user: any }) => {
-  const getRoleColor = (role: string) => {
-    switch (role) {
-      case 'commenter': return 'bg-green-100 text-green-600';
-      case 'publisher': return 'bg-blue-100 text-blue-600';
-      default: return 'bg-gray-100 text-gray-600';
-    }
-  };
-
-  const getRoleLabel = (role: string) => {
-    switch (role) {
-      case 'commenter': return '评论员';
-      case 'publisher': return '派单员';
-      default: return '用户';
-    }
-  };
-
-  return (
-    <Card>
-      <div className="flex items-start justify-between mb-3">
-        <div className="flex items-center space-x-3">
-          <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center">
-            <span className="text-lg">{user.avatar || '👤'}</span>
+    <Link href={route} className="block hover:opacity-90 transition-opacity">
+      <Card className="h-full p-4 border border-gray-200 hover:border-purple-300 transition-colors">
+        <div className="flex items-center space-x-3 mb-3">
+          <div className="w-10 h-10 bg-purple-100 text-purple-600 rounded-lg flex items-center justify-center">
+            <span className="text-xl">{icon}</span>
           </div>
           <div>
-            <div className="font-medium text-gray-900">{user.nickname}</div>
-            <div className="text-sm text-gray-500">ID: {user.id}</div>
+            <h3 className="font-bold text-gray-800">{title}</h3>
+            {count !== null && (
+              <span className="text-xs bg-purple-500 text-white px-2 py-0.5 rounded-full">
+                {count}
+              </span>
+            )}
           </div>
         </div>
-        
-        <div className="flex flex-col items-end space-y-1">
-          <Badge variant="secondary" size="sm" className={getRoleColor(user.role)}>
-            {getRoleLabel(user.role)}
-          </Badge>
-          {user.isOnline && (
-            <div className="flex items-center space-x-1">
-              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-              <span className="text-xs text-green-600">在线</span>
-            </div>
-          )}
-        </div>
-      </div>
-
-      <div className="grid grid-cols-2 gap-4 mb-3">
-        <div>
-          <div className="text-xs text-gray-500 mb-1">余额</div>
-          <div className="font-medium text-gray-900">¥{user.balance.toFixed(2)}</div>
-        </div>
-        <div>
-          <div className="text-xs text-gray-500 mb-1">任务数</div>
-          <div className="font-medium text-gray-900">{user.taskCount}</div>
-        </div>
-      </div>
-
-      <div className="flex space-x-2">
-        <Button variant="secondary" size="sm" className="flex-1">
-          查看详情
-        </Button>
-        <Button variant="ghost" size="sm" className="flex-1">
-          {user.status === 'active' ? '禁用' : '启用'}
-        </Button>
-      </div>
-    </Card>
+        <p className="text-sm text-gray-600">{description}</p>
+      </Card>
+    </Link>
   );
 };
 
-export default function AdminUsers() {
-  const [users] = useState([
-    {
-      id: '001',
-      nickname: '抖音达人小王',
-      avatar: '👨',
-      role: 'commenter',
-      isOnline: true,
-      balance: 156.80,
-      taskCount: 23,
-      status: 'active'
-    },
-    {
-      id: '002', 
-      nickname: '派单大师',
-      avatar: '👩',
-      role: 'publisher',
-      isOnline: false,
-      balance: 2340.50,
-      taskCount: 156,
-      status: 'active'
-    },
-    {
-      id: '003',
-      nickname: '评论专家',
-      avatar: '🧑',
-      role: 'commenter',
-      isOnline: true,
-      balance: 89.20,
-      taskCount: 45,
-      status: 'active'
-    },
-  ]);
+// 功能分类区块组件
+interface FeatureSectionProps {
+  title: string;
+  children: React.ReactNode;
+}
 
+const FeatureSection = ({ title, children }: FeatureSectionProps) => {
   return (
-    <div className="space-y-4 pb-6">
-      {/* 页面标题 */}
-      <div className="px-4 pt-4">
-        <h1 className="text-xl font-bold text-gray-900 mb-1">用户管理</h1>
-        <p className="text-sm text-gray-600">管理系统中的所有用户</p>
-      </div>
-
-      {/* 筛选器 */}
-      <div className="px-4">
-        <UserFilters onFilterChange={(filters) => console.log(filters)} />
-      </div>
-
-      {/* 搜索栏 */}
-      <div className="px-4">
-        <div className="relative">
-          <input
-            type="text"
-            placeholder="搜索用户昵称或ID..."
-            className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-admin-500 focus:border-transparent"
-          />
-          <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-            🔍
-          </div>
-        </div>
-      </div>
-
-      {/* 用户列表 */}
-      <div className="px-4 space-y-3">
-        {users.map((user) => (
-          <UserCard key={user.id} user={user} />
-        ))}
-      </div>
-
-      {/* 加载更多 */}
-      <div className="px-4">
-        <Button variant="ghost" className="w-full">
-          加载更多用户
-        </Button>
+    <div className="mb-6">
+      <h2 className="text-lg font-bold text-gray-800 mb-4 pl-2 border-l-4 border-purple-500">
+        {title}
+      </h2>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {children}
       </div>
     </div>
   );
-}
+};
+
+export default function AdminControlPanel() {
+  return (
+    <div className="space-y-6 pb-20 px-4 pt-4">
+      {/* 页面标题 */}
+      <div>
+        <h1 className="text-2xl font-bold text-gray-900 mb-1">管理中心</h1>
+        <p className="text-sm text-gray-600">集成所有系统操作功能，高效管理平台</p>
+      </div>
+
+      {/* 快速入口 */}
+      <FeatureSection title="快速入口">
+        <FeatureCard
+          title="数据总览"
+          icon="📊"
+          description="查看平台运营数据和关键指标"
+          route="/admin/dashboard"
+        />
+        <FeatureCard
+          title="用户管理"
+          icon="👥"
+          description="管理系统中的所有用户和角色"
+          route="/admin/users/manage"
+          count="1234"
+        />
+        <FeatureCard
+          title="财务管理"
+          icon="💰"
+          description="查看收入、支出和平台收益"
+          route="/admin/finance/overview"
+        />
+        <FeatureCard
+          title="交易记录"
+          icon="📝"
+          description="查看和管理所有交易明细"
+          route="/admin/transactions"
+          count="125"
+        />
+      </FeatureSection>
+
+      {/* 用户管理 */}
+      <FeatureSection title="用户管理">
+        <FeatureCard
+          title="评论员管理"
+          icon="💬"
+          description="管理和审核评论员账号"
+          route="/admin/users/commenters"
+          count="856"
+        />
+        <FeatureCard
+          title="派单员管理"
+          icon="📋"
+          description="管理和审核派单员账号"
+          route="/admin/users/publishers"
+          count="234"
+        />
+        <FeatureCard
+          title="用户封禁管理"
+          icon="🚫"
+          description="管理已封禁用户和申诉处理"
+          route="/admin/users/banned"
+        />
+        <FeatureCard
+          title="在线用户监控"
+          icon="🟢"
+          description="实时监控在线用户活动"
+          route="/admin/users/online"
+          count="156"
+        />
+      </FeatureSection>
+
+      {/* 财务管理 */}
+      <FeatureSection title="财务管理">
+        <FeatureCard
+          title="提现审核"
+          icon="✅"
+          description="处理用户提现申请"
+          route="/admin/finance/withdrawal-review"
+          count="5"
+        />
+        <FeatureCard
+          title="充值记录"
+          icon="💳"
+          description="查看用户充值明细"
+          route="/admin/finance/deposits"
+        />
+        <FeatureCard
+          title="资金流水"
+          icon="💹"
+          description="查看平台资金流向和明细"
+          route="/admin/finance/transactions"
+        />
+        <FeatureCard
+          title="佣金结算"
+          icon="🧾"
+          description="管理平台佣金和结算规则"
+          route="/admin/finance/commission"
+        />
+      </FeatureSection>
+
+      {/* 订单与任务管理 */}
+      <FeatureSection title="订单与任务管理">
+        <FeatureCard
+          title="任务管理"
+          icon="📋"
+          description="管理和审核平台任务"
+          route="/admin/tasks/manage"
+          count="285"
+        />
+        <FeatureCard
+          title="任务分类管理"
+          icon="📂"
+          description="管理平台任务分类和标签"
+          route="/admin/tasks/categories"
+        />
+        <FeatureCard
+          title="订单管理"
+          icon="🛒"
+          description="查看和管理平台订单"
+          route="/admin/orders/manage"
+        />
+        <FeatureCard
+          title="订单审核"
+          icon="🔍"
+          description="审核平台任务订单"
+          route="/admin/orders/review"
+        />
+      </FeatureSection>
+
+      {/* 报表管理 */}
+      <FeatureSection title="报表管理">
+        <FeatureCard
+          title="运营报表"
+          icon="📈"
+          description="查看平台运营数据分析报表"
+          route="/admin/reports/operation"
+        />
+        <FeatureCard
+          title="财务报表"
+          icon="💰"
+          description="查看平台财务数据分析报表"
+          route="/admin/reports/finance"
+        />
+        <FeatureCard
+          title="用户行为分析"
+          icon="👣"
+          description="分析用户行为和活跃情况"
+          route="/admin/reports/user-behavior"
+        />
+        <FeatureCard
+          title="任务完成率分析"
+          icon="✅"
+          description="分析任务完成率和质量"
+          route="/admin/reports/task-complete-rate"
+        />
+      </FeatureSection>
+
+      {/* 系统管理 */}
+      <FeatureSection title="系统管理">
+        <FeatureCard
+          title="系统设置"
+          icon="⚙️"
+          description="管理系统各项设置参数"
+          route="/admin/settings/system"
+        />
+        <FeatureCard
+          title="公告管理"
+          icon="📢"
+          description="发布和管理系统公告"
+          route="/admin/settings/announcements"
+        />
+        <FeatureCard
+          title="权限管理"
+          icon="🔑"
+          description="管理系统角色和权限"
+          route="/admin/settings/permissions"
+        />
+        <FeatureCard
+          title="日志管理"
+          icon="📋"
+          description="查看系统操作日志和审计记录"
+          route="/admin/settings/logs"
+        />
+      </FeatureSection>
+    </div>
+  );
+};

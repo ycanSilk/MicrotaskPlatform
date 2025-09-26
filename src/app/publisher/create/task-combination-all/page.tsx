@@ -1,29 +1,30 @@
-'use client';
-
+"use client";
 import { Button, Input, AlertModal } from '@/components/ui';
 import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { PublisherAuthStorage } from '@/auth';
 
-export default function PublishTopCommentTaskPage() {
+// 全包任务详情页 - 参考publish/page.tsx实现
+// 包含上评、中评、下评的完整评论任务套餐
+
+export default function TaskCombinationAllPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   
   // 从URL参数获取任务信息
   const taskId = searchParams.get('taskId');
-  const taskTitle = searchParams.get('title') || '上评任务';
-  const taskIcon = searchParams.get('icon') || '⭐';
-  const taskPrice = parseFloat(searchParams.get('price') || '3.0');
-  const taskDescription = searchParams.get('description') || '真人账号发布高质量评论';
+  const taskTitle = searchParams.get('title') || '全包任务发布页';
+  const taskIcon = searchParams.get('icon') || '🌟';
+  const taskPrice = parseFloat(searchParams.get('price') || '0');
+  const taskDescription = searchParams.get('description') || '任务描述';
   
-  // 新的表单数据结构，包含三个独立的评论输入框
+  // 新的表单数据结构，包含上评、中评和下评的完整套餐
   const [formData, setFormData] = useState({
-    videoUrl: '',
-    quantity: 100,
+    videoUrl: '', // 视频链接
     comments: {
-      comment1: '🔺终端评论1，XXXXXXXXX',
-      comment2: '🔺终端评论2，xxxxxxxxx',
-      comment3: '🔺终端评论3，@xxx xxx'
+      topComment: '🔺上评：这款产品真的很棒，质量很好，强烈推荐！',
+      middleComment: '🔺中评：产品还不错，使用体验良好，有需要的可以尝试。',
+      bottomComment: '🔻下评：这款产品质量一般，不太符合我的预期。'
     },
     deadline: '24',
     needImageComment: false
@@ -80,14 +81,16 @@ export default function PublishTopCommentTaskPage() {
   // AI优化评论功能
   const handleAIOptimizeComments = () => {
     // 模拟AI优化评论的逻辑
-    // 实际项目中可能需要调用AI API
+    const optimizedComments = {
+      ...formData.comments,
+      topComment: formData.comments.topComment + ' [AI优化]',
+      middleComment: formData.comments.middleComment + ' [AI优化]',
+      bottomComment: formData.comments.bottomComment + ' [AI优化]'
+    };
+    
     setFormData(prevData => ({
       ...prevData,
-      comments: {
-        comment1: prevData.comments.comment1 + ' [AI优化]',
-        comment2: prevData.comments.comment2 + ' [AI优化]',
-        comment3: prevData.comments.comment3 + ' [AI优化]'
-      }
+      comments: optimizedComments
     }));
     showAlert('优化成功', '评论内容已通过AI优化！', '✨');
   };
@@ -96,11 +99,11 @@ export default function PublishTopCommentTaskPage() {
   const handleRecommendComments = () => {
     // 生成随机推荐评论
     const randomComments = {
-      comment1: `🔺终端评论1，这款产品真的不错，质量很好，使用体验非常满意！`,
-      comment2: `🔺终端评论2，已经使用一段时间了，效果很好，值得推荐给大家！`,
-      comment3: mentions.length > 0 
-        ? `🔺终端评论3，@${mentions[0]} 这个产品真的很棒，你也可以试试看！` 
-        : `🔺终端评论3，@xxx 这款产品值得购买，性价比很高！`
+      topComment: `🔺上评：这款产品真的很棒，质量很好，强烈推荐大家购买！`,
+      middleComment: mentions.length > 0 ? 
+        `🔺中评：@${mentions[0]} 产品还不错，使用体验良好，有需要的可以尝试一下。` : 
+        `🔺中评：产品还不错，使用体验良好，有需要的可以尝试一下。`,
+      bottomComment: `🔻下评：产品质量一般，不太符合预期，性价比不高。`
     };
     
     setFormData(prevData => ({
@@ -109,7 +112,7 @@ export default function PublishTopCommentTaskPage() {
     }));
     showAlert('推荐成功', '已为您生成随机推荐评论！', '🎉');
   };
-  
+
   // 发布任务
   const handlePublish = async () => {
     // 表单验证 - 完整验证逻辑
@@ -118,17 +121,12 @@ export default function PublishTopCommentTaskPage() {
       return;
     }
     
-    // 验证三个评论框的内容
-    const allComments = Object.values(formData.comments);
+    // 验证评论框的内容
+    const allComments = Object.values(formData.comments).filter(Boolean);
     const hasEmptyComment = allComments.some(comment => !comment || comment.trim().length < 5);
     
     if (hasEmptyComment) {
       showAlert('输入错误', '请确保所有评论内容都已填写完整', '⚠️');
-      return;
-    }
-    
-    if (formData.quantity <= 0) {
-      showAlert('输入错误', '任务数量必须大于0', '⚠️');
       return;
     }
 
@@ -156,8 +154,8 @@ export default function PublishTopCommentTaskPage() {
         return;
       }
 
-      // 计算总费用
-      const totalCost = taskPrice * formData.quantity;
+      // 计算总费用 - 全包任务总价为上评价格+中评价格+下评价格
+      const totalCost = taskPrice * 3;
       
       // 余额校验 - 获取当前用户的可用余额
       console.log('[任务发布] 开始余额校验，总费用:', totalCost);
@@ -196,23 +194,20 @@ export default function PublishTopCommentTaskPage() {
       
       console.log('[任务发布] 余额充足，继续发布流程');
 
-      // 合并三个评论输入框的内容作为requirements
-      let allComments = '';
-      if (formData.comments.comment1) allComments += formData.comments.comment1 + '\n';
-      if (formData.comments.comment2) allComments += formData.comments.comment2 + '\n';
-      if (formData.comments.comment3) allComments += formData.comments.comment3;
+      // 构建API请求体 - 将评论合并为requirements字段
+      const requirements = allComments.join('\n\n');
       
-      // 构建API请求体
       const requestBody = {
         taskId: taskId || '',
         taskTitle,
         taskPrice: taskPrice,
-        requirements: allComments,
+        requirements: requirements,
         videoUrl: formData.videoUrl,
-        quantity: formData.quantity,
+        quantity: 3, // 固定3条评论（上中下各一条）
         deadline: formData.deadline,
-        mentions: [], // 上评任务不需要@标记
-        needImageComment: formData.needImageComment
+        mentions: mentions,
+        needImageComment: formData.needImageComment,
+        taskMode: 'all'
       };
 
       console.log('API请求体:', requestBody);
@@ -263,7 +258,8 @@ export default function PublishTopCommentTaskPage() {
     }
   };
 
-  const totalCost = (taskPrice * formData.quantity).toFixed(2);
+  // 计算总费用
+  const totalCost = (taskPrice * 3).toFixed(2);
 
   // 如果没有找到任务类型，返回错误页面
   if (!taskId) {
@@ -286,11 +282,11 @@ export default function PublishTopCommentTaskPage() {
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
       {/* 页面头部 */}
-      <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-4 py-6">
+      <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-4 py-6">
         <div className="flex mb-4 items-center justify-center p-3 bg-white rounded-xl shadow-sm border border-gray-100 w-20 hover:shadow-md transition-all">
           <button 
             onClick={() => router.back()}
-            className="flex items-center justify-center w-full h-full text-blue-500 hover:text-blue-600 font-medium text-sm transition-colors"
+            className="flex items-center justify-center w-full h-full text-purple-600 hover:text-purple-700 font-medium text-sm transition-colors"
           >
             ← 返回
           </button>
@@ -307,14 +303,48 @@ export default function PublishTopCommentTaskPage() {
             </div>
             <div>
               <h3 className="font-bold text-white">{taskTitle}</h3>
-              <p className="text-blue-100 text-sm">单价: ¥{taskPrice}</p>
+              <p className="text-purple-100 text-sm">单价: ¥{taskPrice}</p>
             </div>
           </div>
-          <p className="text-blue-100 text-sm">{taskDescription}</p>
+          <p className="text-purple-100 text-sm">{taskDescription}</p>
         </div>
       </div>
 
       <div className="px-4 py-6 space-y-6">
+        {/* 任务套餐介绍 */}
+        <div className="bg-white rounded-2xl p-4 shadow-sm">
+          <h3 className="font-medium text-gray-900 mb-3">任务套餐介绍</h3>
+          <div className="space-y-4">
+            <div className="flex items-start space-x-4 p-3 bg-purple-50 rounded-lg">
+              <div className="flex-shrink-0 w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center text-2xl">
+                🔺
+              </div>
+              <div>
+                <h4 className="font-medium text-gray-900">上评任务</h4>
+                <p className="text-gray-600 text-sm mt-1">高质量正面评价，突出产品优点和推荐理由</p>
+              </div>
+            </div>
+            <div className="flex items-start space-x-4 p-3 bg-purple-50 rounded-lg">
+              <div className="flex-shrink-0 w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center text-2xl">
+                🔺
+              </div>
+              <div>
+                <h4 className="font-medium text-gray-900">中评任务</h4>
+                <p className="text-gray-600 text-sm mt-1">平衡的评价，既提到优点也可以适度提到一些不影响整体的小问题</p>
+              </div>
+            </div>
+            <div className="flex items-start space-x-4 p-3 bg-purple-50 rounded-lg">
+              <div className="flex-shrink-0 w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center text-2xl">
+                🔻
+              </div>
+              <div>
+                <h4 className="font-medium text-gray-900">下评任务</h4>
+                <p className="text-gray-600 text-sm mt-1">真实的负面评价，指出产品存在的一些不足</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* 视频链接 */}
         <div className="bg-white rounded-2xl p-4 shadow-sm">
           <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -328,37 +358,41 @@ export default function PublishTopCommentTaskPage() {
           />
         </div>
 
-        {/* 任务数量 */}
+        {/* @用户标记 */}
         <div className="bg-white rounded-2xl p-4 shadow-sm">
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            任务数量
+            @用户标记
           </label>
-          <div className="flex items-center space-x-4">
-            <button 
-              onClick={() => setFormData({...formData, quantity: Math.max(0, formData.quantity - 10)})}
-              className="w-10 h-10 rounded-full bg-blue-100 hover:bg-blue-200 text-blue-600 flex items-center justify-center text-lg font-bold transition-colors"
+          <div className="space-y-3">
+            <Input
+              placeholder="输入用户ID或昵称"
+              value={mentionInput}
+              onChange={(e) => setMentionInput(e.target.value)}
+              onKeyPress={(e) => e.key === 'Enter' && handleAddMention()}
+              className="w-full"
+            />
+            <Button 
+              onClick={handleAddMention}
+              className="w-full py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
             >
-              -
-            </button>
-            <div className="flex-1">
-              <Input
-                type="number"
-                min="0"
-                value={formData.quantity.toString()}
-                onChange={(e) => setFormData({...formData, quantity: Math.max(0, parseInt(e.target.value) || 0)})}
-                className="w-full text-2xl font-bold text-gray-900 text-center py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
+              添加用户标记
+            </Button>
+          </div>
+          {mentions.length > 0 && (
+            <div className="flex flex-wrap gap-2 mt-3">
+              {mentions.map((mention, index) => (
+                <div key={index} className="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm flex items-center space-x-1">
+                  <span>@{mention}</span>
+                  <button 
+                    onClick={() => removeMention(mention)}
+                    className="text-purple-600 hover:text-purple-800"
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
             </div>
-            <button 
-              onClick={() => setFormData({...formData, quantity: formData.quantity + 10})}
-              className="w-10 h-10 rounded-full bg-blue-100 hover:bg-blue-200 text-blue-600 flex items-center justify-center text-lg font-bold transition-colors"
-            >
-              +
-            </button>
-          </div>
-          <div className="mt-2 text-sm text-gray-500">
-            上评任务单价为¥3.0
-          </div>
+          )}
         </div>
 
         {/* 派单示例模块 */}
@@ -377,54 +411,52 @@ export default function PublishTopCommentTaskPage() {
             </Button>
             <Button 
               onClick={handleRecommendComments}
-              className="flex-1 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors"
+              className="flex-1 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
             >
               推荐评论
             </Button>
           </div>
           
-          {/* 评论1 */}
+          {/* 上评评论 */}
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              评论1
+              上评内容
             </label>
             <textarea
-              className="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+              className="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-transparent resize-none"
               rows={3}
-              placeholder="请输入终端评论1的内容"
-              value={formData.comments.comment1}
-              onChange={(e) => setFormData({...formData, comments: {...formData.comments, comment1: e.target.value}})}
+              placeholder="请输入上评内容"
+              value={formData.comments.topComment}
+              onChange={(e) => setFormData({...formData, comments: {...formData.comments, topComment: e.target.value}})}
             />
           </div>
           
-          {/* 评论2 */}
+          {/* 中评评论 */}
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              评论2
+              中评内容
             </label>
             <textarea
-              className="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+              className="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-transparent resize-none"
               rows={3}
-              placeholder="请输入终端评论2的内容，支持选择增加条数，可通过AI生成评论词，允许手动修改，支持多条评论，不限数量"
-              value={formData.comments.comment2}
-              onChange={(e) => setFormData({...formData, comments: {...formData.comments, comment2: e.target.value}})}
+              placeholder="请输入中评内容"
+              value={formData.comments.middleComment}
+              onChange={(e) => setFormData({...formData, comments: {...formData.comments, middleComment: e.target.value}})}
             />
           </div>
           
-          {/* 评论3 */}
+          {/* 下评评论 */}
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              评论3
+              下评内容
             </label>
             <textarea
-              className="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+              className="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-transparent resize-none"
               rows={3}
-              placeholder="请输入终端评论3的内容，集成@昵称添加框，支持固定@对象"
-              value={formData.comments.comment3}
-              onChange={(e) => setFormData({...formData, comments: {...formData.comments, comment3: e.target.value}})}
+              placeholder="请输入下评内容"
+              value={formData.comments.bottomComment}
+              onChange={(e) => setFormData({...formData, comments: {...formData.comments, bottomComment: e.target.value}})}
             />
-            
-       
           </div>
           
           {/* 图片评论勾选功能 */}
@@ -434,15 +466,15 @@ export default function PublishTopCommentTaskPage() {
               id="needImageComment"
               checked={formData.needImageComment}
               onChange={(e) => setFormData({...formData, needImageComment: e.target.checked})}
-              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+              className="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
             />
             <label htmlFor="needImageComment" className="block text-sm font-medium text-gray-700">
-              是否需要图片评论，图片评论请在评论内容中明确图片内容要求，然后评论时按照要求发送图片评论。
+              是否需要图片评论，图片评论请在任务要求中明确图片内容要求，然后评论时按照要求发送图片评论。
             </label>
           </div>
           {formData.needImageComment && (
             <div className="mt-2 text-sm text-gray-500">
-              请在评论内容中明确图片内容要求
+              请在任务要求中明确图片内容要求
             </div>
           )}
         </div>
@@ -453,7 +485,7 @@ export default function PublishTopCommentTaskPage() {
             任务截止时间
           </label>
           <select 
-            className="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
             value={formData.deadline}
             onChange={(e) => setFormData({...formData, deadline: e.target.value})}
           >
@@ -468,13 +500,13 @@ export default function PublishTopCommentTaskPage() {
           <h3 className="font-medium text-gray-900 mb-3">费用预览</h3>
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
-              <span className="text-gray-600">任务费用</span>
-              <span className="font-medium">¥{(taskPrice * formData.quantity).toFixed(2)}</span>
+              <span className="text-gray-600">任务费用（上评+中评+下评）</span>
+              <span className="font-medium">¥{(taskPrice * 3).toFixed(2)}</span>
             </div>
             <div className="border-t border-gray-200 pt-2">
               <div className="flex justify-between">
                 <span className="font-medium text-gray-900">总计费用</span>
-                <span className="font-bold text-lg text-orange-500">¥{totalCost}</span>
+                <span className="font-bold text-lg text-purple-600">¥{totalCost}</span>
               </div>
             </div>
           </div>
@@ -486,7 +518,7 @@ export default function PublishTopCommentTaskPage() {
         <Button 
           onClick={handlePublish}
           disabled={!formData.videoUrl}
-          className="w-full py-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-2xl font-bold text-lg disabled:opacity-50"
+          className="w-full py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-2xl font-bold text-lg disabled:opacity-50"
         >
           立即发布任务 - ¥{totalCost}
         </Button>

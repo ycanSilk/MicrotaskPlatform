@@ -1,0 +1,268 @@
+{
+  "apis": [
+    {
+      "name": "users",
+      "description": "分页查询用户列表",
+      "apipath": "http://catchweight-graphemically-eldora.ngrok-free.dev/api/users?page=0&size=10",
+      "method": "GET",
+      "requiredFields": ["status", "keyword", "page", "size"],
+      "responseExample": {
+        "code": 0,
+        "message": "string",
+        "data": {
+          "totalElements": 0,
+          "totalPages": 0,
+          "size": 0,
+          "content": [
+            {
+              "id": 0,
+              "username": "string",
+              "password": "string",
+              "email": "string",
+              "phone": "string",
+              "avatarUrl": "string",
+              "status": 0,
+              "createTime": "2025-09-26T06:28:36.967Z",
+              "updateTime": "2025-09-26T06:28:36.967Z"
+            }
+          ],
+          "number": 0,
+          "sort": {
+            "empty": true,
+            "sorted": true,
+            "unsorted": true
+          },
+          "numberOfElements": 0,
+          "pageable": {
+            "offset": 0,
+            "sort": {
+              "empty": true,
+              "sorted": true,
+              "unsorted": true
+            },
+            "pageNumber": 0,
+            "pageSize": 0,
+            "paged": true,
+            "unpaged": true
+          },
+          "first": true,
+          "last": true,
+          "empty": true
+        },
+        "timestamp": 0
+      }
+    },
+    {
+      "name": "users/{id}",
+      "description": "根据ID获取用户",
+      "apipath": "http://catchweight-graphemically-eldora.ngrok-free.dev/api/users/{id}",
+      "method": "GET",
+      "requiredFields": ["id"],
+      "responseExample": {
+        "code": 0,
+        "message": "string",
+        "data": {
+          "id": 0,
+          "username": "string",
+          "password": "string",
+          "email": "string",
+          "phone": "string",
+          "avatarUrl": "string",
+          "status": 0,
+          "createTime": "2025-09-26T06:28:36.967Z",
+          "updateTime": "2025-09-26T06:28:36.967Z"
+        },
+        "timestamp": 0
+      }
+    },
+    {
+      "name": "users/{id}",
+      "description": "更新用户信息",
+      "apipath": "http://catchweight-graphemically-eldora.ngrok-free.dev/api/users/{id}",
+      "method": "PUT",
+      "requiredFields": ["id", "username", "email", "phone", "status"],
+      "responseExample": {
+        "code": 0,
+        "message": "更新成功",
+        "data": {
+          "id": 0,
+          "username": "string",
+          "email": "string",
+          "phone": "string",
+          "avatarUrl": "string",
+          "status": 0,
+          "createTime": "2025-09-26T06:28:36.967Z",
+          "updateTime": "2025-09-26T06:28:36.967Z"
+        },
+        "timestamp": 0
+      }
+    },
+    {
+      "name": "users/{id}",
+      "description": "删除用户",
+      "apipath": "http://catchweight-graphemically-eldora.ngrok-free.dev/api/users/{id}",
+      "method": "DELETE",
+      "requiredFields": ["id"],
+      "responseExample": {
+        "code": 0,
+        "message": "删除成功",
+        "data": null,
+        "timestamp": 0
+      }
+    },
+    {
+      "name": "users/{id}/avatar",
+      "description": "更新用户头像",
+      "apipath": "http://catchweight-graphemically-eldora.ngrok-free.dev/api/users/{id}/avatar",
+      "method": "POST",
+      "requiredFields": ["id", "avatar"],
+      "responseExample": {
+        "code": 0,
+        "message": "头像更新成功",
+        "data": {
+          "avatarUrl": "string"
+        },
+        "timestamp": 0
+      }
+    },
+    {
+      "name": "users/{id}/reset-password",
+      "description": "重置用户密码",
+      "apipath": "http://catchweight-graphemically-eldora.ngrok-free.dev/api/users/{id}/reset-password",
+      "method": "POST",
+      "requiredFields": ["id", "password"],
+      "responseExample": {
+        "code": 0,
+        "message": "密码重置成功",
+        "data": null,
+        "timestamp": 0
+      }
+    },
+    {
+      "name": "users/check-email",
+      "description": "检查邮箱是否存在",
+      "apipath": "http://catchweight-graphemically-eldora.ngrok-free.dev/api/users/check-email",
+      "method": "GET",
+      "requiredFields": ["email"],
+      "responseExample": {
+        "code": 0,
+        "message": "string",
+        "data": {
+          "exists": true
+        },
+        "timestamp": 0
+      }
+    },
+    {
+      "name": "users/check-username",
+      "description": "检查用户名是否存在",
+      "apipath": "http://catchweight-graphemically-eldora.ngrok-free.dev/api/users/check-username",
+      "method": "GET",
+      "requiredFields": ["username"],
+      "responseExample": {
+        "code": 0,
+        "message": "string",
+        "data": {
+          "exists": true
+        },
+        "timestamp": 0
+      }
+    },
+    {
+      "name": "users/login",
+      "description": "用户登录",
+      "apipath": "http://catchweight-graphemically-eldora.ngrok-free.dev/api/users/login",
+      "method": "POST",
+      "requiredFields": ["username", "password"],
+      "responseExample": {
+        "code": 0,
+        "message": "登录成功",
+        "data": {
+          "token": "string",
+          "user": {
+            "id": 0,
+            "username": "string",
+            "email": "string",
+            "role": "string"
+          }
+        },
+        "timestamp": 0
+      }
+    },
+    {
+      "name": "users/me",
+      "description": "获取当前用户信息",
+      "apipath": "http://catchweight-graphemically-eldora.ngrok-free.dev/api/users/me",
+      "method": "GET",
+      "requiredFields": [],
+      "requiresAuth": true,
+      "responseExample": {
+        "code": 0,
+        "message": "string",
+        "data": {
+          "id": 0,
+          "username": "string",
+          "email": "string",
+          "phone": "string",
+          "avatarUrl": "string",
+          "status": 0,
+          "createTime": "2025-09-26T06:28:36.967Z",
+          "updateTime": "2025-09-26T06:28:36.967Z"
+        },
+        "timestamp": 0
+      }
+    },
+    {
+      "name": "users/register",
+      "description": "用户注册",
+      "apipath": "http://catchweight-graphemically-eldora.ngrok-free.dev/api/users/register",
+      "method": "POST",
+      "requiredFields": ["username", "password", "email"],
+      "responseExample": {
+        "code": 0,
+        "message": "注册成功",
+        "data": {
+          "id": 0,
+          "username": "string",
+          "email": "string"
+        },
+        "timestamp": 0
+      }
+    },
+    {
+      "name": "users/stats/status",
+      "description": "用户状态统计",
+      "apipath": "http://catchweight-graphemically-eldora.ngrok-free.dev/api/users/stats/status",
+      "method": "GET",
+      "requiredFields": [],
+      "requiresAuth": true,
+      "responseExample": {
+        "code": 0,
+        "message": "string",
+        "data": {
+          "total": 0,
+          "active": 0,
+          "inactive": 0,
+          "banned": 0
+        },
+        "timestamp": 0
+      }
+    },
+    {
+      "name": "testapi",
+      "description": "测试API连接",
+      "apipath": "http://catchweight-graphemically-eldora.ngrok-free.dev/api/users?page=0&size=10",
+      "method": "GET",
+      "requiredFields": [],
+      "responseExample": {
+        "code": 0,
+        "message": "API连接成功",
+        "data": {
+          "connected": true,
+          "time": "2025-09-26T06:28:36.967Z"
+        },
+        "timestamp": 0
+      }
+    }
+  ]
+}

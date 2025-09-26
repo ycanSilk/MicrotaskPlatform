@@ -5,6 +5,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { getCurrentLoggedInUser, commonLogout } from '@/auth/common';
 import Link from 'next/link';
 import { CommenterAuthStorage } from '@/auth/commenter/auth';
+import AlertModal from '../../components/ui/AlertModal';
 
 export default function CommenterLayout({
   children,
@@ -13,8 +14,14 @@ export default function CommenterLayout({
 }) {
   const [user, setUser] = useState<any | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [showAlertModal, setShowAlertModal] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
+
+  // 显示功能暂未开放提示
+  const showNotAvailableAlert = () => {
+    setShowAlertModal(true);
+  };
 
   useEffect(() => {
     const initializeAuth = async () => {
@@ -183,15 +190,15 @@ export default function CommenterLayout({
             <span className="text-lg">💰</span>
             <span className="text-xs">收益</span>
           </Link>
-          <Link
-            href="/commenter/lease"
+          <button
+            onClick={showNotAvailableAlert}
             className={`flex flex-col items-center py-2 ${
               isActive('/lease') ? 'text-blue-500' : 'text-gray-400'
             }`}
           >
             <span className="text-lg">🏢</span>
             <span className="text-xs">账号出租</span>
-          </Link>
+          </button>
           <Link
             href="/commenter/invite"
             className={`flex flex-col items-center py-2 ${
@@ -212,6 +219,15 @@ export default function CommenterLayout({
           </Link>
         </div>
       </div>
-    </div>
+    
+    {/* 功能暂未开放提示框 */}
+    <AlertModal
+      isOpen={showAlertModal}
+      title="功能暂未开放"
+      message="该功能暂未开放"
+      icon="⚠️"
+      onClose={() => setShowAlertModal(false)}
+    />
+  </div>
   );
 }

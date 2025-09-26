@@ -1,7 +1,17 @@
 /** @type {import('next').NextConfig} */
+
 const nextConfig = {
   experimental: {
     typedRoutes: true,
+  },
+  // API代理配置，用于解决跨域问题
+  async rewrites() {
+    return [
+      {
+        source: '/api/users/register',
+        destination: 'https://catchweight-graphemically-eldora.ngrok-free.dev/api/users/register',
+      },
+    ]
   },
   // H5移动端优化
   compiler: {
