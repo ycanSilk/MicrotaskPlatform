@@ -1,12 +1,7 @@
 // 用户角色
 export type UserRole = 'admin' | 'publisher' | 'commenter';
 
-// 任务需求类型
-export interface TaskRequirement {
-  type: string;
-  count: number;
-  template?: string;
-}
+// 任务需求类型已经在后面重新定义，保留更具体的版本
 
 // 用户信息
 export interface User {

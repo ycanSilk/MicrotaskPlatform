@@ -132,8 +132,8 @@ const ApiPage: React.FC = () => {
           requiresAuth: api.requiresAuth || false
         };
         
-        // 根据API类型进行分类
-        if (api.category === 'user' || api.name.includes('user')) {
+        // 根据API名称进行分类
+        if (api.name.includes('user')) {
           userApiList.push(apiInfo);
         } else {
           systemApiList.push(apiInfo);
@@ -207,7 +207,7 @@ const ApiPage: React.FC = () => {
   };
 
   // 处理登录表单输入变化
-  const handleLoginInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleLoginInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setLoginForm(prev => ({
       ...prev,
