@@ -398,17 +398,13 @@ export async function POST(request: Request) {
     
     console.log('创建新订单:', newOrder);
 
-    // 添加新订单到订单列表
-    orderData.commentOrders.push(newOrder);
-    console.log('添加订单后数量:', orderData.commentOrders.length);
-
     // 计算总费用
     const totalCost = priceNum * quantityNum;
     console.log(`计算总费用: ¥${priceNum} × ${quantityNum} = ¥${totalCost}`);
     
     // 执行事务化处理 - 发布任务并扣除余额
     try {
-      // 注意：这里不添加新订单到orderData，因为这个操作会在processTaskWithTransaction函数内部执行
+      // 注意：新订单会在processTaskWithTransaction函数内部添加到orderData，这里不再重复添加
       const transactionResult = processTaskWithTransaction(currentUserId, newOrderId, totalCost, orderData, newOrder);
       
       if (transactionResult) {

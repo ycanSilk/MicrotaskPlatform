@@ -45,37 +45,6 @@ const TASK_TYPES = [
     requirements: '评论内容真实有效，真人评论，按照顺序完成任务',
     estimatedTime: '8分钟',
     difficulty: '中等'
-  },
-  {
-    id: 'task_combination_all',
-    title: '全包任务',
-    icon: '🎯',
-    price: '自定义',
-    description: '一站式任务服务，包含上、中、下评组合方案',
-    requirements: '根据具体方案提供全方位的评论服务',
-    estimatedTime: '自定义',
-    difficulty: '中等'
-  },
-  {
-    id: 'account_rental',
-    title: '真人账号租赁',
-    icon: '🔑',
-    price: '60',
-    description: '提供真实用户账号租赁服务，支持自定义租赁时间',
-    requirements: '账号真实有效，无违规记录，按约定时间使用，手机扫码登录，租号有风险，不得使用账号进行任何形式的违规活动',
-    estimatedTime: '自定义',
-    difficulty: '简单',
-    roleType: '出租'
-  },
-  {
-    id: 'video_publish',
-    title: '视频发布',
-    icon: '🎬',
-    price: '自定义',
-    description: '按要求制作并发布视频内容',
-    requirements: '视频内容符合要求，按时发布，保证质量',
-    estimatedTime: '自定义',
-    difficulty: '中等'
   }
 ];
 
@@ -116,11 +85,7 @@ const TaskCard = ({ task, onClick }: { task: any, onClick: () => void }) => {
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-2 text-gray-500 text-sm">
           <span>💡</span>
-          <span>
-            {task.id === 'video_publish' || task.id === 'account_rental' || task.id === 'account_request' ? 
-              '费用由双方自行设定，平台抽取20%服务费' : 
-              '系统定价，公平公正'}
-          </span>
+          <span>系统定价，公平公正</span>
         </div>
         <div className="flex items-center space-x-2">
           {task.roleType && (
@@ -164,16 +129,7 @@ export default function CreateTask() {
 
   const handleTaskClick = (task: any) => {
     // 处理任务选择
-    if (task.id === 'video_publish') {
-      // 视频发布任务 - 显示暂未开发提示
-      showNotDevelopedAlert();
-    } else if (task.id === 'account_rental') {
-      // 真人账号租赁任务 - 显示暂未开发提示
-      showNotDevelopedAlert();
-    } else if (task.id === 'account_request') {
-      // 账号求租任务 - 跳转到账号租赁页面
-      router.push('/publisher/create/video-task');
-    } else if (task.id === 'comment_top') {
+    if (task.id === 'comment_top') {
       // 上评任务 - 跳转到上评任务发布页面
       const params = new URLSearchParams({
         taskId: task.id,
@@ -203,16 +159,6 @@ export default function CreateTask() {
         description: task.description
       });
       router.push(`/publisher/create/task-combination-middle-bottom?${params.toString()}`);
-    } else if (task.id === 'task_combination_all') {
-      // 全包任务 - 跳转到全包任务发布页面
-      const params = new URLSearchParams({
-        taskId: task.id,
-        title: task.title,
-        icon: task.icon,
-        price: task.price.toString(),
-        description: task.description
-      });
-      router.push(`/publisher/create/task-combination-all?${params.toString()}`);
     } else {
       // 其他任务类型（包括中评任务）
       const params = new URLSearchParams({
@@ -222,7 +168,7 @@ export default function CreateTask() {
         price: task.price.toString(),
         description: task.description
       });
-      router.push(`/publisher/create/publish?${params.toString()}`);
+      router.push(`/publisher/create/publish-nakahiro?${params.toString()}`);
     }
   };
 
@@ -263,30 +209,6 @@ export default function CreateTask() {
               <h3 className="font-medium text-blue-900 mb-1">任务说明</h3>
               <p className="text-blue-700 text-sm leading-relaxed">
                 请根据您的需求选择合适的任务类型。
-              </p>
-            </div>
-          </div>
-        </div>
-        
-        <div className="bg-purple-50 rounded-2xl p-4">
-          <div className="flex items-start space-x-3">
-            <span className="text-2xl">💰</span>
-            <div>
-              <h3 className="font-medium text-purple-900 mb-1">费用规则</h3>
-              <p className="text-purple-700 text-sm leading-relaxed">
-                视频发布模块和账号租赁/求租费用由双方自行设定，平台从成交额中抽取20%作为服务费。
-              </p>
-            </div>
-          </div>
-        </div>
-        
-        <div className="bg-green-50 rounded-2xl p-4">
-          <div className="flex items-start space-x-3">
-            <span className="text-2xl">🤝</span>
-            <div>
-              <h3 className="font-medium text-green-900 mb-1">角色说明</h3>
-              <p className="text-green-700 text-sm leading-relaxed">
-                账号租赁功能支持"出租"与"求租"两种角色，双方可在公共池中相互查看相关信息并进行匹配。
               </p>
             </div>
           </div>

@@ -13,6 +13,7 @@ interface SubTask {
   commentContent: string;
   commentTime: string;
   screenshotUrl: string;
+  reviewLink?: string; // 上评链接
 }
 
 // 定义任务数据类型
@@ -29,6 +30,7 @@ interface Task {
   publishTime: string;
   deadline: string;
   subOrders: SubTask[];
+  taskType?: string; // 任务类型
 }
 
 export default function TaskDetailPage() {
@@ -256,6 +258,17 @@ export default function TaskDetailPage() {
         return 'bg-gray-100 text-gray-800';
     }
   };
+  
+  // 获取任务类型名称
+  const getTaskTypeName = (taskType?: string): string => {
+    const taskTypeMap: Record<string, string> = {
+      'comment_middle': '中评任务',
+      'top_middle_review': '上中评任务',
+      'account_rental': '账号出租',
+      'video_send': '视频分享'
+    };
+    return taskTypeMap[taskType || ''] || taskType || '评论任务';
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
@@ -290,7 +303,7 @@ export default function TaskDetailPage() {
             </div>
             <div>
               <p className="text-sm text-gray-600">任务类型</p>
-              <p className="font-medium">评论任务</p>
+              <p className="font-medium">{getTaskTypeName(task.taskType)}</p>
             </div>
             <div>
               <p className="text-sm text-gray-600">单价</p>
@@ -420,9 +433,24 @@ export default function TaskDetailPage() {
                     <p className="font-medium">{new Date(subTask.commentTime).toLocaleString('zh-CN')}</p>
                   </div>
                 ) : (
+                    <div className="mb-3">
+                      <p className="text-sm text-gray-600">提交时间</p>
+                      <p className="font-medium text-gray-400">暂无信息</p>
+                    </div>
+                  )}
+                
+                {/* 上评链接展示 - 仅对需要的任务类型显示 */}
+                {subTask.reviewLink && (
                   <div className="mb-3">
-                    <p className="text-sm text-gray-600">提交时间</p>
-                    <p className="font-medium text-gray-400">暂无信息</p>
+                    <p className="text-sm text-gray-600 mb-1">上评链接</p>
+                    <a 
+                      href={subTask.reviewLink} 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      className="text-blue-600 hover:text-blue-800 underline break-all"
+                    >
+                      {subTask.reviewLink}
+                    </a>
                   </div>
                 )}
                 

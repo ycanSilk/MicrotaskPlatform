@@ -23,10 +23,18 @@ export default function PublishTaskPage() {
   // 新的表单数据结构，包含评论和图片上传信息
   const [formData, setFormData] = useState({
     videoUrl: '',
-    quantity: 1, // 固定为1条上评评论
+    quantity: 3, // 默认任务数量设为3
     comments: [
       {
-        content: '🔺上评评论，XXXXXXXXX',
+        content: '🔺终端评论1，XXXXXXXXX',
+        image: null as File | null
+      },
+      {
+        content: '🔺终端评论2，xxxxxxxxx',
+        image: null as File | null
+      },
+      {
+        content: '🔺终端评论3，xxxxxxxx',
         image: null as File | null
       }
     ],
@@ -63,13 +71,49 @@ export default function PublishTaskPage() {
     setShowAlertModal(true);
   };
 
-  // 上评任务固定为1条评论，因此不需要处理数量变化
+  // 处理任务数量变化，实现与评论输入框的联动
   const handleQuantityChange = (newQuantity: number) => {
-    // 上评任务固定为1条评论，不允许更改数量
-    setFormData(prevData => ({
-      ...prevData,
-      quantity: 1
-    }));
+    const quantity = Math.max(0, newQuantity); // 允许数量为0，实现完全移除
+    setFormData(prevData => {
+      let newComments = [...prevData.comments];
+      
+      // 如果新数量大于现有评论数量，添加新评论
+      while (newComments.length < quantity) {
+        newComments.push({
+          content: `🔺终端评论${newComments.length + 1}，请输入评论内容`,
+          image: null
+        });
+      }
+      
+      // 如果新数量小于现有评论数量，移除多余评论
+      if (newComments.length > quantity) {
+        newComments.splice(quantity);
+      }
+      
+      // 检查是否有@用户标记，如果有，确保它在最新的最后一条评论中
+      if (mentions.length > 0 && quantity > 0) {
+        // 先从所有评论中移除@用户标记
+        newComments = newComments.map(comment => ({
+          ...comment,
+          content: comment.content.replace(/ @\S+/g, '')
+        }));
+        
+        // 然后将@用户标记添加到最新的最后一条评论
+        const lastIndex = newComments.length - 1;
+        newComments[lastIndex] = {
+          ...newComments[lastIndex],
+          content: newComments[lastIndex].content 
+            ? `${newComments[lastIndex].content} @${mentions[0]}` 
+            : `@${mentions[0]}`
+        };
+      }
+      
+      return {
+        ...prevData,
+        quantity,
+        comments: newComments
+      };
+    });
   };
   
   // 处理添加@用户标记
@@ -82,7 +126,7 @@ export default function PublishTaskPage() {
       return;
     }
     
-    // . 非法字符校验（只允许字母、数字、下划线、中文和@符号）
+    // 2. 非法字符校验（只允许字母、数字、下划线、中文和@符号）
     const validPattern = /^[a-zA-Z0-9_\u4e00-\u9fa5@]+$/;
     if (!validPattern.test(trimmedMention)) {
       showAlert('提示', '用户ID或昵称包含非法字符，仅支持字母、数字、下划线和中文', '⚠️');
@@ -241,11 +285,6 @@ export default function PublishTaskPage() {
 
   // 发布任务
   const handlePublish = async () => {
-    // 防止重复提交
-    if (isPublishing) {
-      return;
-    }
-    
     // 表单验证 - 完整验证逻辑
     if (!formData.videoUrl) {
       showAlert('输入错误', '请输入视频链接', '⚠️');
@@ -262,12 +301,9 @@ export default function PublishTaskPage() {
 
     // 显示加载状态
     setIsPublishing(true);
-    
-    // 生成唯一请求ID用于跟踪，确保在整个函数作用域可用
-    const requestId = `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    console.log(`[任务发布-${requestId}] 开始发布任务...`);
-    console.log(`[任务发布-${requestId}] 表单数据:`, formData);
-    console.log(`[任务发布-${requestId}] 任务ID:`, taskId);
+    console.log('开始发布任务...');
+    console.log('表单数据:', formData);
+    console.log('任务ID:', taskId);
 
     try {
       // 使用PublisherAuthStorage获取认证token和用户信息
@@ -343,26 +379,22 @@ export default function PublishTaskPage() {
 
       console.log('API请求体:', requestBody);
       
-      console.log(`[任务发布-${requestId}] 即将发送API请求，时间戳: ${Date.now()}`);
-      
       // 调用API发布任务
       const response = await fetch('/api/publisher/comment-order', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-          'X-Request-ID': requestId // 添加请求ID头
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify(requestBody)
       });
       
-      console.log(`[任务发布-${requestId}] API响应状态: ${response.status}, 接收时间: ${Date.now()}`);
+      console.log('API响应状态:', response.status);
 
       const result = await response.json();
-      console.log(`[任务发布-${requestId}] API响应结果:`, result);
+      console.log('API响应结果:', result);
       
       if (result.success) {
-        console.log(`[任务发布-${requestId}] 任务发布成功，即将显示成功提示`);
         // 修改为用户点击确认后才跳转
         showAlert(
           '发布成功', 
@@ -370,7 +402,6 @@ export default function PublishTaskPage() {
           '✅',
           '确定',
           () => {
-            console.log(`[任务发布-${requestId}] 用户确认成功，准备跳转`);
             // 在用户点击确认按钮后跳转
             router.push('/publisher/dashboard');
           }
@@ -387,10 +418,9 @@ export default function PublishTaskPage() {
         }
       }
     } catch (error) {
-      console.error(`[任务发布-${requestId}] 发布任务时发生错误:`, error);
+      console.error('发布任务时发生错误:', error);
       showAlert('网络错误', '发布任务时发生错误，请稍后重试', '⚠️');
     } finally {
-      console.log(`[任务发布-${requestId}] 发布流程结束，重置发布状态`);
       setIsPublishing(false);
     }
   };
@@ -477,7 +507,7 @@ export default function PublishTaskPage() {
         </div>
 
         {/* 派单示例模块 */}
-        <div className="bg-white rounded-2xl p-4 shadow-sm  overflow-y-auto">
+        <div className="bg-white rounded-2xl p-4 shadow-sm h-[600px] overflow-y-auto">
           <label className="block text-sm font-medium text-gray-700 mb-2">
             评论内容
           </label>
@@ -492,35 +522,39 @@ export default function PublishTaskPage() {
             </Button>
           </div>
           
-          {/* 固定为1条上评评论输入框 */}
-          <div className="mb-1 py-2 border-b border-gray-900">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              上评评论
-            </label>
-            <textarea
-              className="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-              rows={3}
-              placeholder="请输入上评评论内容"
-              value={formData.comments[0].content}
-              onChange={(e) => {
-                const newComments = [...formData.comments];
-                newComments[0] = {...newComments[0], content: e.target.value};
-                setFormData({...formData, comments: newComments});
-              }}
-            />
+          {/* 动态生成评论输入框 */}
+          {formData.comments.map((comment, index) => {
+            const isLastComment = index === formData.comments.length - 1;
+            
+            return (
+              <div key={index} className="mb-1 py-2 border-b border-gray-900">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  评论{index + 1}
+                </label>
+                <textarea
+                  className="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                  rows={3}
+                  placeholder={`请输入终端评论${index + 1}的内容`}
+                  value={comment.content}
+                  onChange={(e) => {
+                    const newComments = [...formData.comments];
+                    newComments[index] = {...newComments[index], content: e.target.value};
+                    setFormData({...formData, comments: newComments});
+                  }}
+                />
                 
                 {/* 图片上传区域 */}
                 <div className="mt-1">
                   <div className="flex items-end space-x-3">
                     <div 
-                      className={`w-20 h-20 border-2 border-dashed rounded-lg flex flex-col items-center justify-center cursor-pointer transition-all ${formData.comments[0].image ? 'border-green-500' : 'border-gray-300 hover:border-blue-500'}`}
-                      onClick={() => document.getElementById('image-upload-0')?.click()}
+                      className={`w-20 h-20 border-2 border-dashed rounded-lg flex flex-col items-center justify-center cursor-pointer transition-all ${comment.image ? 'border-green-500' : 'border-gray-300 hover:border-blue-500'}`}
+                      onClick={() => document.getElementById(`image-upload-${index}`)?.click()}
                     >
-                      {formData.comments[0].image ? (
+                      {comment.image ? (
                         <div className="relative w-full h-full">
                           <img 
-                            src={URL.createObjectURL(formData.comments[0].image)} 
-                            alt="上评评论图片" 
+                            src={URL.createObjectURL(comment.image)} 
+                            alt={`评论${index + 1}图片`} 
                             className="w-full h-full object-cover rounded"
                           />
                           <button 
@@ -528,7 +562,7 @@ export default function PublishTaskPage() {
                             className="absolute top-1 right-1 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center"
                             onClick={(e) => {
                               e.stopPropagation();
-                              removeImage(0);
+                              removeImage(index);
                             }}
                           >
                             ✕
@@ -546,15 +580,16 @@ export default function PublishTaskPage() {
                     </div>
                   </div>
                   <input
-                    id="image-upload-0"
+                    id={`image-upload-${index}`}
                     type="file"
                     accept="image/*"
-                    onChange={(e) => handleImageUpload(0, e)}
+                    onChange={(e) => handleImageUpload(index, e)}
                     className="hidden"
                   />
                 </div>
               </div>
-
+            );
+          })}
         </div>
 
         {/* @用户标记 */}
@@ -596,16 +631,15 @@ export default function PublishTaskPage() {
           )}
         </div>
 
-        {/* 任务数量 - 上评任务固定为1条 */}
+        {/* 任务数量 - 移至评论区域下方 */}
         <div className="bg-white rounded-2xl p-4 shadow-sm">
           <label className="block text-sm font-medium text-gray-700 mb-2">
             任务数量 <span className="text-red-500">*</span>
           </label>
           <div className="flex items-center space-x-4">
             <button 
-              onClick={() => handleQuantityChange(1)} // 保持为1
-              className="w-10 h-10 rounded-full bg-gray-200 text-gray-400 flex items-center justify-center text-lg font-bold cursor-not-allowed"
-              disabled
+              onClick={() => handleQuantityChange(Math.max(1, formData.quantity - 1))}
+              className="w-10 h-10 rounded-full bg-blue-100 hover:bg-blue-200 text-blue-600 flex items-center justify-center text-lg font-bold transition-colors"
             >
               -
             </button>
@@ -613,22 +647,21 @@ export default function PublishTaskPage() {
               <Input
                 type="number"
                 min="1"
-                value={"1"}
+                value={formData.quantity.toString()}
                 onChange={(e) => handleQuantityChange(parseInt(e.target.value) || 1)}
-                className="w-full text-2xl font-bold text-gray-900 text-center py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50"
-                disabled
+                className="w-full text-2xl font-bold text-gray-900 text-center py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
             <button 
-              onClick={() => handleQuantityChange(1)} // 保持为1
-              className="w-10 h-10 rounded-full bg-gray-200 text-gray-400 flex items-center justify-center text-lg font-bold cursor-not-allowed"
-              disabled
+              onClick={() => handleQuantityChange(formData.quantity + 1)}
+              className="w-10 h-10 rounded-full bg-blue-100 hover:bg-blue-200 text-blue-600 flex items-center justify-center text-lg font-bold transition-colors"
             >
               +
             </button>
           </div>
           <div className="mt-2 text-sm text-gray-500">
-            上评任务单价为¥3.0
+            {taskId === 'comment_top' && '上评任务单价为¥3.0'}
+            {taskId === 'comment_middle' && '中评任务单价为¥2.0'}
           </div>
         </div>
 
@@ -654,7 +687,7 @@ export default function PublishTaskPage() {
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t p-4 space-y-3">
         <Button 
           onClick={handlePublish}
-          disabled={!formData.videoUrl || formData.quantity === undefined || isPublishing}
+          disabled={!formData.videoUrl || formData.quantity === undefined}
           className="w-full py-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-2xl font-bold text-lg disabled:opacity-50"
         >
           立即发布任务 - ¥{totalCost}

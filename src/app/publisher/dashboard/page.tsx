@@ -537,8 +537,8 @@ export default function PublisherDashboardPage() {
                 </div>
               </div>
               <div className="space-y-4 max-h-96 overflow-y-auto p-4">
-                {dispatchedTasks.slice(0, 10).map((task) => (
-                  <div key={task.id} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                {dispatchedTasks.slice(0, 10).map((task, index) => (
+                    <div key={`dispatched-${task.id}-${index}`} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <div className="flex items-center space-x-2 mb-2">
@@ -622,8 +622,8 @@ export default function PublisherDashboardPage() {
           </div>
           
           {/* 子订单列表 - 直接展示订单详情内容 */}
-          {pendingOrders.map((order) => (
-            <div key={order.id} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+          {pendingOrders.map((order, index) => (
+            <div key={`pending-${order.id}-${index}`} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
               <div className="flex items-center space-x-2 mb-2">
                 <div className="text-sm font-medium text-gray-800">
                   任务需求：{order.taskTitle}
@@ -733,8 +733,8 @@ export default function PublisherDashboardPage() {
             </div>
           
           {/* 订单列表 - 直接展示订单详情内容 */}
-          {sortTasks(getTasksByStatus(activeTab)).map((task) => (
-            <div key={task.id} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+          {sortTasks(getTasksByStatus(activeTab)).map((task, index) => (
+            <div key={`task-${task.id}-${index}`} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <div className="flex items-center space-x-2 mb-2">

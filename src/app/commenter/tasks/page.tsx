@@ -46,6 +46,7 @@ export default function CommenterTasksPage() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null); // 用于放大查看的图片URL
   const [commentContent, setCommentContent] = useState<Record<string, string>>({}); // 存储每个任务的评论内容
   const [tempScreenshotFiles, setTempScreenshotFiles] = useState<Record<string, File>>({}); // 临时存储截图文件
+  const [linkUploadStatus, setLinkUploadStatus] = useState<Record<string, string>>({}); // 链接上传状态
   
   // 获取用户订单数据
   const fetchUserTasks = async () => {
@@ -446,6 +447,66 @@ export default function CommenterTasksPage() {
     });
   };
   
+  // 上传链接功能
+  const handleUploadLink = async (taskId: string) => {
+    try {
+      setLinkUploadStatus(prev => ({ ...prev, [taskId]: 'uploading' }));
+      
+      // 获取认证token
+      const token = localStorage.getItem('commenter_auth_token');
+      if (!token) {
+        alert('请先登录');
+        router.push('/auth/login/commenterlogin');
+        return;
+      }
+      
+      // 弹出输入框让用户输入链接
+      const link = prompt('请输入上评链接：');
+      if (!link) {
+        setLinkUploadStatus(prev => ({ ...prev, [taskId]: '' }));
+        return;
+      }
+      
+      // 提交链接到服务器
+      const response = await fetch('/api/commenter/upload-review-link', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          taskId,
+          reviewLink: link
+        })
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        setLinkUploadStatus(prev => ({ ...prev, [taskId]: 'success' }));
+        alert('链接上传成功');
+        // 重新加载任务列表
+        fetchUserTasks();
+        
+        // 3秒后清除成功状态
+        setTimeout(() => {
+          setLinkUploadStatus(prev => {
+            const newStatus = { ...prev };
+            delete newStatus[taskId];
+            return newStatus;
+          });
+        }, 3000);
+      } else {
+        setLinkUploadStatus(prev => ({ ...prev, [taskId]: 'error' }));
+        alert(result.message || '链接上传失败');
+      }
+    } catch (error) {
+      setLinkUploadStatus(prev => ({ ...prev, [taskId]: 'error' }));
+      console.error('上传链接错误:', error);
+      alert('上传失败，请稍后重试');
+    }
+  };
+  
   // 获取任务操作按钮组
   const getTaskButtons = (task: Task) => {
     switch (task.status) {
@@ -466,6 +527,21 @@ export default function CommenterTasksPage() {
               disabled={uploadStatus[task.id] === 'compressing' || uploadStatus[task.id] === 'uploading'}
             >
               {uploadStatus[task.id] === 'compressing' ? '压缩中...' : uploadStatus[task.id] === 'uploading' ? '上传中...' : '上传截图'}
+            </button>
+            <button 
+              className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${ 
+                linkUploadStatus[task.id] === 'uploading' 
+                  ? 'bg-gray-400 text-white cursor-not-allowed' 
+                  : linkUploadStatus[task.id] === 'success' 
+                    ? 'bg-green-500 text-white' 
+                    : linkUploadStatus[task.id] === 'error' 
+                      ? 'bg-red-500 text-white' 
+                      : 'bg-purple-600 text-white hover:bg-purple-700'
+              }`}
+              onClick={() => handleUploadLink(task.id)}
+              disabled={linkUploadStatus[task.id] === 'uploading'}
+            >
+              {linkUploadStatus[task.id] === 'uploading' ? '上传中...' : '上传链接'}
             </button>
             <button 
               className="flex-1 bg-blue-600 text-white py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
