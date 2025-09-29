@@ -11,16 +11,14 @@ export default function PublishTaskPage() {
   
   // 从URL参数获取任务信息
   const taskId = searchParams.get('taskId');
-  const taskTitle = searchParams.get('title') || '上中评任务发布页';
+  const taskTitle = searchParams.get('title') || '中评任务发布页';
   const taskIcon = searchParams.get('icon') || '📝';
   const taskPrice = parseFloat(searchParams.get('price') || '0');
   const taskDescription = searchParams.get('description') || '任务描述';
   
-  // @用户相关状态 - 分别为上评和中评设置
-  const [topMentionInput, setTopMentionInput] = useState('');
-  const [topMentions, setTopMentions] = useState<string[]>([]);
-  const [middleMentionInput, setMiddleMentionInput] = useState('');
-  const [middleMentions, setMiddleMentions] = useState<string[]>([]);
+  // @用户相关状态 - 只用于中评
+  const [mentionInput, setMentionInput] = useState('');
+  const [mentions, setMentions] = useState<string[]>([]);
   
   // 新的表单数据结构，分离上评和中评的数据
   const [formData, setFormData] = useState({
@@ -48,12 +46,10 @@ export default function PublishTaskPage() {
         image: null as File | null
       }
     ],
-    
     deadline: '24'
   });
 
   const [isPublishing, setIsPublishing] = useState(false);
-  const [isOptimizing, setIsOptimizing] = useState(false);
 
   // 通用提示框状态
   const [showAlertModal, setShowAlertModal] = useState(false);
@@ -103,7 +99,7 @@ export default function PublishTaskPage() {
       }
       
       // 检查是否有@用户标记，如果有，确保它在最新的最后一条评论中
-      if (middleMentions.length > 0 && quantity > 0) {
+      if (mentions.length > 0 && quantity > 0) {
         // 先从所有评论中移除@用户标记
         newComments = newComments.map(comment => ({
           ...comment,
@@ -115,8 +111,8 @@ export default function PublishTaskPage() {
         newComments[lastIndex] = {
           ...newComments[lastIndex],
           content: newComments[lastIndex].content 
-            ? `${newComments[lastIndex].content} @${middleMentions[0]}` 
-            : `@${middleMentions[0]}`
+            ? `${newComments[lastIndex].content} @${mentions[0]}` 
+            : `@${mentions[0]}`
         };
       }
       
@@ -128,13 +124,13 @@ export default function PublishTaskPage() {
     });
   };
   
-  // 处理添加上评@用户标记
-  const handleAddTopMention = () => {
-    const trimmedMention = topMentionInput.trim();
+  // 处理添加@用户标记 - 只用于中评
+  const handleAddMention = () => {
+    const trimmedMention = mentionInput.trim();
     
     // 1. 检查是否已经有一个@用户（限制数量为1）
-    if (topMentions.length >= 1) {
-      showAlert('提示', '上评仅支持添加一个@用户', '💡');
+    if (mentions.length >= 1) {
+      showAlert('提示', '仅支持添加一个@用户', '💡');
       return;
     }
     
@@ -146,46 +142,9 @@ export default function PublishTaskPage() {
     }
     
     // 3. 确保用户昵称ID唯一
-    if (trimmedMention && !topMentions.includes(trimmedMention)) {
-      setTopMentions([trimmedMention]); // 只保留一个用户
-      setTopMentionInput('');
-      
-      // 将@标记插入到上评评论中
-      setFormData(prevData => ({
-        ...prevData,
-        topComment: {
-          ...prevData.topComment,
-          content: prevData.topComment.content 
-            ? `${prevData.topComment.content} @${trimmedMention}` 
-            : `@${trimmedMention}`
-        }
-      }));
-    } else if (topMentions.includes(trimmedMention)) {
-      showAlert('提示', '该用户昵称ID已添加', '💡');
-    }
-  };
-  
-  // 处理添加中评@用户标记
-  const handleAddMiddleMention = () => {
-    const trimmedMention = middleMentionInput.trim();
-    
-    // 1. 检查是否已经有一个@用户（限制数量为1）
-    if (middleMentions.length >= 1) {
-      showAlert('提示', '中评仅支持添加一个@用户', '💡');
-      return;
-    }
-    
-    // 2. 非法字符校验（只允许字母、数字、下划线、中文和@符号）
-    const validPattern = /^[a-zA-Z0-9_\u4e00-\u9fa5@]+$/;
-    if (!validPattern.test(trimmedMention)) {
-      showAlert('提示', '用户ID或昵称包含非法字符，仅支持字母、数字、下划线和中文', '⚠️');
-      return;
-    }
-    
-    // 3. 确保用户昵称ID唯一
-    if (trimmedMention && !middleMentions.includes(trimmedMention)) {
-      setMiddleMentions([trimmedMention]); // 只保留一个用户
-      setMiddleMentionInput('');
+    if (trimmedMention && !mentions.includes(trimmedMention)) {
+      setMentions([trimmedMention]); // 只保留一个用户
+      setMentionInput('');
       
       // 将@标记插入到中评评论列表的最后一条
       if (formData.middleComments.length > 0) {
@@ -204,30 +163,16 @@ export default function PublishTaskPage() {
           )
         }));
       }
-    } else if (middleMentions.includes(trimmedMention)) {
+    } else if (mentions.includes(trimmedMention)) {
       showAlert('提示', '该用户昵称ID已添加', '💡');
     }
   };
   
-  // 移除上评@用户标记
-  const removeTopMention = (mention: string) => {
-    setTopMentions(topMentions.filter(m => m !== mention));
+  // 移除@用户标记 - 只用于中评
+  const removeMention = (mention: string) => {
+    setMentions(mentions.filter(m => m !== mention));
     
-    // 从上评评论中移除该@标记
-    setFormData(prevData => ({
-      ...prevData,
-      topComment: {
-        ...prevData.topComment,
-        content: prevData.topComment.content?.replace(` @${mention}`, '').replace(`@${mention}`, '') || prevData.topComment.content
-      }
-    }));
-  };
-  
-  // 移除中评@用户标记
-  const removeMiddleMention = (mention: string) => {
-    setMiddleMentions(middleMentions.filter(m => m !== mention));
-    
-    // 从中评所有评论中移除该@标记
+    // 从中评评论中移除该@标记
     setFormData(prevData => ({
       ...prevData,
       middleComments: prevData.middleComments.map(comment => ({
@@ -238,47 +183,31 @@ export default function PublishTaskPage() {
   };
 
   // AI优化上评评论功能
-  const handleAITopCommentOptimize = async () => {
-    setIsOptimizing(true);
-    try {
-      // 模拟AI优化评论的逻辑
-      // 实际项目中可能需要调用AI API
-      await new Promise(resolve => setTimeout(resolve, 500)); // 模拟网络延迟
-      setFormData(prevData => ({
-        ...prevData,
-        topComment: {
-          ...prevData.topComment,
-          content: prevData.topComment.content + ' [AI优化]'
-        }
-      }));
-      showAlert('优化成功', '上评评论内容已通过AI优化！', '✨');
-    } catch (error) {
-      showAlert('优化失败', 'AI优化过程中发生错误，请重试！', '❌');
-    } finally {
-      setIsOptimizing(false);
-    }
+  const handleAITopCommentOptimize = () => {
+    // 模拟AI优化评论的逻辑
+    // 实际项目中可能需要调用AI API
+    setFormData(prevData => ({
+      ...prevData,
+      topComment: {
+        ...prevData.topComment,
+        content: prevData.topComment.content + ' [AI优化]'
+      }
+    }));
+    showAlert('优化成功', '上评评论内容已通过AI优化！', '✨');
   };
   
   // AI优化中评评论功能
-  const handleAIMiddleCommentsOptimize = async () => {
-    setIsOptimizing(true);
-    try {
-      // 模拟AI优化评论的逻辑
-      // 实际项目中可能需要调用AI API
-      await new Promise(resolve => setTimeout(resolve, 500)); // 模拟网络延迟
-      setFormData(prevData => ({
-        ...prevData,
-        middleComments: prevData.middleComments.map(comment => ({
-          ...comment,
-          content: comment.content + ' [AI优化]'
-        }))
-      }));
-      showAlert('优化成功', '中评评论内容已通过AI优化！', '✨');
-    } catch (error) {
-      showAlert('优化失败', 'AI优化过程中发生错误，请重试！', '❌');
-    } finally {
-      setIsOptimizing(false);
-    }
+  const handleAIMiddleCommentsOptimize = () => {
+    // 模拟AI优化评论的逻辑
+    // 实际项目中可能需要调用AI API
+    setFormData(prevData => ({
+      ...prevData,
+      middleComments: prevData.middleComments.map(comment => ({
+        ...comment,
+        content: comment.content + ' [AI优化]'
+      }))
+    }));
+    showAlert('优化成功', '中评评论内容已通过AI优化！', '✨');
   };
 
   // 图片压缩函数
@@ -343,8 +272,8 @@ export default function PublishTaskPage() {
     });
   };
 
-  // 处理上评图片上传
-  const handleTopImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  // 处理上评评论图片上传
+  const handleTopCommentImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -355,20 +284,17 @@ export default function PublishTaskPage() {
       // 更新表单数据中的图片
       setFormData(prevData => ({
         ...prevData,
-        topComment: {
-          ...prevData.topComment,
-          image: compressedFile
-        }
+        topComment: { ...prevData.topComment, image: compressedFile }
       }));
       
       showAlert('上传成功', '上评图片已成功上传并压缩！', '✅');
     } catch (error) {
-      showAlert('上传失败', '上评图片上传失败，请重试', '❌');
+      showAlert('上传失败', '图片上传失败，请重试', '❌');
     }
   };
-  
-  // 处理中评图片上传
-  const handleMiddleImageUpload = async (index: number, event: React.ChangeEvent<HTMLInputElement>) => {
+
+  // 处理中评评论图片上传
+  const handleMiddleCommentImageUpload = async (index: number, event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -386,23 +312,20 @@ export default function PublishTaskPage() {
       
       showAlert('上传成功', '中评图片已成功上传并压缩！', '✅');
     } catch (error) {
-      showAlert('上传失败', '中评图片上传失败，请重试', '❌');
+      showAlert('上传失败', '图片上传失败，请重试', '❌');
     }
   };
 
   // 移除上评已上传的图片
-  const removeTopImage = () => {
+  const removeTopCommentImage = () => {
     setFormData(prevData => ({
       ...prevData,
-      topComment: {
-        ...prevData.topComment,
-        image: null
-      }
+      topComment: { ...prevData.topComment, image: null }
     }));
   };
-  
+
   // 移除中评已上传的图片
-  const removeMiddleImage = (index: number) => {
+  const removeMiddleCommentImage = (index: number) => {
     setFormData(prevData => ({
       ...prevData,
       middleComments: prevData.middleComments.map((comment, i) => 
@@ -419,9 +342,9 @@ export default function PublishTaskPage() {
       return;
     }
     
-    // 验证中评任务数量
-    if (formData.middleQuantity === undefined || formData.middleQuantity === 0) {
-      showAlert('输入错误', '请至少设置1条中评评论', '⚠️');
+    // 验证任务数量
+    if (formData.middleQuantity === undefined) {
+      showAlert('输入错误', '请输入任务数量', '⚠️');
       return;
     }
     
@@ -451,8 +374,8 @@ export default function PublishTaskPage() {
         return;
       }
 
-      // 计算总费用（上评1条 + 中评数量）
-      const totalCost = taskPrice * (1 + formData.middleQuantity);
+      // 计算总费用
+      const totalCost = taskPrice * formData.middleQuantity;
       
       // 余额校验 - 获取当前用户的可用余额
       console.log('[任务发布] 开始余额校验，总费用:', totalCost);
@@ -491,23 +414,17 @@ export default function PublishTaskPage() {
       
       console.log('[任务发布] 余额充足，继续发布流程');
 
-      // 构建API请求体 - 分别处理上评和中评
-      const topRequirement = formData.topComment.content;
-      const middleRequirements = formData.middleComments.map(comment => comment.content).join('\n\n');
-      
-      // 合并所有评论要求
-      const requirements = `=== 上评评论 ===\n${topRequirement}\n\n=== 中评评论 ===\n${middleRequirements}`;
-      
+      // 构建API请求体 - 合并上评和中评评论
+      const requirements = `【上评评论】\n${formData.topComment.content}\n\n【中评评论】\n${formData.middleComments.map(comment => comment.content).join('\n\n')}`;
       const requestBody = {
         taskId: taskId || '',
         taskTitle,
         taskPrice: taskPrice,
         requirements: requirements,
         videoUrl: formData.videoUrl,
-        quantity: 1 + formData.middleQuantity, // 上评1条 + 中评数量
+        quantity: formData.middleQuantity,
         deadline: formData.deadline,
-        // 合并@用户标记
-        mentions: [...topMentions, ...middleMentions],
+        mentions: mentions,
         needImageComment: true // 由于我们总是允许图片上传，设为true
       };
 
@@ -559,346 +476,317 @@ export default function PublishTaskPage() {
     }
   };
 
-  // 计算总费用（上评1条 + 中评数量）
-  const totalCost = (taskPrice * (1 + formData.middleQuantity)).toFixed(2);
+  const totalCost = (taskPrice * formData.middleQuantity).toFixed(2);
 
   // 如果没有找到任务类型，返回错误页面
   if (!taskId) {
     return (
-      <div className="container mx-auto p-4">
-        <h1 className="text-2xl font-bold text-center text-red-500 mt-10">
-          任务类型不存在
-        </h1>
-        <Button 
-          variant="primary" 
-          onClick={() => router.back()}
-          className="mx-auto block mt-4"
-        >
-          返回
-        </Button>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-2xl mb-2">❌</div>
+          <div className="text-lg font-medium text-gray-800 mb-2">任务信息不完整</div>
+          <Button 
+            onClick={() => router.push('/publisher/create')}
+            className="bg-blue-500 text-white p-4 rounded-lg hover:bg-blue-600 transition-colors"
+          >
+            返回选择任务
+          </Button>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="task-publisher-container">
-      <div className="header">
-        <h1>上中评任务发布页</h1>
-        <Button 
-          variant="secondary" 
-          onClick={() => router.back()}
-          className="back-button"
-        >
-          返回
-        </Button>
+    <div className="min-h-screen bg-gray-50 pb-20">
+      {/* 页面头部 */}
+      <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-4 py-6">
+        <div className="flex mb-4 items-center justify-center p-3 bg-white rounded-xl shadow-sm border border-gray-100 w-20 hover:shadow-md transition-all">
+          <button 
+            onClick={() => router.back()}
+            className="flex items-center justify-center w-full h-full text-blue-500 hover:text-blue-600 font-medium text-sm transition-colors"
+          >
+            ← 返回
+          </button>
+        </div>
+        <div className="flex items-center space-x-3 mb-4">
+          <h1 className="text-xl font-bold">发布{taskTitle}</h1>
+        </div>
+        
+        {/* 任务信息展示 */}
+        <div className="bg-white bg-opacity-10 rounded-2xl p-4">
+          <div className="flex items-center space-x-3 mb-3">
+            <div className="w-10 h-10 bg-white bg-opacity-20 rounded-xl flex items-center justify-center text-xl">
+              {taskIcon}
+            </div>
+            <div>
+              <h3 className="font-bold text-white">{taskTitle}</h3>
+              <p className="text-blue-100 text-sm">单价: ¥{taskPrice}</p>
+            </div>
+          </div>
+          <p className="text-blue-100 text-sm">{taskDescription}</p>
+        </div>
       </div>
 
-      <div className="form-container">
-        <div className="form-group">
-          <label className="form-label">视频链接</label>
+      <div className="px-4 py-3 space-y-4">
+        {/* 视频链接 */}
+        <div className="bg-white rounded-2xl p-4 shadow-sm">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            视频链接 <span className="text-red-500">*</span>
+          </label>
           <Input
-            placeholder="请输入视频链接（支持抖音、快手等）"
+            placeholder="请输入抖音视频链接"
             value={formData.videoUrl}
             onChange={(e) => setFormData({...formData, videoUrl: e.target.value})}
-            className="wide-input"
+            className="w-full"
           />
         </div>
 
-        <div className="form-group">
-          <label className="form-label">截止时间</label>
-          <input
-            type="datetime-local"
+        {/* 截止时间 */}
+        <div className="bg-white rounded-2xl p-4 shadow-sm">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            任务截止时间
+          </label>
+          <select 
+            className="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             value={formData.deadline}
             onChange={(e) => setFormData({...formData, deadline: e.target.value})}
-            className="datetime-input"
-            min={new Date().toISOString().slice(0, 16)}
-          />
+          >
+            <option value="0.5">30分钟内</option>
+            <option value="12">12小时</option>
+            <option value="24">24小时</option>
+          </select>
         </div>
 
-        {/* 上评评论区域 */}
-        <div className="task-section">
-          <h2 className="section-title">上评评论（1条）</h2>
-          <div className="form-group">
-            <div className="comment-section-header">
-              <label className="form-label">评论内容</label>
-              <div className="comment-actions">
-                <Button 
-                  variant="secondary"
-                  onClick={handleAITopCommentOptimize}
-                  disabled={isOptimizing}
-                  className="secondary-button"
-                >
-                  {isOptimizing ? 'AI优化中...' : 'AI优化评论'}
-                </Button>
-              </div>
+        {/* 上评评论模块 - 新增 */}
+          <div className="bg-white rounded-2xl p-4 shadow-sm">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              上评评论
+            </label>
+            
+            {/* AI优化评论功能按钮 */}
+            <div className="mb-4">
+              <Button 
+                onClick={handleAITopCommentOptimize}
+                className="w-full py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
+              >
+                AI优化评论
+              </Button>
             </div>
-
-            <div className="comment-item">
+            
+            {/* 上评评论输入框 - 固定一条 */}
+            <div className="mb-1 py-2 border-b border-gray-900">
               <textarea
-                className="comment-textarea"
+                className="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                rows={3}
                 placeholder="请输入上评评论内容"
                 value={formData.topComment.content}
                 onChange={(e) => {
-                  setFormData({...formData, topComment: { ...formData.topComment, content: e.target.value } });
+                  setFormData({...formData, topComment: {...formData.topComment, content: e.target.value}});
                 }}
-                rows={4}
               />
               
               {/* 图片上传区域 */}
-              <div className="image-upload-section">
-                <label htmlFor="top-image-upload" className="cursor-pointer">
-                  <Button
-                    variant="secondary"
-                    size="small"
-                    className="upload-button"
+              <div className="mt-1">
+                <div className="flex items-end space-x-3">
+                  <div 
+                    className={`w-20 h-20 border-2 border-dashed rounded-lg flex flex-col items-center justify-center cursor-pointer transition-all ${formData.topComment.image ? 'border-green-500' : 'border-gray-300 hover:border-blue-500'}`}
+                    onClick={() => document.getElementById('top-comment-image-upload')?.click()}
                   >
-                    上传图片
-                  </Button>
-                </label>
-                <input
-                  id="top-image-upload"
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  onChange={handleTopImageUpload}
-                  className="hidden"
-                />
-                <span className="upload-tip">最多上传9张图片</span>
-              </div>
-              
-              {/* 已上传图片预览 */}
-              {formData.topComment.images.length > 0 && (
-                <div className="image-preview-container">
-                  {formData.topComment.images.map((image, imgIndex) => (
-                    <div key={imgIndex} className="image-preview-wrapper">
-                      <img
-                        src={image}
-                        alt={`上评预览 ${imgIndex + 1}`}
-                        className="image-preview"
-                      />
-                      <Button
-                        variant="danger"
-                        size="extra-small"
-                        onClick={() => removeTopImage(imgIndex)}
-                        className="remove-image-button"
-                      >
-                        ×
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* 上评@用户区域 */}
-            <div className="bg-white rounded-2xl p-4 shadow-sm">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                上评@用户标记
-              </label>
-              <div className="space-y-3">
-                <Input
-                  placeholder="输入用户ID或昵称（仅支持字母、数字、下划线、中文和@符号）"
-                  value={topMentionInput}
-                  onChange={(e) => setTopMentionInput(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && (!topMentions.length && handleAddTopMention())}
-                  className="w-full"
-                  disabled={topMentions.length >= 1}
-                />
-                <Button 
-                  onClick={handleAddTopMention}
-                  className={`w-full py-2 rounded-lg transition-colors ${topMentions.length >= 1 ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-500 text-white hover:bg-blue-600'}`}
-                  disabled={topMentions.length >= 1}
-                >
-                  {topMentions.length >= 1 ? '已添加用户标记' : '添加用户标记'}
-                </Button>
-              </div>
-              {topMentions.length > 0 && (
-                <div className="flex flex-wrap gap-2 mt-3">
-                  {topMentions.map((mention, index) => (
-                    <div key={index} className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm flex items-center space-x-1">
-                      <span>@{mention}</span>
-                      <button 
-                        onClick={() => removeTopMention(index)}
-                        className="text-blue-600 hover:text-blue-800"
-                      >
-                        ✕
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* 中评评论区域 */}
-        <div className="task-section">
-          <h2 className="section-title">中评评论</h2>
-          <div className="form-group">
-            <div className="comment-section-header">
-              <label className="form-label">评论内容</label>
-              <div className="comment-actions">
-                <Button 
-                  variant="secondary"
-                  onClick={handleAIMiddleCommentsOptimize}
-                  disabled={isOptimizing}
-                  className="secondary-button"
-                >
-                  {isOptimizing ? 'AI优化中...' : 'AI优化所有中评'}
-                </Button>
-              </div>
-            </div>
-
-            {/* 评论列表 */}
-            <div className="comment-list">
-              {formData.middleComments.map((comment, index) => (
-                <div key={index} className="comment-item">
-                  <div className="comment-header">
-                    <span className="comment-number">中评评论 {index + 1}</span>
-                    {index > 2 && (
-                      <Button 
-                        variant="danger"
-                        size="small"
-                        onClick={() => handleRemoveMiddleComment(index)}
-                        className="remove-button"
-                      >
-                        删除
-                      </Button>
+                    {formData.topComment.image ? (
+                      <div className="relative w-full h-full">
+                        <img 
+                          src={URL.createObjectURL(formData.topComment.image)} 
+                          alt="上评评论图片" 
+                          className="w-full h-full object-cover rounded"
+                        />
+                        <button 
+                          type="button"
+                          className="absolute top-1 right-1 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            removeTopCommentImage();
+                          }}
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ) : (
+                      <>
+                        <span className="text-xl">+</span>
+                        <span className="text-xs text-gray-500 mt-1">点击上传图片</span>
+                      </>
                     )}
                   </div>
+                  <div className="text-xs text-gray-500">
+                    支持JPG、PNG格式，最大200KB
+                  </div>
+                </div>
+                <input
+                  id="top-comment-image-upload"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleTopCommentImageUpload}
+                  className="hidden"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* 中评评论模块 - 修改自原评论区域 */}
+          <div className="bg-white rounded-2xl p-4 shadow-sm h-[600px] overflow-y-auto">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              中评评论
+            </label>
+            
+            {/* AI优化评论功能按钮 */}
+            <div className="mb-4">
+              <Button 
+                onClick={handleAIMiddleCommentsOptimize}
+                className="w-full py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
+              >
+                AI优化评论
+              </Button>
+            </div>
+            
+            {/* 动态生成中评评论输入框 */}
+            {formData.middleComments.map((comment, index) => {
+              return (
+                <div key={index} className="mb-1 py-2 border-b border-gray-900">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    中评评论{index + 1}
+                  </label>
                   <textarea
-                    className="comment-textarea"
-                    placeholder="请输入中评评论内容"
+                    className="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                    rows={3}
+                    placeholder={`请输入中评评论${index + 1}的内容`}
                     value={comment.content}
                     onChange={(e) => {
-                      const updatedComments = [...formData.middleComments];
-                      updatedComments[index].content = e.target.value;
-                      setFormData({...formData, middleComments: updatedComments});
+                      const newComments = [...formData.middleComments];
+                      newComments[index] = {...newComments[index], content: e.target.value};
+                      setFormData({...formData, middleComments: newComments});
                     }}
-                    rows={4}
                   />
                   
                   {/* 图片上传区域 */}
-                  <div className="image-upload-section">
-                    <label htmlFor={`middle-image-upload-${index}`} className="cursor-pointer">
-                      <Button
-                        variant="secondary"
-                        size="small"
-                        className="upload-button"
+                  <div className="mt-1">
+                    <div className="flex items-end space-x-3">
+                      <div 
+                        className={`w-20 h-20 border-2 border-dashed rounded-lg flex flex-col items-center justify-center cursor-pointer transition-all ${comment.image ? 'border-green-500' : 'border-gray-300 hover:border-blue-500'}`}
+                        onClick={() => document.getElementById(`middle-image-upload-${index}`)?.click()}
                       >
-                        上传图片
-                      </Button>
-                    </label>
+                        {comment.image ? (
+                          <div className="relative w-full h-full">
+                            <img 
+                              src={URL.createObjectURL(comment.image)} 
+                              alt={`中评评论${index + 1}图片`} 
+                              className="w-full h-full object-cover rounded"
+                            />
+                            <button 
+                              type="button"
+                              className="absolute top-1 right-1 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                removeMiddleCommentImage(index);
+                              }}
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        ) : (
+                          <>
+                            <span className="text-xl">+</span>
+                            <span className="text-xs text-gray-500 mt-1">点击上传图片</span>
+                          </>
+                        )}
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        支持JPG、PNG格式，最大200KB
+                      </div>
+                    </div>
                     <input
                       id={`middle-image-upload-${index}`}
                       type="file"
                       accept="image/*"
-                      multiple
-                      onChange={(e) => handleMiddleImageUpload(index, e)}
+                      onChange={(e) => handleMiddleCommentImageUpload(index, e)}
                       className="hidden"
                     />
-                    <span className="upload-tip">最多上传9张图片</span>
                   </div>
-                  
-                  {/* 已上传图片预览 */}
-                  {comment.images.length > 0 && (
-                    <div className="image-preview-container">
-                      {comment.images.map((image, imgIndex) => (
-                        <div key={imgIndex} className="image-preview-wrapper">
-                          <img
-                            src={image}
-                            alt={`中评预览 ${imgIndex + 1}`}
-                            className="image-preview"
-                          />
-                          <Button
-                            variant="danger"
-                            size="extra-small"
-                            onClick={() => removeMiddleImage(index, imgIndex)}
-                            className="remove-image-button"
-                          >
-                            ×
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                </div>
+              );
+            })}
+          </div>
+
+        {/* @用户标记 */}
+        <div className="bg-white rounded-2xl p-4 shadow-sm">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            @用户标记
+          </label>
+          <div className="space-y-3">
+            <Input
+              placeholder="输入用户ID或昵称（仅支持字母、数字、下划线和中文）"
+              value={mentionInput}
+              onChange={(e) => setMentionInput(e.target.value)}
+              onKeyPress={(e) => e.key === 'Enter' && (!mentions.length && handleAddMention())}
+              className="w-full"
+              disabled={mentions.length >= 1}
+            />
+            <Button 
+              onClick={handleAddMention}
+              className={`w-full py-2 rounded-lg transition-colors ${mentions.length >= 1 ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-500 text-white hover:bg-blue-600'}`}
+              disabled={mentions.length >= 1}
+            >
+              {mentions.length >= 1 ? '已添加用户标记' : '添加用户标记'}
+            </Button>
+          </div>
+          {mentions.length > 0 && (
+            <div className="flex flex-wrap gap-2 mt-3">
+              {mentions.map((mention, index) => (
+                <div key={index} className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm flex items-center space-x-1">
+                  <span>@{mention}</span>
+                  <button 
+                    onClick={() => removeMention(mention)}
+                    className="text-blue-600 hover:text-blue-800"
+                  >
+                    ✕
+                  </button>
                 </div>
               ))}
             </div>
+          )}
+        </div>
 
-            {/* 中评@用户区域 */}
-            <div className="bg-white rounded-2xl p-4 shadow-sm">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                中评@用户标记
-              </label>
-              <div className="space-y-3">
+        {/* 任务数量 - 移至评论区域下方 */}
+          <div className="bg-white rounded-2xl p-4 shadow-sm">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              中评任务数量 <span className="text-red-500">*</span>
+            </label>
+            <div className="flex items-center space-x-4">
+              <button 
+                onClick={() => handleMiddleQuantityChange(Math.max(1, formData.middleQuantity - 1))}
+                className="w-10 h-10 rounded-full bg-blue-100 hover:bg-blue-200 text-blue-600 flex items-center justify-center text-lg font-bold transition-colors"
+              >
+                -
+              </button>
+              <div className="flex-1">
                 <Input
-                  placeholder="输入用户ID或昵称（仅支持字母、数字、下划线和中文）"
-                  value={middleMentionInput}
-                  onChange={(e) => setMiddleMentionInput(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && (!middleMentions.length && handleAddMiddleMention())}
-                  className="w-full"
-                  disabled={middleMentions.length >= 1}
+                  type="number"
+                  min="1"
+                  value={formData.middleQuantity.toString()}
+                  onChange={(e) => handleMiddleQuantityChange(parseInt(e.target.value) || 1)}
+                  className="w-full text-2xl font-bold text-gray-900 text-center py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
-                <Button 
-                  onClick={handleAddMiddleMention}
-                  className={`w-full py-2 rounded-lg transition-colors ${middleMentions.length >= 1 ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-500 text-white hover:bg-blue-600'}`}
-                  disabled={middleMentions.length >= 1}
-                >
-                  {middleMentions.length >= 1 ? '已添加用户标记' : '添加用户标记'}
-                </Button>
               </div>
-              {middleMentions.length > 0 && (
-                <div className="flex flex-wrap gap-2 mt-3">
-                  {middleMentions.map((mention, index) => (
-                    <div key={index} className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm flex items-center space-x-1">
-                      <span>@{mention}</span>
-                      <button 
-                        onClick={() => removeMiddleMention(index)}
-                        className="text-blue-600 hover:text-blue-800"
-                      >
-                        ✕
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
+              <button 
+                onClick={() => handleMiddleQuantityChange(formData.middleQuantity + 1)}
+                className="w-10 h-10 rounded-full bg-blue-100 hover:bg-blue-200 text-blue-600 flex items-center justify-center text-lg font-bold transition-colors"
+              >
+                +
+              </button>
             </div>
-
-            {/* 中评任务数量 */}
-            <div className="bg-white rounded-2xl p-4 shadow-sm">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                中评数量 <span className="text-red-500">*</span>
-              </label>
-              <div className="flex items-center space-x-4">
-                <button 
-                  onClick={() => handleMiddleQuantityChange(Math.max(3, formData.middleQuantity - 1))}
-                  className="w-10 h-10 rounded-full bg-blue-100 hover:bg-blue-200 text-blue-600 flex items-center justify-center text-lg font-bold transition-colors"
-                >
-                  -
-                </button>
-                <div className="flex-1">
-                  <Input
-                    type="number"
-                    min="3"
-                    value={formData.middleQuantity.toString()}
-                    onChange={(e) => handleMiddleQuantityChange(parseInt(e.target.value) || 3)}
-                    className="w-full text-2xl font-bold text-gray-900 text-center py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-                <button 
-                  onClick={() => handleMiddleQuantityChange(formData.middleQuantity + 1)}
-                  className="w-10 h-10 rounded-full bg-blue-100 hover:bg-blue-200 text-blue-600 flex items-center justify-center text-lg font-bold transition-colors"
-                >
-                  +
-                </button>
-              </div>
-              <div className="mt-2 text-sm text-gray-500">
-                中评任务单价为¥{taskPrice.toFixed(1)}
-              </div>
+            <div className="mt-2 text-sm text-gray-500">
+              上评任务固定1条，中评任务单价为¥{taskPrice.toFixed(1)}
             </div>
           </div>
-        </div>
 
         {/* 费用预览 */}
         <div className="bg-white rounded-2xl p-4 shadow-sm">
@@ -906,10 +794,6 @@ export default function PublishTaskPage() {
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
               <span className="text-gray-600">任务费用</span>
-              <span className="font-bold text-lg">¥{(taskPrice * formData.quantity).toFixed(2)}</span>
-            </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-600">中评费用 ({formData.middleQuantity}条)</span>
               <span className="font-bold text-lg">¥{(taskPrice * formData.middleQuantity).toFixed(2)}</span>
             </div>
             <div className="border-t border-gray-200 pt-2">
@@ -922,15 +806,15 @@ export default function PublishTaskPage() {
         </div>
       </div>
 
-      {/* 底部固定发布按钮 */}
+      {/* 底部固定发布按钮 - 增强表单提交控制 */}
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t p-4 space-y-3">
         <Button 
-          onClick={handlePublish}
-          disabled={!formData.videoUrl || formData.middleQuantity === undefined || isPublishing}
-          className="w-full py-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-2xl font-bold text-lg disabled:opacity-50"
-        >
-          {isPublishing ? '发布中...' : `立即发布任务 - ¥${totalCost}`}
-        </Button>
+            onClick={handlePublish}
+            disabled={!formData.videoUrl || formData.middleQuantity === undefined}
+            className="w-full py-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-2xl font-bold text-lg disabled:opacity-50"
+          >
+            立即发布任务 - ¥{totalCost}
+          </Button>
         <Button 
           onClick={() => router.back()}
           variant="secondary"

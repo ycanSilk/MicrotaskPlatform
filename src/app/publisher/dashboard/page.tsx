@@ -746,8 +746,28 @@ export default function PublisherDashboardPage() {
                     </span>
                   </div>
                   {/* 主任务订单号显示 */}
-                  <div className="text-xs text-gray-500 mb-1">
+                  <div className="text-xs text-gray-500 mb-1 flex items-center">
                     订单号: {task.id}
+                    <button 
+                      className="ml-2 px-2 py-0.5 bg-blue-100 text-blue-600 rounded hover:bg-blue-200 transition-colors text-xs"
+                      onClick={() => {
+                        navigator.clipboard.writeText(task.id).then(() => {
+                          // 创建临时提示元素
+                          const tooltip = document.createElement('div');
+                          tooltip.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded shadow-lg z-50';
+                          tooltip.innerText = '订单号已复制';
+                          document.body.appendChild(tooltip);
+                          // 2秒后移除提示
+                          setTimeout(() => {
+                            document.body.removeChild(tooltip);
+                          }, 2000);
+                        }).catch(err => {
+                          console.error('复制失败:', err);
+                        });
+                      }}
+                    >
+                      复制
+                    </button>
                   </div>
                   {/* 任务类型信息展示 */}
                   <div className="text-xs text-gray-500 mb-1">
