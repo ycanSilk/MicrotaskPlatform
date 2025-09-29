@@ -112,7 +112,7 @@ export async function GET(request: Request) {
                   subOrderNumber: subOrder.orderNumber || '',
                   // 从主订单获取taskType和recommendedComment
                   taskType: order.taskType || 'comment',
-                  recommendedComment: order.recommendedComment || ''
+                  recommendedComment: (order as any).recommendedComment || ''
                 };
                 
                 userTasks.push(task);

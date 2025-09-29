@@ -116,12 +116,12 @@ export default function PublisherLayout({
 
   // 获取当前页面标题
   const getPageTitle = () => {
-    if (pathname.includes('/dashboard')) return '任务管理';
+    if (pathname.includes('/orders')) return '订单管理';
     if (pathname.includes('/create')) return '发布任务';
     if (pathname.includes('/stats')) return '数据统计';
     if (pathname.includes('/finance')) return '充值提现';
     if (pathname.includes('/profile')) return '个人中心';
-    return '历史订单';
+    return '任务管理';
   };
 
   // 检查当前路由是否激活
@@ -204,13 +204,13 @@ export default function PublisherLayout({
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t">
         <div className="grid grid-cols-5 py-2">
           <Link
-            href="/publisher/dashboard"
+            href="/publisher/orders"
             className={`flex flex-col items-center py-2 ${
-              isActive('/dashboard') ? 'text-green-500' : 'text-gray-400'
+              isActive('/orders') ? 'text-green-500' : 'text-gray-400'
             }`}
           >
             <span className="text-lg">📋</span>
-            <span className="text-xs">管理</span>
+            <span className="text-xs">订单</span>
           </Link>
           <Link
             href="/publisher/create"

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import ReorderButton from '../../components/ReorderButton';
 
 // 定义数据类型
 interface Task {
@@ -69,6 +70,7 @@ export default function PublisherDashboardPage() {
   const [sortBy, setSortBy] = useState('time'); // 'time' | 'status' | 'price'
   const [statsTimeRange, setStatsTimeRange] = useState('all'); // 'today' | 'yesterday' | 'week' | 'month' | 'all'
   const [refreshFlag, setRefreshFlag] = useState(0); // 用于触发数据刷新的状态变量
+  const [searchTerm, setSearchTerm] = useState(''); // 搜索关键词
   
   // 状态管理
   const [loading, setLoading] = useState(true);
@@ -198,6 +200,45 @@ export default function PublisherDashboardPage() {
     return myTasks.filter(task => task.status === status);
   };
 
+  // 过滤最近48小时的订单
+  const filterRecentOrders = (tasks: any[]) => {
+    const fortyEightHoursAgo = new Date();
+    fortyEightHoursAgo.setHours(fortyEightHoursAgo.getHours() - 48);
+    
+    return tasks.filter(task => {
+      // 根据不同类型的订单获取其时间字段
+      let taskDate: Date;
+      if ('publishTime' in task) {
+        taskDate = new Date(task.publishTime);
+      } else if ('submitTime' in task) {
+        taskDate = new Date(task.submitTime);
+      } else if ('time' in task) {
+        taskDate = new Date(task.time);
+      } else {
+        return true; // 如果没有时间字段，不过滤
+      }
+      
+      return taskDate >= fortyEightHoursAgo;
+    });
+  };
+  
+  // 搜索订单
+  const searchOrders = (tasks: any[]) => {
+    if (!searchTerm.trim()) return tasks;
+    
+    const term = searchTerm.toLowerCase().trim();
+    return tasks.filter(task => {
+      // 搜索订单号、任务需求、描述等字段
+      return (
+        (task.id && task.id.toLowerCase().includes(term)) ||
+        (task.orderNumber && task.orderNumber.toLowerCase().includes(term)) ||
+        (task.description && task.description.toLowerCase().includes(term)) ||
+        (task.taskRequirements && task.taskRequirements.toLowerCase().includes(term)) ||
+        (task.taskTitle && task.taskTitle.toLowerCase().includes(term))
+      );
+    });
+  };
+  
   const sortTasks = (tasks: Task[]) => {
     return [...tasks].sort((a, b) => {
       if (sortBy === 'time') {
@@ -206,6 +247,20 @@ export default function PublisherDashboardPage() {
         return a.status.localeCompare(b.status);
       } else if (sortBy === 'price') {
         return b.price - a.price;
+      }
+      return 0;
+    });
+  };
+  
+  // 排序审核任务
+  const sortAuditTasks = (tasks: any[]) => {
+    return [...tasks].sort((a, b) => {
+      if (sortBy === 'time') {
+        // 按提交时间倒序
+        return new Date(b.submitTime).getTime() - new Date(a.submitTime).getTime();
+      } else if (sortBy === 'price') {
+        // 按价格倒序
+        return (b.price || 0) - (a.price || 0);
       }
       return 0;
     });
@@ -615,14 +670,49 @@ export default function PublisherDashboardPage() {
       {/* 审核任务页面 */}
       {activeTab === 'audit' && (
         <div className="mx-4 mt-6 space-y-4">
-          {/* 标题和统计信息 */}
-          <div className="flex items-center justify-between">
-            <h3 className="font-bold text-gray-800">待审核的订单</h3>
-            <span className="text-sm text-gray-500">共 {pendingOrders.length} 个订单</span>
+          {/* 标题、搜索框、排序和查看全部订单按钮 */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="font-bold text-gray-800">待审核的订单</h3>
+              <span className="text-sm text-gray-500">共 {pendingOrders.length} 个订单</span>
+            </div>
+            
+            {/* 搜索框 */}
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="搜索订单号或任务需求..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+              />
+              <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+                🔍
+              </div>
+            </div>
+            
+            {/* 排序选择和查看全部订单按钮 */}
+            <div className="flex items-center justify-between">
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="px-3 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+              >
+                <option value="time">按时间排序</option>
+                <option value="price">按价格排序</option>
+              </select>
+              
+              <button 
+                onClick={() => router.push('/publisher/orders')}
+                className="px-4 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600 transition-colors"
+              >
+                查看全部订单 →
+              </button>
+            </div>
           </div>
           
-          {/* 子订单列表 - 直接展示订单详情内容 */}
-          {pendingOrders.map((order, index) => (
+          {/* 子订单列表 - 展示过滤和搜索后的订单 */}
+          {searchOrders(filterRecentOrders(pendingOrders)).map((order, index) => (
             <div key={`pending-${order.id}-${index}`} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
               <div className="flex items-center space-x-2 mb-2">
                 <div className="text-sm font-medium text-gray-800">
@@ -662,7 +752,7 @@ export default function PublisherDashboardPage() {
                 <h5 className="text-xs font-medium text-gray-700 mb-1">上传截图:</h5>
                 {order.images && order.images.length > 0 ? (
                   <div className="flex space-x-2 flex-wrap">
-                    {order.images.map((image, index) => (
+                    {order.images.map((image: string, index: number) => (
                       <div 
                         key={index} 
                         className="w-20 h-20 bg-gray-200 rounded flex items-center justify-center text-xs text-gray-500 cursor-pointer hover:bg-gray-300 transition-colors overflow-hidden shadow-sm"
@@ -713,27 +803,52 @@ export default function PublisherDashboardPage() {
 
       {(activeTab === 'active' || activeTab === 'completed') && (
         <div className="mx-4 mt-6 space-y-4">
-          {/* 排序选择和查看全部历史订单按钮 */}
-          <div className="flex items-center justify-between">
+          {/* 标题、搜索框、排序和查看全部订单按钮 */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
               <h3 className="font-bold text-gray-800">
                 {activeTab === 'active' && '进行中的任务'}
                 {activeTab === 'completed' && '已完成的任务'}
               </h3>
-              <div className="flex items-center">
-                <select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value)}
-                  className="px-3 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
-                >
-                  <option value="time">按时间排序</option>
-                  <option value="price">按价格排序</option>
-                  <option value="status">按状态排序</option>
-                </select>
+            </div>
+            
+            {/* 搜索框 */}
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="搜索订单号或任务需求..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+              />
+              <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+                🔍
               </div>
             </div>
+            
+            {/* 排序选择和查看全部订单按钮 */}
+            <div className="flex items-center justify-between">
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="px-3 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+              >
+                <option value="time">按时间排序</option>
+                <option value="price">按价格排序</option>
+                <option value="status">按状态排序</option>
+              </select>
+              
+              <button 
+                onClick={() => router.push('/publisher/orders')}
+                className="px-4 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600 transition-colors"
+              >
+                查看全部订单 →
+              </button>
+            </div>
+          </div>
           
-          {/* 订单列表 - 直接展示订单详情内容 */}
-          {sortTasks(getTasksByStatus(activeTab)).map((task, index) => (
+          {/* 订单列表 - 展示过滤和搜索后的订单 */}
+          {sortTasks(searchOrders(filterRecentOrders(getTasksByStatus(activeTab)))).map((task, index) => (
             <div key={`task-${task.id}-${index}`} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
               <div className="flex items-start justify-between">
                 <div className="flex-1">
@@ -809,13 +924,16 @@ export default function PublisherDashboardPage() {
               </div>
               
               {/* 操作按钮 - 宽度设置为100% */}
-              <div className="mt-3">
+              <div className="mt-3 space-y-2">
                 <button
                   onClick={() => handleTaskAction(task.id, '查看详情')}
                   className="w-full py-2 bg-green-500 text-white rounded font-medium hover:bg-green-600 transition-colors text-sm"
                 >
                   查看详情
                 </button>
+                {activeTab === 'completed' && (
+                  <ReorderButton taskId={task.id} />
+                )}
               </div>
             </div>
           ))}
