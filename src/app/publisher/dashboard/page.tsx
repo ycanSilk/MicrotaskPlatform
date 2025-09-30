@@ -1,7 +1,13 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { PublisherAuthStorage } from '@/auth/publisher/auth';
+import { Search } from 'lucide-react';
+import OverviewTab from './components/OverviewTab';
+import AuditTab from './components/AuditTab';
+import ActiveTasksTab from './components/ActiveTasksTab';
+import CompletedTasksTab from './components/CompletedTasksTab';
 import ReorderButton from '../../components/ReorderButton';
 
 // 定义数据类型
@@ -66,7 +72,9 @@ interface Stats {
 
 export default function PublisherDashboardPage() {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState('overview');
+  const searchParams = useSearchParams();
+  const tabFromUrl = searchParams.get('tab') || 'overview';
+  const [activeTab, setActiveTab] = useState(tabFromUrl);
   const [sortBy, setSortBy] = useState('time'); // 'time' | 'status' | 'price'
   const [statsTimeRange, setStatsTimeRange] = useState('all'); // 'today' | 'yesterday' | 'week' | 'month' | 'all'
   const [refreshFlag, setRefreshFlag] = useState(0); // 用于触发数据刷新的状态变量
@@ -102,16 +110,16 @@ export default function PublisherDashboardPage() {
         setLoading(true);
         console.log(`正在获取仪表板数据，时间范围: ${statsTimeRange}`);
         
-        // 获取认证token
+        // 使用PublisherAuthStorage获取认证信息
         let authToken = null;
         if (typeof window !== 'undefined') {
           try {
-            const token = localStorage.getItem('publisher_auth_token');
-            if (token) {
-              authToken = token;
-              console.log('获取到发布者认证token:', token);
+            const authSession = PublisherAuthStorage.getAuth();
+            if (authSession && authSession.token) {
+              authToken = authSession.token;
+              console.log('获取到发布者认证token');
             } else {
-              console.log('未找到发布者认证token');
+              console.log('未找到发布者认证token或认证已过期');
             }
           } catch (e) {
             console.log('获取认证token失败:', e);
@@ -125,7 +133,7 @@ export default function PublisherDashboardPage() {
         
         if (authToken) {
           headers['Authorization'] = `Bearer ${authToken}`;
-          console.log('设置Authorization头:', headers['Authorization']);
+          console.log('设置Authorization头');
         }
         
         // 获取仪表板数据
@@ -191,6 +199,16 @@ export default function PublisherDashboardPage() {
     return stats;
   };
 
+  // 处理选项卡切换并更新URL参数
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab);
+    
+    // 使用URL参数格式更新当前页面的选项卡状态
+    const newUrl = new URL(window.location.href);
+    newUrl.searchParams.set('tab', tab);
+    window.history.replaceState({}, '', newUrl.toString());
+  };
+
   const getTasksByStatus = (status: string) => {
     if (status === 'active') {
       return activeTasks;
@@ -200,12 +218,16 @@ export default function PublisherDashboardPage() {
     return myTasks.filter(task => task.status === status);
   };
 
-  // 过滤最近48小时的订单
+  // 过滤最近48小时的订单 - 修改为仅在特定选项卡下过滤
   const filterRecentOrders = (tasks: any[]) => {
+    // 为了测试，暂时不过滤任何数据
+    return tasks;
+    
+    /* 原始代码 - 暂时注释掉
     const fortyEightHoursAgo = new Date();
     fortyEightHoursAgo.setHours(fortyEightHoursAgo.getHours() - 48);
     
-    return tasks.filter(task => {
+    const filtered = tasks.filter(task => {
       // 根据不同类型的订单获取其时间字段
       let taskDate: Date;
       if ('publishTime' in task) {
@@ -220,6 +242,17 @@ export default function PublisherDashboardPage() {
       
       return taskDate >= fortyEightHoursAgo;
     });
+    
+    console.log(`时间过滤前: ${tasks.length} 条, 过滤后: ${filtered.length} 条`);
+    return filtered;
+    */
+  };
+  
+  // 搜索处理函数
+  const handleSearch = () => {
+    console.log(`执行搜索操作，搜索词: ${searchTerm}`);
+    // 搜索逻辑已经在searchOrders函数中实现，这里只需要触发重渲染
+    setRefreshFlag(prev => prev + 1);
   };
   
   // 搜索订单
@@ -227,7 +260,7 @@ export default function PublisherDashboardPage() {
     if (!searchTerm.trim()) return tasks;
     
     const term = searchTerm.toLowerCase().trim();
-    return tasks.filter(task => {
+    const filtered = tasks.filter(task => {
       // 搜索订单号、任务需求、描述等字段
       return (
         (task.id && task.id.toLowerCase().includes(term)) ||
@@ -237,6 +270,9 @@ export default function PublisherDashboardPage() {
         (task.taskTitle && task.taskTitle.toLowerCase().includes(term))
       );
     });
+    
+    console.log(`搜索过滤前: ${tasks.length} 条, 过滤后: ${filtered.length} 条, 搜索词: ${searchTerm}`);
+    return filtered;
   };
   
   const sortTasks = (tasks: Task[]) => {
@@ -455,491 +491,91 @@ export default function PublisherDashboardPage() {
       {/* 状态切换 */}
       <div className="mx-4 mt-4 grid grid-cols-4 gap-1">
         <button
-          onClick={() => setActiveTab('overview')}
-          className={`py-3 px-4 rounded text-sm font-medium transition-colors ${
-            activeTab === 'overview' ? 'bg-green-500 text-white shadow-md' : 'bg-white border border-gray-300 text-gray-600 hover:bg-green-50'
-          }`}
+          onClick={() => handleTabChange('overview')}
+          className={`py-3 px-4 rounded text-sm font-medium transition-colors ${activeTab === 'overview' ? 'bg-green-500 text-white shadow-md' : 'bg-white border border-gray-300 text-gray-600 hover:bg-green-50'}`}
         >
           概览
         </button>
         <button
-          onClick={() => setActiveTab('active')}
-          className={`py-3 px-4 rounded text-sm font-medium transition-colors ${
-            activeTab === 'active' ? 'bg-green-500 text-white shadow-md' : 'bg-white border border-gray-300 text-gray-600 hover:bg-green-50'
-          }`}
+          onClick={() => handleTabChange('active')}
+          className={`py-3 px-4 rounded text-sm font-medium transition-colors ${activeTab === 'active' ? 'bg-green-500 text-white shadow-md' : 'bg-white border border-gray-300 text-gray-600 hover:bg-green-50'}`}
         >
           进行中
         </button>
         <button
-          onClick={() => setActiveTab('audit')}
-          className={`py-3 px-4 rounded text-sm font-medium transition-colors ${
-            activeTab === 'audit' ? 'bg-green-500 text-white shadow-md' : 'bg-white border border-gray-300 text-gray-600 hover:bg-green-50'
-          }`}
+          onClick={() => handleTabChange('audit')}
+          className={`py-3 px-4 rounded text-sm font-medium transition-colors ${activeTab === 'audit' ? 'bg-green-500 text-white shadow-md' : 'bg-white border border-gray-300 text-gray-600 hover:bg-green-50'}`}
         >
           审核任务
         </button>
         <button
-          onClick={() => setActiveTab('completed')}
-          className={`py-3 px-4 rounded text-sm font-medium transition-colors ${
-            activeTab === 'completed' ? 'bg-green-500 text-white shadow-md' : 'bg-white border border-gray-300 text-gray-600 hover:bg-green-50'
-          }`}
+          onClick={() => handleTabChange('completed')}
+          className={`py-3 px-4 rounded text-sm font-medium transition-colors ${activeTab === 'completed' ? 'bg-green-500 text-white shadow-md' : 'bg-white border border-gray-300 text-gray-600 hover:bg-green-50'}`}
         >
           已完成
         </button>
       </div>
 
       {activeTab === 'overview' && (
-        <>
-          {/* 数据概览 */}
-          <div className="mx-4 mt-6">
-            <div className="bg-white rounded-lg p-4 shadow-sm">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="font-bold text-gray-800">我的数据</h3>
-                {/* 时间范围切换 */}
-                <div className="flex bg-gray-100 rounded-lg p-2">
-                  <button
-                    onClick={() => setStatsTimeRange('today')}
-                    className={`px-4 py-2 text-sm rounded-md transition-colors ${
-                      statsTimeRange === 'today' ? 'bg-green-500 text-white' : 'text-gray-600 hover:bg-white'
-                    }`}
-                  >
-                    今天
-                  </button>
-                  <button
-                    onClick={() => setStatsTimeRange('yesterday')}
-                    className={`px-4 py-2 text-sm rounded-md transition-colors ${
-                      statsTimeRange === 'yesterday' ? 'bg-green-500 text-white' : 'text-gray-600 hover:bg-white'
-                    }`}
-                  >
-                    昨天
-                  </button>
-                  <button
-                    onClick={() => setStatsTimeRange('week')}
-                    className={`px-4 py-2 text-sm rounded-md transition-colors ${
-                      statsTimeRange === 'week' ? 'bg-green-500 text-white' : 'text-gray-600 hover:bg-white'
-                    }`}
-                  >
-                    本周
-                  </button>
-                  <button
-                    onClick={() => setStatsTimeRange('month')}
-                    className={`px-4 py-2 text-sm rounded-md transition-colors ${
-                      statsTimeRange === 'month' ? 'bg-green-500 text-white' : 'text-gray-600 hover:bg-white'
-                    }`}
-                  >
-                    本月
-                  </button>
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="bg-green-50 border border-green-100 rounded-lg p-3 text-center">
-                  <div className="text-lg font-bold text-green-600">{stats.totalTasks}</div>
-                  <div className="text-xs text-green-700">总任务数</div>
-                </div>
-                <div className="bg-blue-50 border border-blue-100 rounded-lg p-3 text-center">
-                  <div className="text-lg font-bold text-blue-600">{stats.activeTasks}</div>
-                  <div className="text-xs text-blue-700">进行中</div>
-                </div>
-                <div className="bg-orange-50 border border-orange-100 rounded-lg p-3 text-center">
-                  <div className="text-lg font-bold text-orange-600">¥{stats.totalSpent.toFixed(2)}</div>
-                  <div className="text-xs text-orange-700">总投入</div>
-                </div>
-                <div className="bg-purple-50 border border-purple-100 rounded-lg p-3 text-center">
-                  <div className="text-lg font-bold text-purple-600">¥{stats.averageOrderValue.toFixed(2)}</div>
-                  <div className="text-xs text-purple-700">平均客单价</div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* 新增的子订单统计数据 */}
-          <div className="mx-4 mt-6">
-            <div className="bg-white rounded-lg p-4 shadow-sm">
-              <h3 className="font-bold text-gray-800 mb-3">子订单统计</h3>
-              <div className="grid grid-cols-4 gap-3">
-                <div className="bg-blue-50 border border-blue-100 rounded-lg p-3 text-center">
-                  <div className="text-lg font-bold text-blue-600">{stats.totalInProgressSubOrders}</div>
-                  <div className="text-xs text-blue-700">进行中</div>
-                </div>
-                <div className="bg-green-50 border border-green-100 rounded-lg p-3 text-center">
-                  <div className="text-lg font-bold text-green-600">{stats.totalCompletedSubOrders}</div>
-                  <div className="text-xs text-green-700">已完成</div>
-                </div>
-                <div className="bg-orange-50 border border-orange-100 rounded-lg p-3 text-center">
-                  <div className="text-lg font-bold text-orange-600">{stats.totalPendingReviewSubOrders}</div>
-                  <div className="text-xs text-orange-700">待审核</div>
-                </div>
-                <div className="bg-yellow-50 border border-yellow-100 rounded-lg p-3 text-center">
-                  <div className="text-lg font-bold text-yellow-600">{stats.totalPendingSubOrders || 0}</div>
-                  <div className="text-xs text-yellow-700">待领取</div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* 派发的任务列表 */}
-          <div className="mx-4 mt-6">
-            <div className="bg-white rounded-lg shadow-sm">
-              <div className="p-4 border-b">
-                <div className="flex items-center justify-between">
-                  <h3 className="font-bold text-gray-800">派发的任务</h3>
-                  <button 
-                    onClick={() => router.push('/publisher/tasks/history')}
-                    className="text-sm text-blue-500 hover:text-blue-700"
-                  >
-                    查看全部历史订单 →
-                  </button>
-                </div>
-              </div>
-              <div className="space-y-4 max-h-96 overflow-y-auto p-4">
-                {dispatchedTasks.slice(0, 10).map((task, index) => (
-                    <div key={`dispatched-${task.id}-${index}`} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-2 mb-2">
-                          <div className="text-sm font-medium text-gray-800">
-                            任务需求：{task.taskRequirements}
-                          </div>
-                          <span className={`px-2 py-1 rounded text-xs ${
-                            task.status === 'main_progress' ? 'bg-green-100 text-green-600' :
-                            task.status === 'main_completed' ? 'bg-green-100 text-green-600' :
-                            'bg-green-100 text-green-600' // 默认状态也设为进行中
-                          }`}>
-                            {task.statusText}
-                          </span>
-                        </div>
-                        {/* 新增主任务订单号显示 */}
-                        <div className="text-xs text-gray-500 mb-1">
-                          订单号: {task.orderNumber || 'N/A'}
-                        </div>
-                        {/* 新增任务类型信息展示 */}
-                        <div className="text-xs text-gray-500 mb-1">
-                          任务类型: {(() => {
-                            const taskTypeMap: Record<string, string> = {
-                              'comment_middle': '评论任务',
-                              'account_rental': '租号任务',
-                              'video_send': '视频推送任务'
-                            };
-                            return taskTypeMap[task.taskType] || task.taskType;
-                          })()}
-                        </div>
-                        {/* 修改发布时间显示，换行并添加标识 */}
-                        <div className="text-xs text-gray-600 mb-1">
-                          发布时间：
-                          {new Date(task.time).toLocaleString('zh-CN')}
-                        </div>
-                        <div className="flex justify-between items-center mb-1">
-                          <div className="text-xs text-gray-600">
-                            完成: {task.completed} | 进行中: {task.inProgress} | 待领取: {task.pending} | 待审核: {task.pendingReview || 0} | 总计: {task.maxParticipants} 条
-                          </div>
-                        </div>
-                        <div className="flex justify-between items-center mb-2">
-                          <div className="text-sm">
-                            <span className="text-gray-600">订单单价:</span>
-                            <span className="font-medium text-gray-800"> ¥{typeof task.price === 'number' ? task.price.toFixed(2) : '0.00'}</span>
-                          </div>
-                          <div className="text-sm">
-                            <span className="text-gray-600">总金额:</span>
-                            <span className="font-medium text-gray-800"> 
-                              ¥{typeof task.price === 'number' && typeof task.maxParticipants === 'number' ? (task.price * task.maxParticipants).toFixed(2) : '0.00'}
-                            </span>
-                          </div>
-                        </div>
-                        {/* 在进度条上添加百分比数值显示 */}
-                        <div className="relative bg-green-200 h-5 rounded">
-                          <div 
-                            className="bg-green-500 h-5 rounded" 
-                            style={{width: `${task.maxParticipants > 0 ? (task.participants / task.maxParticipants) * 100 : 0}%`}}
-                          ></div>
-                          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-xs font-medium text-gray-800">
-                            {task.maxParticipants > 0 ? Math.round((task.participants / task.maxParticipants) * 100) : 0}%
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-
-        </>
+        <OverviewTab
+          stats={stats}
+          dispatchedTasks={dispatchedTasks}
+          statsTimeRange={statsTimeRange}
+          setStatsTimeRange={setStatsTimeRange}
+        />
       )}
 
-      {/* 审核任务页面 */}
       {activeTab === 'audit' && (
-        <div className="mx-4 mt-6 space-y-4">
-          {/* 标题、搜索框、排序和查看全部订单按钮 */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="font-bold text-gray-800">待审核的订单</h3>
-              <span className="text-sm text-gray-500">共 {pendingOrders.length} 个订单</span>
-            </div>
-            
-            {/* 搜索框 */}
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="搜索订单号或任务需求..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-              />
-              <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-                🔍
-              </div>
-            </div>
-            
-            {/* 排序选择和查看全部订单按钮 */}
-            <div className="flex items-center justify-between">
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-                className="px-3 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
-              >
-                <option value="time">按时间排序</option>
-                <option value="price">按价格排序</option>
-              </select>
-              
-              <button 
-                onClick={() => router.push('/publisher/orders')}
-                className="px-4 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600 transition-colors"
-              >
-                查看全部订单 →
-              </button>
-            </div>
-          </div>
-          
-          {/* 子订单列表 - 展示过滤和搜索后的订单 */}
-          {searchOrders(filterRecentOrders(pendingOrders)).map((order, index) => (
-            <div key={`pending-${order.id}-${index}`} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-              <div className="flex items-center space-x-2 mb-2">
-                <div className="text-sm font-medium text-gray-800">
-                  任务需求：{order.taskTitle}
-                </div>
-                <span className="px-2 py-1 rounded text-xs bg-orange-100 text-orange-600">
-                  待审核
-                </span>
-              </div>
-              
-              {/* 订单号显示 - 显示"订单号"字段而非"id"字段 */}
-              <div className="text-xs text-gray-500 mb-1">
-                订单号: {order.orderNumber || order.id}
-              </div>
-              
-              {/* 领取用户信息展示 */}
-              <div className="text-xs text-gray-500 mb-1">
-                领取用户: {order.commenterName}
-              </div>
-              
-              {/* 提交时间显示 */}
-              <div className="text-xs text-gray-600 mb-2">
-                提交时间：
-                {new Date(order.submitTime).toLocaleString('zh-CN')}
-              </div>
-
-              {/* 提交内容 */}
-              <div className="mb-3">
-                <h5 className="text-xs font-medium text-gray-700 mb-1">提交内容:</h5>
-                <div className="bg-white p-3 rounded text-sm text-gray-700 border border-gray-200">
-                  {order.content}
-                </div>
-              </div>
-
-              {/* 图片附件 - 恢复上传截图的显示功能 */}
-              <div className="mb-3">
-                <h5 className="text-xs font-medium text-gray-700 mb-1">上传截图:</h5>
-                {order.images && order.images.length > 0 ? (
-                  <div className="flex space-x-2 flex-wrap">
-                    {order.images.map((image: string, index: number) => (
-                      <div 
-                        key={index} 
-                        className="w-20 h-20 bg-gray-200 rounded flex items-center justify-center text-xs text-gray-500 cursor-pointer hover:bg-gray-300 transition-colors overflow-hidden shadow-sm"
-                        onClick={() => openImageViewer(image)}
-                      >
-                        <img 
-                          src={image} 
-                          alt={`上传截图 ${index + 1}`} 
-                          className="w-full h-full object-cover"
-                          onError={(e) => {
-                            const target = e.target as HTMLImageElement;
-                            target.onerror = null; // 防止无限循环
-                            target.src = '/images/20250916161008.png';
-                            target.alt = `图片加载失败 ${index + 1}`;
-                          }}
-                        />
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="bg-gray-50 p-3 rounded text-sm text-gray-500 border border-gray-200">
-                    暂无上传截图
-                  </div>
-                )}
-              </div>
-
-              {/* 审核按钮 */}
-              <div className="flex space-x-3 mt-3">
-                <button
-                  onClick={() => handleOrderReview(order.id, 'approve')}
-                  className={`flex-1 py-2 rounded font-medium transition-colors text-sm ${order.status === 'completed' || order.status === 'approved' ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-green-500 text-white hover:bg-green-600'}`}
-                  disabled={order.status === 'completed' || order.status === 'approved'}
-                >
-                  ✅ 通过审核
-                </button>
-                <button
-                  onClick={() => handleOrderReview(order.id, 'reject')}
-                  className={`flex-1 py-2 rounded font-medium transition-colors text-sm ${order.status === 'completed' || order.status === 'approved' ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-red-500 text-white hover:bg-red-600'}`}
-                  disabled={order.status === 'completed' || order.status === 'approved'}
-                >
-                  ❌ 驳回订单
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
+        <AuditTab
+          pendingOrders={pendingOrders}
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+          handleSearch={handleSearch}
+          sortBy={sortBy}
+          setSortBy={setSortBy}
+          handleOrderReview={handleOrderReview}
+          openImageViewer={openImageViewer}
+          filterRecentOrders={filterRecentOrders}
+          searchOrders={searchOrders}
+          sortAuditTasks={sortAuditTasks}
+          onViewAllClick={() => router.push('/publisher/orders')}
+        />
       )}
 
-      {(activeTab === 'active' || activeTab === 'completed') && (
-        <div className="mx-4 mt-6 space-y-4">
-          {/* 标题、搜索框、排序和查看全部订单按钮 */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="font-bold text-gray-800">
-                {activeTab === 'active' && '进行中的任务'}
-                {activeTab === 'completed' && '已完成的任务'}
-              </h3>
-            </div>
-            
-            {/* 搜索框 */}
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="搜索订单号或任务需求..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-              />
-              <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-                🔍
-              </div>
-            </div>
-            
-            {/* 排序选择和查看全部订单按钮 */}
-            <div className="flex items-center justify-between">
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-                className="px-3 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
-              >
-                <option value="time">按时间排序</option>
-                <option value="price">按价格排序</option>
-                <option value="status">按状态排序</option>
-              </select>
-              
-              <button 
-                onClick={() => router.push('/publisher/orders')}
-                className="px-4 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600 transition-colors"
-              >
-                查看全部订单 →
-              </button>
-            </div>
-          </div>
-          
-          {/* 订单列表 - 展示过滤和搜索后的订单 */}
-          {sortTasks(searchOrders(filterRecentOrders(getTasksByStatus(activeTab)))).map((task, index) => (
-            <div key={`task-${task.id}-${index}`} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center space-x-2 mb-2">
-                    <div className="text-sm font-medium text-gray-800">
-                      任务需求：{task.description}
-                    </div>
-                    <span className={`px-2 py-1 rounded text-xs ${task.statusColor}`}>
-                      {task.statusText}
-                    </span>
-                  </div>
-                  {/* 主任务订单号显示 */}
-                  <div className="text-xs text-gray-500 mb-1 flex items-center">
-                    订单号: {task.id}
-                    <button 
-                      className="ml-2 px-2 py-0.5 bg-blue-100 text-blue-600 rounded hover:bg-blue-200 transition-colors text-xs"
-                      onClick={() => {
-                        navigator.clipboard.writeText(task.id).then(() => {
-                          // 创建临时提示元素
-                          const tooltip = document.createElement('div');
-                          tooltip.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded shadow-lg z-50';
-                          tooltip.innerText = '订单号已复制';
-                          document.body.appendChild(tooltip);
-                          // 2秒后移除提示
-                          setTimeout(() => {
-                            document.body.removeChild(tooltip);
-                          }, 2000);
-                        }).catch(err => {
-                          console.error('复制失败:', err);
-                        });
-                      }}
-                    >
-                      复制
-                    </button>
-                  </div>
-                  {/* 任务类型信息展示 */}
-                  <div className="text-xs text-gray-500 mb-1">
-                    任务类型: {task.category || '评论任务'}
-                  </div>
-                  {/* 修改发布时间显示，换行并添加标识 */}
-                  <div className="text-xs text-gray-600 mb-1">
-                    发布时间：
-                    {new Date(task.publishTime).toLocaleString('zh-CN')}
-                  </div>
-                  <div className="flex justify-between items-center mb-1">
-                    <div className="text-xs text-gray-600">
-                      完成: {task.completed} | 进行中: {task.inProgress} | 待领取: {task.pending || 0} | 总计: {task.maxParticipants} 条
-                    </div>
-                  </div>
-                  <div className="flex justify-between items-center mb-2">
-                    <div className="text-sm">
-                      <span className="text-gray-600">订单单价:</span>
-                      <span className="font-medium text-gray-800"> ¥{task.price.toFixed(2)}</span>
-                    </div>
-                    <div className="text-sm">
-                      <span className="text-gray-600">总金额:</span>
-                      <span className="font-medium text-gray-800"> 
-                        ¥{(task.price * task.maxParticipants).toFixed(2)}
-                      </span>
-                    </div>
-                  </div>
-                  {/* 在进度条上添加百分比数值显示 */}
-                  <div className="relative bg-green-200 h-5 rounded">
-                    <div 
-                      className="bg-green-500 h-5 rounded" 
-                      style={{width: `${task.maxParticipants > 0 ? (task.participants / task.maxParticipants) * 100 : 0}%`}}
-                    ></div>
-                    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-xs font-medium text-gray-800">
-                      {task.maxParticipants > 0 ? Math.round((task.participants / task.maxParticipants) * 100) : 0}%
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              {/* 操作按钮 - 宽度设置为100% */}
-              <div className="mt-3 space-y-2">
-                <button
-                  onClick={() => handleTaskAction(task.id, '查看详情')}
-                  className="w-full py-2 bg-green-500 text-white rounded font-medium hover:bg-green-600 transition-colors text-sm"
-                >
-                  查看详情
-                </button>
-                {activeTab === 'completed' && (
-                  <ReorderButton taskId={task.id} />
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
+    
+
+      {activeTab === 'active' && (
+        <ActiveTasksTab
+          tasks={activeTasks}
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+          handleSearch={handleSearch}
+          sortBy={sortBy}
+          setSortBy={setSortBy}
+          handleTaskAction={handleTaskAction}
+          filterRecentOrders={filterRecentOrders}
+          searchOrders={searchOrders}
+          sortTasks={sortTasks}
+          onViewAllClick={() => router.push('/publisher/tasks/active' as any)}
+        />
       )}
-      
+
+      {activeTab === 'completed' && (
+        <CompletedTasksTab
+          tasks={completedTasks}
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+          handleSearch={handleSearch}
+          sortBy={sortBy}
+          setSortBy={setSortBy}
+          handleTaskAction={handleTaskAction}
+          filterRecentOrders={filterRecentOrders}
+          searchOrders={searchOrders}
+          sortTasks={sortTasks}
+          onViewAllClick={() => router.push('/publisher/tasks/completed' as any)}
+        />
+      )}
+
       {/* 图片查看器模态框 - 支持放大查看 */}
       {imageViewerOpen && (
         <div 
