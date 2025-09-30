@@ -4,6 +4,8 @@ import React, { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { PublisherAuthStorage } from '@/auth/publisher/auth';
 import Link from 'next/link';
+import { PublisherBottomNavigation } from '@/components/business';
+import { PublisherHeader } from '@/components/business/PublisherHeader';
 
 export default function PublisherLayout({
   children,
@@ -170,23 +172,8 @@ export default function PublisherLayout({
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* 顶部余额栏 */}
-      <div className="bg-green-500 text-white px-4 py-3 flex items-center justify-between">
-        <div className="flex items-center space-x-2">
-          <span className="text-lg font-bold">¥{user?.balance?.toFixed(2)}</span>
-          <div className="flex items-center space-x-1">
-            <span className="text-yellow-400">💎</span>
-            <span className="text-sm">派单中</span>
-          </div>
-        </div>
-        <div className="flex items-center space-x-3">
-          <div className="relative">
-            <span className="text-yellow-400">🔔</span>
-            <span className="absolute -top-1 -right-1 bg-red-500 text-xs rounded-full px-1">2</span>
-          </div>
-          <button onClick={handleLogout} className="text-sm">👤</button>
-        </div>
-      </div>
+      {/* 使用可复用的顶部导航栏组件 */}
+      <PublisherHeader user={user} />
 
       {/* 页面标题 */}
       <div className="bg-white px-4 py-4">
@@ -196,60 +183,12 @@ export default function PublisherLayout({
       </div>
 
       {/* 主要内容区域 */}
-      <main className="flex-1">
+      <main className="flex-1 pb-20">
         {children}
       </main>
 
-      {/* 底部导航栏 */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t">
-        <div className="grid grid-cols-5 py-2">
-          <Link
-            href="/publisher/orders"
-            className={`flex flex-col items-center py-2 ${
-              isActive('/orders') ? 'text-green-500' : 'text-gray-400'
-            }`}
-          >
-            <span className="text-lg">📋</span>
-            <span className="text-xs">订单</span>
-          </Link>
-          <Link
-            href="/publisher/create"
-            className={`flex flex-col items-center py-2 ${
-              isActive('/create') ? 'text-green-500' : 'text-gray-400'
-            }`}
-          >
-            <span className="text-lg">➕</span>
-            <span className="text-xs">发布</span>
-          </Link>
-          <Link
-            href="/publisher/stats"
-            className={`flex flex-col items-center py-2 ${
-              isActive('/stats') ? 'text-green-500' : 'text-gray-400'
-            }`}
-          >
-            <span className="text-lg">📊</span>
-            <span className="text-xs">统计</span>
-          </Link>
-          <Link
-            href="/publisher/finance"
-            className={`flex flex-col items-center py-2 ${
-              isActive('/finance') ? 'text-green-500' : 'text-gray-400'
-            }`}
-          >
-            <span className="text-lg">💰</span>
-            <span className="text-xs">财务</span>
-          </Link>
-          <Link
-            href="/publisher/profile"
-            className={`flex flex-col items-center py-2 ${
-              isActive('/profile') ? 'text-green-500' : 'text-gray-400'
-            }`}
-          >
-            <span className="text-lg">👤</span>
-            <span className="text-xs">我的</span>
-          </Link>
-        </div>
-      </div>
+      {/* 底部导航栏 - 使用可复用组件 */}
+      <PublisherBottomNavigation />
     </div>
   );
 }

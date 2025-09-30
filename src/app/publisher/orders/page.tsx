@@ -18,6 +18,7 @@ export interface Order {
   completionTime?: string;
   type: 'comment' | 'like' | 'share' | 'other';
   subOrders: SubOrder[];
+  videoUrl?: string;
 }
 
 export interface SubOrder {
@@ -561,9 +562,7 @@ const PublisherOrdersPage: React.FC = () => {
                     <option value="rejected">已拒绝</option>
                     <option value="cancelled">已取消</option>
                   </select>
-                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-                    <ChevronDown className="h-5 w-5 text-gray-400" />
-                  </div>
+             
                 </div>
 
                 {/* 日期筛选 */}
@@ -637,30 +636,33 @@ const PublisherOrdersPage: React.FC = () => {
             </div>
           </div>
 
-          {/* 订单列表 - 统一使用移动端卡片样式并适配PC端 */}
+          {/* 订单列表 - 移动优先的响应式卡片布局，适配全尺寸屏幕 */}
           <div className="bg-white shadow-sm rounded-lg overflow-hidden">
-            {/* 移动优先的卡片式布局，同时适配PC端 */}
+            {/* 响应式布局：移动端单列，平板双列，桌面多列 */}
               {getCurrentOrders().length > 0 ? (
-                <div className="grid grid-cols-1  gap-1  divide-y divide-gray-200">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 divide-y md:divide-y-0 md:divide-x divide-gray-200">
                   {getCurrentOrders().map((order) => (
                     <div key={order.id} className="p-4 hover:bg-gray-50 transition-colors">
                       <div className="flex justify-between items-start mb-3">
                         <div className="flex items-center space-x-2">
-                          <div className="text-sm font-medium text-gray-900">{order.orderNumber}</div>
-                          <button
-                            onClick={() => copyOrderNumber(order.orderNumber)}
-                            className="p-1 text-gray-400 hover:text-gray-600 focus:outline-none"
-                            aria-label="复制订单号"
-                          >
-                            {copiedOrderNumber === order.orderNumber ? (
-                              <Check className="h-4 w-4 text-green-500" />
-                            ) : (
-                              <Copy className="h-4 w-4" />
+                          <div className="text-sm font-medium text-black">订单编号：{order.orderNumber}</div>
+                          <div className="flex items-center">
+                            <button
+                              onClick={() => copyOrderNumber(order.orderNumber)}
+                              className="p-1 text-blue-500 hover:text-blue-700 focus:outline-none flex items-center"
+                              aria-label="复制订单号"
+                            >
+                              {copiedOrderNumber === order.orderNumber ? (
+                                <Check className="h-4 w-4 text-blue-500 mr-1" />
+                              ) : (
+                                <Copy className="h-4 w-4 text-blue-500 mr-1" />
+                              )}
+                              复制
+                            </button>
+                            {copiedOrderNumber === order.orderNumber && (
+                              <span className="text-xs text-blue-500 animate-fade-in ml-1">复制成功</span>
                             )}
-                          </button>
-                          {copiedOrderNumber === order.orderNumber && (
-                            <span className="text-xs text-green-500 animate-fade-in">复制成功</span>
-                          )}
+                          </div>
                         </div>
                         <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusInfo(order.status).className}`}>
                           {getStatusInfo(order.status).text}
@@ -668,15 +670,15 @@ const PublisherOrdersPage: React.FC = () => {
                       </div>
                         
                       <div className="mb-3">
-                        <div className="text-base font-medium text-gray-900 mb-1">{order.title}</div>
-                        <div className="text-sm text-gray-600 line-clamp-2">{order.description}</div>
+                        <div className="text-base font-medium text-black mb-1">{order.title}</div>
+                        <div className="text-sm text-black line-clamp-2">{order.description}</div>
                       </div>
                         
-                      <div className="text-sm text-gray-500 mb-2">
+                      <div className="text-sm text-black mb-2">
                         单价: ¥{(order.budget / (order.subOrders.length || 1)).toFixed(2)} | 总价: ¥{order.budget.toFixed(2)}
                       </div>
     
-                      <div className="text-xs text-gray-500 mb-3 grid grid-cols-5 text-center">
+                      <div className="text-xs text-black mb-3 grid grid-cols-5 text-center">
                         <div className='text-left'>订单总数: {getSubOrderStats(order.subOrders).total}</div>
                         <div>待领取: {getSubOrderStats(order.subOrders).pending}</div>
                         <div>进行中: {getSubOrderStats(order.subOrders).processing}</div>
@@ -684,16 +686,18 @@ const PublisherOrdersPage: React.FC = () => {
                         <div>已完成: {getSubOrderStats(order.subOrders).completed}</div>
                       </div>
                         
-                      <div className="flex justify-end space-x-2 pt-2">
+                      <div className="space-y-2 pt-2">
                         <button
                           onClick={() => viewOrderDetails(order.id)}
-                          className="px-3 py-1.5 text-sm font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100 transition-colors"
+                          className="w-full px-3 py-1.5 text-sm font-medium text-white bg-blue-600 border border-blue-600 rounded-md hover:bg-blue-700 transition-colors"
                         >
                           查看详情
                         </button>
                         {/* 修复：已完成状态订单显示补单按钮 */}
                         {order.status === 'completed' && (
-                          <ReorderButton order={order} />
+                          <div className="w-full">
+                            <ReorderButton order={order} />
+                          </div>
                         )}
                       </div>
                     </div>

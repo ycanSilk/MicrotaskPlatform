@@ -95,7 +95,7 @@ export default function CreateTask() {
   return (
     <div className="space-y-6 pb-20">
       {/* 页面头部 */}
-      <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-8 -mx-4 -mt-4">
+      <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-8 ">
         <h1 className="text-2xl font-bold mb-2 px-4">发布任务</h1>
         <p className="text-blue-100 px-4">选择您想要发布的任务类型</p>
       </div>

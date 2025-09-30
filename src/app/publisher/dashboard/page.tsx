@@ -556,7 +556,7 @@ export default function PublisherDashboardPage() {
           filterRecentOrders={filterRecentOrders}
           searchOrders={searchOrders}
           sortTasks={sortTasks}
-          onViewAllClick={() => router.push('/publisher/tasks/active' as any)}
+          onViewAllClick={() => router.push('/publisher/orders')}
         />
       )}
 
@@ -572,7 +572,7 @@ export default function PublisherDashboardPage() {
           filterRecentOrders={filterRecentOrders}
           searchOrders={searchOrders}
           sortTasks={sortTasks}
-          onViewAllClick={() => router.push('/publisher/tasks/completed' as any)}
+          onViewAllClick={() => router.push('/publisher/orders')}
         />
       )}
 

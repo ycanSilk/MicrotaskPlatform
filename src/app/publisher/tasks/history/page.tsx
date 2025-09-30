@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { ChevronLeft } from 'lucide-react';
 
 // 定义子任务接口
 interface SubOrder {
@@ -195,7 +196,7 @@ const TaskHistoryPage: React.FC = () => {
           onClick={() => router.back()}
           className="flex items-center text-blue-500 hover:text-blue-700 transition-colors"
         >
-          ← 返回
+          <ChevronLeft className="h-4 w-4 mr-1" /> 返回
         </button>
 
       </div>

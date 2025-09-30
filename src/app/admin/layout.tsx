@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { getCurrentLoggedInUser, commonLogout } from '@/auth/common';
 import Link from 'next/link';
+import { AdminBottomNavigation } from '@/components/business';
 
 export default function AdminLayout({
   children,
@@ -107,52 +108,12 @@ export default function AdminLayout({
       </div>
 
       {/* 主要内容区域 */}
-      <main className="flex-1">
+      <main className="flex-1 pb-20">
         {children}
       </main>
 
-      {/* 底部导航栏 */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t">
-        <div className="grid grid-cols-4 py-2">
-          <Link
-            href="/admin/dashboard"
-            className={`flex flex-col items-center py-2 ${
-              isActive('/dashboard') ? 'text-purple-500' : 'text-gray-400'
-            }`}
-          >
-            <span className="text-lg">📊</span>
-            <span className="text-xs">总览</span>
-          </Link>
-          <Link
-            href="/admin/users"
-            className={`flex flex-col items-center py-2 ${
-              isActive('/users') ? 'text-purple-500' : 'text-gray-400'
-            }`}
-          >
-            <span className="text-lg">👥</span>
-            <span className="text-xs">用户</span>
-          </Link>
-
-          <Link
-            href="/admin/finance"
-            className={`flex flex-col items-center py-2 ${
-              isActive('/finance') ? 'text-purple-500' : 'text-gray-400'
-            }`}
-          >
-            <span className="text-lg">💰</span>
-            <span className="text-xs">财务</span>
-          </Link>
-          <Link
-            href="/admin/settings"
-            className={`flex flex-col items-center py-2 ${
-              isActive('/settings') ? 'text-purple-500' : 'text-gray-400'
-            }`}
-          >
-            <span className="text-lg">⚙️</span>
-            <span className="text-xs">设置</span>
-          </Link>
-        </div>
-      </div>
+      {/* 底部导航栏 - 使用可复用组件 */}
+      <AdminBottomNavigation />
     </div>
   );
 }

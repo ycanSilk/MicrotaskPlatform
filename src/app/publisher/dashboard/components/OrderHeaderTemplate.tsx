@@ -1,5 +1,6 @@
 import React from 'react';
-import { Search } from 'lucide-react';
+import { Search,ChevronRight } from 'lucide-react';
+
 
 interface OrderHeaderTemplateProps {
   title: string;
@@ -81,7 +82,7 @@ const OrderHeaderTemplate: React.FC<OrderHeaderTemplateProps> = ({
           onClick={onViewAllClick}
           className="px-4 py-2 bg-blue-500 text-white rounded text-sm hover:bg-blue-600 transition-colors w-full"
         >
-          查看全部订单 →
+          查看全部订单
         </button>
       </div>
     </div>

@@ -6,3 +6,5 @@ export { InviteOverview } from './InviteOverview';
 export { InviteActions } from './InviteActions';  
 export { InviteRules } from './InviteRules';
 export { FriendsList } from './FriendsList';
+export { AdminBottomNavigation } from './AdminBottomNavigation';
+export { PublisherBottomNavigation } from './PublisherBottomNavigation';
