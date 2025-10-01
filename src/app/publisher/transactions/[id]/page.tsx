@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import AlertModal from '../../../../components/ui/AlertModal';
 
+
 // 定义交易记录详情类型接口
 interface TransactionDetail {
   id: string;
@@ -60,7 +61,7 @@ export default function TransactionDetailPage() {
       const decodedToken = JSON.parse(atob(token));
       
       // 验证token是否过期
-      if (decodedToken.exp && decodedToken.exp < Date.now()) {
+      if (decodedToken.exp && decodedToken.exp < Date.now() / 1000) {
         localStorage.removeItem('publisher_auth_token');
         return null;
       }
@@ -227,12 +228,7 @@ export default function TransactionDetailPage() {
     <div className="p-6 bg-gray-50 min-h-screen flex flex-col">
       {/* 顶部导航和标题 */}
       <div className="flex items-center mb-8">
-        <button 
-          onClick={handleBack} 
-          className="py-2 px-5 rounded-full bg-blue-500 hover:bg-blue-700 transition-colors text-white w-fit mr-4"
-        >
-          ← 返回
-        </button>
+
         <h1 className="text-xl font-bold text-gray-800">交易详情</h1>
       </div>
 
@@ -264,10 +260,16 @@ export default function TransactionDetailPage() {
               <span className="font-medium">{getTransactionTypeText(transaction.type)}</span>
             </div>
             
-            {transaction.method && (
+            {transaction.method === 'alipay' && (
               <div className="flex justify-between items-center pb-3 border-b">
                 <span className="text-gray-600">支付方式</span>
-                <span className="font-medium">{transaction.method}</span>
+                <div className="flex flex-col items-end">
+                  <span className="font-medium mb-2">支付宝</span>
+                  {/* 使用静态图片代替真实二维码链接 */}
+                  <div className="w-32 h-32 bg-gray-100 flex items-center justify-center rounded">
+                    <span className="text-gray-500">支付宝二维码</span>
+                  </div>
+                </div>
               </div>
             )}
             
@@ -312,25 +314,8 @@ export default function TransactionDetailPage() {
                 <span className="font-medium text-gray-800">{transaction.relatedId}</span>
               </div>
             )}
-            
-            {transaction.ipAddress && (
-              <div className="flex justify-between items-center pb-3 border-b">
-                <span className="text-gray-600">IP地址</span>
-                <span className="font-medium">{transaction.ipAddress}</span>
-              </div>
-            )}
           </div>
         </div>
-      </div>
-
-      {/* 底部操作按钮 */}
-      <div className="mt-auto">
-        <button
-          onClick={handleBack}
-          className="w-full py-3 rounded-lg bg-white border border-gray-300 font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-        >
-          完成
-        </button>
       </div>
 
       {/* 通用提示模态框 */}

@@ -1,6 +1,6 @@
 import React from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { ChevronLeft } from 'lucide-react';
+import { BackButton } from './BackButton';
 
 interface PublisherHeaderProps {
   user: {
@@ -30,32 +30,15 @@ export const PublisherHeader: React.FC<PublisherHeaderProps> = ({ user }) => {
     }
   };
 
-  const handleBack = () => {
-    console.log('Navigating back');
-    router.back();
-  };
-
-  // 某些页面不显示返回按钮，如首页或特定页面
-  const shouldShowBackButton = !['/publisher', '/publisher/orders', '/publisher/create', '/publisher/stats', '/publisher/profile'].includes(pathname);
+  // 返回按钮的显示逻辑已移至BackButton组件中
 
   return (
     <div className="bg-green-500 text-white px-4 py-3 flex items-center justify-between">
       <div className="flex items-center space-x-3">
-        {shouldShowBackButton && (
-          <button 
-            onClick={handleBack}
-            className="p-1 hover:bg-green-600 rounded-full transition-colors"
-            aria-label="返回上一页"
-          >
-            <ChevronLeft size={20} />
-          </button>
-        )}
+        <BackButton />
         <div className="flex items-center space-x-2">
           <span className="text-lg font-bold">¥{user?.balance?.toFixed(2)}</span>
-          <div className="flex items-center space-x-1">
-            <span className="text-yellow-400">💎</span>
-            <span className="text-sm">派单中</span>
-          </div>
+     
         </div>
       </div>
       <div className="flex items-center space-x-3">

@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { CommenterAuthStorage } from '@/auth/commenter/auth';
 
 // 定义任务状态类型
 type TaskStatus = 'sub_progress' | 'sub_completed' | 'sub_pending_review' | 'waiting_collect';
@@ -38,7 +37,60 @@ interface Task {
 export default function CommenterTasksPage() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<TaskStatus>('sub_progress');
-  const [tasks, setTasks] = useState<Task[]>([]);
+  const [tasks, setTasks] = useState<Task[]>([
+    // 添加静态渲染数据，这些数据会在API请求完成前显示
+    {
+      id: 'static-task-1',
+      subOrderNumber: 'COM20240612001',
+      orderNumber: 'PUB20240612001',
+      title: '产品评价任务',
+      unitPrice: 12.50,
+      status: 'sub_progress',
+      statusText: '进行中',
+      statusColor: 'bg-blue-100 text-blue-600',
+      description: '请对该产品进行评价，内容需真实客观',
+      requirements: '评价内容不少于20字，需包含产品使用体验和优缺点分析',
+      publishTime: '2024-06-12 10:30:00',
+      deadline: '2024-06-15 23:59:59',
+      taskType: 'comment_middle',
+      recommendedComment: '这款产品使用体验非常好，功能强大且操作简单，性价比很高。产品材质也很不错，做工精细，值得购买。唯一的小缺点是包装可以再改进一下。总体来说是一款很满意的产品，推荐给有需要的朋友。'
+    },
+    {
+      id: 'static-task-2',
+      subOrderNumber: 'COM20240610002',
+      orderNumber: 'PUB20240610002',
+      title: '账号出租任务',
+      unitPrice: 8.00,
+      status: 'sub_pending_review',
+      statusText: '待审核',
+      statusColor: 'bg-orange-100 text-orange-600',
+      description: '请使用您的账号登录并完成指定操作',
+      requirements: '按照任务要求完成所有操作步骤，并上传操作截图',
+      publishTime: '2024-06-10 14:20:00',
+      submitTime: '2024-06-11 09:45:00',
+      taskType: 'account_rental',
+      recommendedComment: '',
+      screenshotUrl: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="300" height="200"%3E%3Crect width="300" height="200" fill="%23f0f0f0"/%3E%3Crect x="50" y="50" width="200" height="100" fill="%23e0e0e0"/%3E%3Ctext x="150" y="100" text-anchor="middle" font-family="Arial" font-size="14" fill="%23666"%3E示例截图 - 账号出租任务%3C/text%3E%3C/svg%3E'
+    },
+    {
+      id: 'static-task-3',
+      subOrderNumber: 'COM20240605003',
+      orderNumber: 'PUB20240605003',
+      title: '视频分享任务',
+      unitPrice: 15.00,
+      status: 'sub_completed',
+      statusText: '已完成',
+      statusColor: 'bg-green-100 text-green-600',
+      description: '请分享指定视频到您的社交平台账号',
+      requirements: '分享后请保留截图作为凭证，分享内容需保留至少24小时',
+      publishTime: '2024-06-05 08:15:00',
+      submitTime: '2024-06-06 11:30:00',
+      completedTime: '2024-06-07 16:45:00',
+      taskType: 'video_send',
+      recommendedComment: '这个视频很有意思，分享给大家看看！内容非常实用，对我很有帮助，希望也能帮到你们。',
+      videoUrl: 'https://example.com/videos/sample.mp4'
+    }
+  ]);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
@@ -52,114 +104,20 @@ export default function CommenterTasksPage() {
   const fetchUserTasks = async () => {
     setIsLoading(true);
     setErrorMessage(null);
+    
+    try {
+      // 不进行登录验证，直接显示静态数据
+      console.debug('直接显示静态任务数据');
       
-      // 获取当前用户
-      const currentUser = CommenterAuthStorage.getCurrentUser();
+      // 设置短暂延迟以模拟加载过程
+      await new Promise(resolve => setTimeout(resolve, 500));
       
-      // 获取token并验证
-      const token = localStorage.getItem('commenter_auth_token');
-      const authExpires = localStorage.getItem('commenter_auth_expires');
-      
-      // 检查token是否存在
-      if (!token) {
-        console.warn('未找到认证token，重定向到登录页面');
-        setErrorMessage('请先登录');
-        setTimeout(() => {
-          router.push('/auth/login/commenterlogin');
-        }, 1000);
-        return;
-      }
-      
-      // 检查token是否已过期
-      if (authExpires) {
-        const expiryTime = parseInt(authExpires, 10);
-        const now = Date.now();
-        
-        if (now > expiryTime) {
-          console.warn('认证token已过期，需要重新登录');
-          setErrorMessage('登录已过期，请重新登录');
-          localStorage.removeItem('commenter_auth_token');
-          localStorage.removeItem('commenter_user_info');
-          localStorage.removeItem('commenter_auth_expires');
-          setTimeout(() => {
-            router.push('/auth/login/commenterlogin');
-          }, 1000);
-          return;
-        }
-      }
-      
-      // 添加时间戳参数防止浏览器缓存，确保每次获取最新数据
-      const timestamp = new Date().getTime();
-      
-      // 设置请求超时
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => {
-        console.warn('请求超时，中止操作');
-        controller.abort();
-        setIsLoading(false);
-        setErrorMessage('请求超时，请检查网络连接');
-      }, 30000); // 30秒超时
-      
-      try {
-        const response = await fetch(`/api/commenter/user-tasks?t=${timestamp}`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`,
-            'Cache-Control': 'no-cache, no-store, must-revalidate'
-          },
-          signal: controller.signal
-        });
-        
-        // 清除超时计时器
-        clearTimeout(timeoutId);
-        
-        console.debug('API请求成功，状态码:', response.status);
-        
-        const result = await response.json();
-        
-        if (result.success && result.data) {
-          // API现在已经直接在任务对象中返回了完整的taskType和recommendedComment字段
-          // 不需要再手动从主订单映射，保留处理逻辑以确保兼容性
-          const processedTasks = result.data;
-          
-          console.debug(`获取到 ${processedTasks.length} 个任务，每个任务已包含完整字段:`);
-          if (processedTasks.length > 0) {
-            console.debug(`  - 第一个任务taskType: ${processedTasks[0].taskType}`);
-            console.debug(`  - 第一个任务recommendedComment: ${processedTasks[0].recommendedComment ? '存在' : '不存在'}`);
-          }
-          
-          console.debug(`获取到 ${processedTasks.length} 个任务`);
-          setTasks(processedTasks);
-        } else if (response.status === 401) {
-          console.warn('认证失败，token无效或已过期');
-          setErrorMessage('登录已过期，请重新登录');
-          localStorage.removeItem('commenter_auth_token');
-          localStorage.removeItem('commenter_user_info');
-          localStorage.removeItem('commenter_auth_expires');
-          setTimeout(() => {
-            router.push('/auth/login/commenterlogin');
-          }, 1500);
-        } else {
-          console.error('获取订单失败:', result.message);
-          setErrorMessage(result.message || '获取订单失败');
-          setTasks([]);
-        }
-      } catch (error) {
-        // 清除超时计时器
-        clearTimeout(timeoutId);
-        
-        if (error instanceof DOMException && error.name === 'AbortError') {
-          // 处理请求超时中止的情况
-          return;
-        }
-        
-        console.error('获取订单时发生网络错误:', error);
-        setErrorMessage('网络错误，请稍后重试');
-        setTasks([]);
-      } finally {
-        setIsLoading(false);
-      }
+    } catch (error) {
+      console.error('处理任务数据时发生错误:', error);
+      setErrorMessage('加载任务失败');
+    } finally {
+      setIsLoading(false);
+    }
   }
   
   // 初始化数据

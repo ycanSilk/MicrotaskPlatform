@@ -15,8 +15,6 @@ export default function BalancePage() {
   const router = useRouter();
   const [balance, setBalance] = useState<number>(1298);
   const [transactions, setTransactions] = useState<TransactionItem[]>([]);
-  const [showDetailModal, setShowDetailModal] = useState(false);
-  const [selectedTransaction, setSelectedTransaction] = useState<TransactionItem | null>(null);
 
   // 模拟获取交易数据
   useEffect(() => {
@@ -72,8 +70,8 @@ export default function BalancePage() {
 
   // 查看交易详情
   const viewTransactionDetail = (transaction: TransactionItem) => {
-    setSelectedTransaction(transaction);
-    setShowDetailModal(true);
+    // 跳转到transactions详情页面
+    router.push(`/publisher/transactions/${transaction.id}`);
   };
 
   // 充值处理
@@ -150,73 +148,6 @@ export default function BalancePage() {
           </div>
         )}
       </div>
-
-      {/* 交易详情弹窗 */}
-      {showDetailModal && selectedTransaction && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-end justify-center z-50">
-          <div className="bg-white rounded-t-xl w-full max-w-md">
-            <div className="p-5 border-b border-gray-100">
-              <div className="flex justify-between items-center">
-                <div className="text-lg font-medium text-gray-800">交易详情</div>
-                <button 
-                  onClick={() => setShowDetailModal(false)}
-                  className="text-gray-400"
-                >
-                  ✕
-                </button>
-              </div>
-            </div>
-            
-            <div className="p-5">
-              <div className="flex items-center justify-center mb-5">
-                <div className={`w-16 h-16 rounded-full flex items-center justify-center ${selectedTransaction.type === 'income' ? 'bg-green-50 text-green-500' : 'bg-red-50 text-red-500'}`}>
-                  {selectedTransaction.icon || (selectedTransaction.type === 'income' ? '💰' : '💸')}
-                </div>
-              </div>
-              
-              <div className="text-center mb-5">
-                <div className={`text-3xl font-bold ${selectedTransaction.type === 'income' ? 'text-green-500' : 'text-red-500'}`}>
-                  {selectedTransaction.type === 'income' ? '+' : '-'}
-                  ¥{selectedTransaction.amount.toFixed(2)}
-                </div>
-                <div className="text-gray-600 mt-2">{selectedTransaction.description}</div>
-              </div>
-              
-              <div className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <div className="text-sm text-gray-500">交易时间</div>
-                  <div className="text-sm text-gray-800">{selectedTransaction.date}</div>
-                </div>
-                <div className="flex justify-between items-center">
-                  <div className="text-sm text-gray-500">交易类型</div>
-                  <div className="text-sm text-gray-800">
-                    {selectedTransaction.type === 'income' ? '收入' : '支出'}
-                  </div>
-                </div>
-                <div className="flex justify-between items-center">
-                  <div className="text-sm text-gray-500">交易状态</div>
-                  <div className="text-sm text-green-500">已完成</div>
-                </div>
-                <div className="flex justify-between items-center">
-                  <div className="text-sm text-gray-500">交易编号</div>
-                  <div className="text-sm text-gray-800">
-                    {selectedTransaction.id.padStart(16, '0')}
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <div className="px-5 pb-5">
-              <button 
-                onClick={() => setShowDetailModal(false)}
-                className="w-full py-3 bg-gray-100 text-gray-800 rounded-full text-sm font-medium"
-              >
-                我知道了
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

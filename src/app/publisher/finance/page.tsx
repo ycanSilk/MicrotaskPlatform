@@ -386,30 +386,27 @@ export default function PublisherFinancePage() {
                       className="mr-2" 
                       checked={selectedPaymentMethod === 'alipay'} 
                       onChange={() => setSelectedPaymentMethod('alipay')}
+                      disabled
                     />
                     <span className="text-sm">💙 支付宝</span>
                   </label>
-                  <label className="flex items-center">
-                    <input 
-                      type="radio" 
-                      name="payMethod" 
-                      className="mr-2" 
-                      checked={selectedPaymentMethod === 'paypal'} 
-                      onChange={() => setSelectedPaymentMethod('paypal')}
-                    />
-                    <span className="text-sm">💳 PayPal</span>
-                  </label>
-                  <label className="flex items-center">
-                    <input 
-                      type="radio" 
-                      name="payMethod" 
-                      className="mr-2" 
-                      checked={selectedPaymentMethod === 'usdt'} 
-                      onChange={() => setSelectedPaymentMethod('usdt')}
-                    />
-                    <span className="text-sm">🪙 USDT</span>
-                  </label>
                 </div>
+              </div>
+
+              {/* 支付宝二维码 */}
+              <div className="mb-4 flex flex-col items-center">
+                <div className="bg-white p-4 border border-gray-200 rounded-lg mb-3">
+                  <div className="w-48 h-48 bg-gray-50 flex items-center justify-center">
+                    {/* 使用假的二维码图片 - 这里使用data:image/svg+xml创建一个简单的二维码样式图像 */}
+                    <img 
+                      src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='192' height='192'%3E%3Crect width='192' height='192' fill='%23ffffff'/%3E%3Crect x='16' y='16' width='48' height='48' fill='%23000000'/%3E%3Crect x='16' y='128' width='48' height='48' fill='%23000000'/%3E%3Crect x='128' y='16' width='48' height='48' fill='%23000000'/%3E%3Crect x='96' y='96' width='32' height='32' fill='%23000000'/%3E%3Cpath d='M128 80v64H80V80h48m8-8H72v80h64V72z' fill='%23000000'/%3E%3C/svg%3E" 
+                      alt="支付宝二维码" 
+                      className="w-full h-full"
+                    />
+                  </div>
+                </div>
+                <p className="text-sm text-gray-500">请使用支付宝扫描二维码完成支付</p>
+                <p className="text-sm font-medium text-gray-700 mt-1">充值金额: ¥{rechargeAmount || '0.00'}</p>
               </div>
 
               <button

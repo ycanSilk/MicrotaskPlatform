@@ -239,7 +239,7 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
                 {/* 查看详情按钮 */}
                 <div className="mt-3">
                   <button
-                    onClick={() => router.push(`/publisher/dashboard/task-detail?id=${task.id}`)}
+                    onClick={() => router.push(`/publisher/orders/${task.id}`)}
                     className="w-full py-2 bg-blue-500 text-white rounded font-medium hover:bg-blue-600 transition-colors text-sm"
                   >
                     查看详情

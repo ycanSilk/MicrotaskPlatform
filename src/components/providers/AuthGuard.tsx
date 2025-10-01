@@ -81,10 +81,10 @@ export const AuthGuard = ({ children, requiredRole, allowedRoles }: AuthGuardPro
 
       // 检查允许的角色列表
       if (allowedRoles && !allowedRoles.includes(user.role)) {
-        const homePath = getRoleHomePath(user.role);
-        router.push(homePath as any);
-        return;
-      }
+          const homePath = getRoleHomePath(user.role);
+          router.push(homePath as any);
+          return;
+        }
 
       // 检查用户是否访问了正确的角色路由
       const userRoleRoutes = roleRoutes[user.role as keyof typeof roleRoutes] || [];
@@ -92,10 +92,10 @@ export const AuthGuard = ({ children, requiredRole, allowedRoles }: AuthGuardPro
       
       // 如果访问的不是公开路由，也不是用户角色对应的路由，重定向
       if (!isValidRoleRoute && !isPublicRoute && pathname !== '/') {
-        const homePath = getRoleHomePath(user.role);
-        router.push(homePath as any);
-        return;
-      }
+          const homePath = getRoleHomePath(user.role);
+          router.push(homePath as any);
+          return;
+        }
     }
   }, [isLoading, isAuthenticated, user, pathname, router, requiredRole, allowedRoles]);
 

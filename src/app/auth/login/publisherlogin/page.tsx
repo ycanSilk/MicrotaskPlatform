@@ -122,7 +122,7 @@ export default function PublisherLoginPage() {
         // 使用setTimeout确保状态保存完成后再跳转
         setTimeout(() => {
           console.log('Redirecting to dashboard');
-          router.replace(getPublisherHomePath() as any);
+          router.replace('/publisher/dashboard');
         }, 100);
       } else {
         console.log('Login failed with message:', result?.message);

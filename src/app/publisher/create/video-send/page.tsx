@@ -235,6 +235,7 @@ export default function VideoSendPage() {
               <div className="flex space-x-2">
                 <button 
                   className="flex-1 py-2 border border-gray-200 rounded-xl text-gray-700 hover:bg-gray-50 transition-colors text-sm font-medium"
+                  onClick={() => router.push('/publisher/orders')}
                 >
                   查看详情
                 </button>

@@ -36,7 +36,7 @@ export default function PublisherProfilePage() {
         {/* 用户信息区 - 保留的部分 */}
         <div className="px-6 py-5 flex items-center justify-between">
           <div className="flex items-center space-x-4">
-            <div className="w-16 h-16 bg-white bg-opacity-20 rounded-full flex items-center justify-center text-2xl">
+            <div className="w-16 h-16 bg-white bg-opacity-20 rounded-lg flex items-center justify-center text-2xl">
               🏪
             </div>
             <div>
@@ -46,14 +46,13 @@ export default function PublisherProfilePage() {
                   {userInfo.level}
                 </span>
               </div>
-              <div className="text-xs opacity-80 mt-1">{userInfo.company} · {userInfo.businessType}</div>
             </div>
           </div>
           <button 
             onClick={() => router.push('/publisher/profile/settings')}
             className="opacity-80 text-sm flex items-center"
           >
-            <span className="mr-1">👤</span> 设置
+            <span className="text-gray-400">{'>'}</span>
           </button>
         </div>
       </div>
@@ -69,7 +68,6 @@ export default function PublisherProfilePage() {
             <span className="text-xl mr-4 text-green-500">💰</span>
             <div>
               <div className="text-base text-gray-800">账户余额</div>
-              <div className="text-lg font-bold mt-1">¥{balance.balance.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
             </div>
           </div>
           <span className="text-gray-400">{'>'}</span>
@@ -113,7 +111,7 @@ export default function PublisherProfilePage() {
 
         {/* 银行卡 */}
         <button 
-          onClick={() => router.push('/publisher/finance')}
+          onClick={() => router.push('/publisher/bank-cards')}
           className="w-full flex items-center justify-between px-6 py-5"
         >
           <div className="flex items-center">
