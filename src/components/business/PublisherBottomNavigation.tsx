@@ -20,6 +20,11 @@ export const PublisherBottomNavigation: React.FC = () => {
     },
     {
       icon: '📊',
+      label: '账号租赁',
+      path: '/publisher/account-rental'
+    },
+    {
+      icon: '📊',
       label: '统计',
       path: '/publisher/stats'
     },

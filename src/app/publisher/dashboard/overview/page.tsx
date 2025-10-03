@@ -57,7 +57,7 @@ interface Stats {
 export default function OverviewTabPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [statsTimeRange, setStatsTimeRange] = useState('all');
+  const [statsTimeRange, setStatsTimeRange] = useState('today');
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<Stats>({
     totalTasks: 0,

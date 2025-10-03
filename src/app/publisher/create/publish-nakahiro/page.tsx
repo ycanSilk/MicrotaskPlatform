@@ -597,6 +597,7 @@ export default function PublishTaskPage() {
           <label className="block text-sm font-medium text-gray-700 mb-2">
             @用户标记
           </label>
+          <span className="text-sm text-red-500">*提示：用户名不能输入非法字符。如有同名用户，请输入用户ID或昵称。并上传截图指出所需@用户</span>
           <div className="space-y-3">
             <Input
               placeholder="输入用户ID或昵称（仅支持字母、数字、下划线和中文）"

@@ -35,7 +35,7 @@ export default function PublisherFinancePage() {
   const [alertCallback, setAlertCallback] = useState<(() => void) | null>(null);
 
   // 充值档位
-  const rechargeOptions = [100, 200, 500, 1000, 2000, 5000];
+  const rechargeOptions = [100, 200, 300, 500, 1000, 2000, ];
 
   // 显示通用提示框
   const showAlert = (title: string, message: string, icon: string, onConfirmCallback?: () => void) => {
@@ -355,7 +355,7 @@ export default function PublisherFinancePage() {
                   />
                 </div>
                 <div className="text-xs text-gray-500 mt-1">
-                  最低充值：¥10.00 | 单次最高：¥50,000.00
+                  最低充值：¥100 | 单次最高：¥2000
                 </div>
               </div>
 

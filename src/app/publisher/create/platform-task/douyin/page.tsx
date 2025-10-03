@@ -45,6 +45,17 @@ const TASK_TYPES = [
     requirements: '评论内容真实有效，真人评论，按照顺序完成任务',
     estimatedTime: '8分钟',
     difficulty: '中等'
+  },
+  {
+    id: 'search_keyword',
+    title: '放大镜搜索词',
+    icon: '🔍',
+    price: 5.0,
+    description: '在指定视频页面的搜索框中搜索指定关键词，100次搜索',
+    requirements: '在视频页面右上角搜索框中搜索指定内容，重复执行100次搜索操作',
+    estimatedTime: '15分钟',
+    difficulty: '特殊',
+    roleType: '客服/管理员专享'
   }
 ];
 
@@ -159,6 +170,16 @@ export default function CreateTask() {
         description: task.description
       });
       router.push(`/publisher/create/task-combination-middle-bottom?${params.toString()}`);
+    } else if (task.id === 'search_keyword') {
+      // 放大镜搜索词任务 - 跳转到专用发布页面
+      const params = new URLSearchParams({
+        taskId: task.id,
+        title: task.title,
+        icon: task.icon,
+        price: task.price.toString(),
+        description: task.description
+      });
+      router.push(`/publisher/create/search-keyword-task?${params.toString()}`);
     } else {
       // 其他任务类型（包括中评任务）
       const params = new URLSearchParams({

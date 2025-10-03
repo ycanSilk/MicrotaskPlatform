@@ -79,15 +79,11 @@ const filterOrdersByTimeRange = (orders: any[], timeRange: string) => {
       endTime = new Date(now.getFullYear(), now.getMonth(), now.getDate());
       endTime.setMilliseconds(-1); // 设为昨天的最后一毫秒
       break;
-    case 'week':
-      // 本周第一天（周一）的开始时间（本地时间）
-      const dayOfWeek = now.getDay();
-      const diffToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // 周日视为第7天
-      startTime = new Date(now.getFullYear(), now.getMonth(), now.getDate() - diffToMonday);
-      break;
-    case 'month':
-      // 本月第一天的开始时间（本地时间）
-      startTime = new Date(now.getFullYear(), now.getMonth(), 1);
+    case 'dayBeforeYesterday':
+      // 前天的开始时间和结束时间（本地时间）
+      startTime = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 2);
+      endTime = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
+      endTime.setMilliseconds(-1); // 设为前天的最后一毫秒
       break;
     default:
       console.log('未知时间范围，返回所有订单');

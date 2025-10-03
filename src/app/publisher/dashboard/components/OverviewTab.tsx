@@ -86,16 +86,10 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
                 昨天
               </button>
               <button
-                onClick={() => setStatsTimeRange('week')}
-                className={`px-4 py-2 text-sm rounded-md transition-colors ${statsTimeRange === 'week' ? 'bg-green-500 text-white' : 'text-gray-600 hover:bg-white'}`}
+                onClick={() => setStatsTimeRange('dayBeforeYesterday')}
+                className={`px-4 py-2 text-sm rounded-md transition-colors ${statsTimeRange === 'dayBeforeYesterday' ? 'bg-green-500 text-white' : 'text-gray-600 hover:bg-white'}`}
               >
-                本周
-              </button>
-              <button
-                onClick={() => setStatsTimeRange('month')}
-                className={`px-4 py-2 text-sm rounded-md transition-colors ${statsTimeRange === 'month' ? 'bg-green-500 text-white' : 'text-gray-600 hover:bg-white'}`}
-              >
-                本月
+                前天
               </button>
             </div>
           </div>
