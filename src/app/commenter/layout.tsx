@@ -6,6 +6,7 @@ import { getCurrentLoggedInUser, commonLogout } from '@/auth/common';
 import Link from 'next/link';
 import { CommenterAuthStorage } from '@/auth/commenter/auth';
 import AlertModal from '../../components/ui/AlertModal';
+import { BackButton } from '../../components/business/BackButton';
 
 export default function CommenterLayout({
   children,
@@ -133,16 +134,16 @@ export default function CommenterLayout({
       {/* 顶部余额栏 */}
       <div className="bg-blue-500 text-white px-4 py-3 flex items-center justify-between">
         <div className="flex items-center space-x-2">
+          <BackButton className="text-white hover:bg-blue-600" />
           <span className="text-lg font-bold">¥{user?.balance?.toFixed(2)}</span>
           <div className="flex items-center space-x-1">
-            <span className="text-orange-400">🔥</span>
-            <span className="text-sm">抓紧中</span>
+            
           </div>
         </div>
         <div className="flex items-center space-x-3">
           <div className="relative">
-            <span className="text-orange-400">🔔</span>
-            <span className="absolute -top-1 -right-1 bg-red-500 text-xs rounded-full px-1">3</span>
+          <div>联系客服</div>
+            
           </div>
           <button onClick={handleLogout} className="text-sm">👤</button>
         </div>

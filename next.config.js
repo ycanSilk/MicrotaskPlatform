@@ -7,6 +7,7 @@ const nextConfig = {
   // API代理配置，用于解决跨域问题
   async rewrites() {
     return [
+      { source: '/api/users/me', destination: '/api/users/me' }, // 不转发到外部服务器
       { source: '/api/users/register', destination: 'https://catchweight-graphemically-eldora.ngrok-free.dev/api/users/register' },
       { source: '/api/users/login', destination: 'https://catchweight-graphemically-eldora.ngrok-free.dev/api/users/login' },
       { source: '/api/users', destination: 'https://catchweight-graphemically-eldora.ngrok-free.dev/api/users' },

@@ -1,0 +1,9 @@
+{
+  "token": "eyJhbGciOiJIUzI1NiJ9.eyJjcmVhdGVkIjoxNzU5NDc2MTk5MjU1LCJ1c2VybmFtZSI6InRlc3QiLCJzdWIiOiJ0ZXN0IiwiaWF0IjoxNzU5NDc2MTk5LCJleHAiOjE3NTk1NjI1OTl9.JqGZ_GNdJW2-Zm8T5S3Z_WfNE-AEadr1bNHrN4IIYgY",
+  "tokenType": "Bearer",
+  "expiresIn": 86400000,
+  "username": "test",
+  "password": "123456",
+  "timestamp": 1759476199260,
+  "expiresAt": 1845876199260
+}

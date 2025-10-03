@@ -117,6 +117,17 @@ export default function CommenterProfilePage() {
             </div>
             <span className="text-gray-400">›</span>
           </button>
+          
+          <button 
+            onClick={() => router.push('/commenter/bank-cards')}
+            className="w-full flex items-center justify-between p-4 border-b"
+          >
+            <div className="flex items-center space-x-3">
+              <span className="text-xl">💳</span>
+              <span className="font-medium">我的银行卡</span>
+            </div>
+            <span className="text-gray-400">›</span>
+          </button>
 
           <button 
             onClick={() => setActiveSection('history')}
