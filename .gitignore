@@ -50,3 +50,4 @@ coverage/
 # Module systems
 yarn.lock
 .npmrc
+src/goflylivechat/
