@@ -2,7 +2,10 @@
 
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { SearchOutlined, AudioOutlined, BookOutlined, ToolOutlined } from '@ant-design/icons';
+import SearchOutlined from '@ant-design/icons/SearchOutlined';
+import AudioOutlined from '@ant-design/icons/AudioOutlined';
+import BookOutlined from '@ant-design/icons/BookOutlined';
+import ToolOutlined from '@ant-design/icons/ToolOutlined';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { RadioGroup } from '@/components/ui/RadioGroup';

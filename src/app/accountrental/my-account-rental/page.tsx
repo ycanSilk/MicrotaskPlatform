@@ -3,7 +3,18 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
-import { PhoneOutlined, FileTextOutlined, WalletOutlined, BarChartOutlined, UserOutlined, QuestionCircleOutlined, SettingOutlined, RightOutlined, HomeOutlined, CreditCardOutlined, StarOutlined, ShopOutlined } from '@ant-design/icons';
+import PhoneOutlined from '@ant-design/icons/PhoneOutlined';
+import FileTextOutlined from '@ant-design/icons/FileTextOutlined';
+import WalletOutlined from '@ant-design/icons/WalletOutlined';
+import BarChartOutlined from '@ant-design/icons/BarChartOutlined';
+import UserOutlined from '@ant-design/icons/UserOutlined';
+import QuestionCircleOutlined from '@ant-design/icons/QuestionCircleOutlined';
+import SettingOutlined from '@ant-design/icons/SettingOutlined';
+import RightOutlined from '@ant-design/icons/RightOutlined';
+import HomeOutlined from '@ant-design/icons/HomeOutlined';
+import CreditCardOutlined from '@ant-design/icons/CreditCardOutlined';
+import StarOutlined from '@ant-design/icons/StarOutlined';
+import ShopOutlined from '@ant-design/icons/ShopOutlined';
 
 // 定义菜单项接口
 interface MenuItem {

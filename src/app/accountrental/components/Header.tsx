@@ -2,7 +2,8 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { BackButton } from '@/components/business/BackButton';
-import { CloseOutlined, SettingOutlined } from '@ant-design/icons';
+import CloseOutlined from '@ant-design/icons/CloseOutlined';
+import SettingOutlined from '@ant-design/icons/SettingOutlined';
 
 interface HeaderProps {
   // 可以添加需要的props
@@ -79,7 +80,7 @@ const Header: React.FC<HeaderProps> = () => {
           <SettingOutlined className="text-xl" />
         {/* 悬停时显示中文提示 */}
         <span className="absolute right-full mr-2 top-1/2 transform -translate-y-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all pointer-events-none">
-          管理后台
+          返回
         </span>
       </button>
     </header>

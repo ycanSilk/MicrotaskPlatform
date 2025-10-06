@@ -2,7 +2,8 @@ import React from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { BackButton } from './BackButton';
 import { SearchBox } from '../ui/SearchBox';
-import { HomeOutlined, MessageOutlined, UserOutlined } from '@ant-design/icons';
+import { HomeOutlined, UserOutlined } from '@ant-design/icons';
+import { CustomerServiceButton } from '../button/CustomerServiceButton';
 
 interface PublisherHeaderProps {
   user: {
@@ -40,36 +41,35 @@ export const PublisherHeader: React.FC<PublisherHeaderProps> = ({ user }) => {
   };
 
   return (
-    <div className="bg-blue-500 text-white px-4 py-3 flex items-center justify-between">
-      <div className="flex items-center space-x-3">
-        <BackButton />
-        <button 
-            onClick={() => router.push('/publisher/dashboard')} 
-            className="text-lg font-bold text-black hover:text-blue-300 transition-colors"
-            aria-label="返回首页"
-          >
-            <HomeOutlined size={20} />
-          </button>
+    <>
+      <div className="bg-blue-500 text-white px-4 py-3 flex items-center justify-between">
+        <div className="flex items-center space-x-3">
+          <BackButton />
+          <button 
+              onClick={() => router.push('/publisher/dashboard')} 
+              className="text-lg font-bold text-black hover:text-blue-300 transition-colors"
+              aria-label="返回首页"
+            >
+              <HomeOutlined size={20} />
+            </button>
+        </div>
+        
+        <div className="flex-1 max-w-md mx-4">
+          <SearchBox 
+            placeholder="搜索任务、用户或关键词"
+            onSearch={handleSearch}
+          />
+        </div>
+        
+        <div className="flex items-center space-x-3 mr-5">
+            {/* 使用通用客服按钮组件 */}
+            <CustomerServiceButton />
+            
+            <button onClick={handleLogout} className="text-sm">
+              <UserOutlined size={20} /><span className="ml-1">登出</span>
+            </button>
+          </div>
       </div>
-      
-      <div className="flex-1 max-w-md mx-4">
-        <SearchBox 
-          placeholder="搜索任务、用户或关键词"
-          onSearch={handleSearch}
-        />
-      </div>
-      
-      <div className="flex items-center space-x-3">
-        <button 
-          className="text-lg font-bold text-black hover:text-blue-300 transition-colors"
-          aria-label="联系客服"
-        >
-          <MessageOutlined size={20} />
-        </button>
-        <button onClick={handleLogout} className="text-sm">
-          <UserOutlined size={20} />
-        </button>
-      </div>
-    </div>
+    </>
   );
 };

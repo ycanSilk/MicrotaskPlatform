@@ -1,7 +1,10 @@
 import React from 'react';
 import { Button } from '@/components/ui/Button';
 import { AccountRentalInfo } from '../types';
-import { AudioOutlined, BookOutlined, ToolOutlined } from '@ant-design/icons';
+import SearchOutlined from '@ant-design/icons/SearchOutlined';
+import AudioOutlined from '@ant-design/icons/AudioOutlined';
+import BookOutlined from '@ant-design/icons/BookOutlined';
+import ToolOutlined from '@ant-design/icons/ToolOutlined';
 
 // 根据平台获取对应图标
 const getPlatformIcon = (platform: string) => {

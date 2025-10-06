@@ -2,7 +2,19 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { SearchOutlined, FilterOutlined, DownOutlined, CalendarOutlined, ClockCircleOutlined, LockOutlined, MoreOutlined, CheckCircleOutlined, ExclamationCircleOutlined, InfoCircleOutlined, AudioOutlined, BookOutlined, ToolOutlined } from '@ant-design/icons';
+import SearchOutlined from '@ant-design/icons/SearchOutlined';
+import FilterOutlined from '@ant-design/icons/FilterOutlined';
+import DownOutlined from '@ant-design/icons/DownOutlined';
+import CalendarOutlined from '@ant-design/icons/CalendarOutlined';
+import ClockCircleOutlined from '@ant-design/icons/ClockCircleOutlined';
+import LockOutlined from '@ant-design/icons/LockOutlined';
+import MoreOutlined from '@ant-design/icons/MoreOutlined';
+import CheckCircleOutlined from '@ant-design/icons/CheckCircleOutlined';
+import ExclamationCircleOutlined from '@ant-design/icons/ExclamationCircleOutlined';
+import InfoCircleOutlined from '@ant-design/icons/InfoCircleOutlined';
+import AudioOutlined from '@ant-design/icons/AudioOutlined';
+import BookOutlined from '@ant-design/icons/BookOutlined';
+import ToolOutlined from '@ant-design/icons/ToolOutlined';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/Tabs';

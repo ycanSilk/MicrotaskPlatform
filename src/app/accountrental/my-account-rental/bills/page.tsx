@@ -2,7 +2,20 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { FileTextOutlined, CalendarOutlined, SearchOutlined, FilterOutlined, DownOutlined, CreditCardOutlined, WalletOutlined, MoreOutlined, CheckCircleOutlined, ExclamationCircleOutlined, InfoCircleOutlined, RightOutlined, DownloadOutlined, ShareAltOutlined } from '@ant-design/icons';
+import FileTextOutlined from '@ant-design/icons/FileTextOutlined';
+import CalendarOutlined from '@ant-design/icons/CalendarOutlined';
+import SearchOutlined from '@ant-design/icons/SearchOutlined';
+import FilterOutlined from '@ant-design/icons/FilterOutlined';
+import DownOutlined from '@ant-design/icons/DownOutlined';
+import CreditCardOutlined from '@ant-design/icons/CreditCardOutlined';
+import WalletOutlined from '@ant-design/icons/WalletOutlined';
+import MoreOutlined from '@ant-design/icons/MoreOutlined';
+import CheckCircleOutlined from '@ant-design/icons/CheckCircleOutlined';
+import ExclamationCircleOutlined from '@ant-design/icons/ExclamationCircleOutlined';
+import InfoCircleOutlined from '@ant-design/icons/InfoCircleOutlined';
+import RightOutlined from '@ant-design/icons/RightOutlined';
+import DownloadOutlined from '@ant-design/icons/DownloadOutlined';
+import ShareAltOutlined from '@ant-design/icons/ShareAltOutlined';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/Tabs';

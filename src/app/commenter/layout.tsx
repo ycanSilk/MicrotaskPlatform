@@ -203,7 +203,7 @@ export default function CommenterLayout({
             }`}
           >
             <PropertySafetyOutlined className="text-lg" />
-            <span className="text-xs">账号出租</span>
+            <span className="text-xs">账号租赁</span>
           </button>
           <Link
             href="/commenter/invite"

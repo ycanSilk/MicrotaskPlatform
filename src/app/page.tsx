@@ -222,7 +222,7 @@ export default function HomePage() {
                 <span className="mr-2">✓</span>聊天记录查询
               </div>
             </div>
-            <a href="/customchat" className="block w-full py-3 px-4 bg-yellow-500 text-white rounded-lg text-center text-sm font-medium hover:bg-yellow-600 transition-colors">
+            <a href="http://localhost:8081/login" className="block w-full py-3 px-4 bg-yellow-500 text-white rounded-lg text-center text-sm font-medium hover:bg-yellow-600 transition-colors">
               进入客服系统 →
             </a>
           </div>

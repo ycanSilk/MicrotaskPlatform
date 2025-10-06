@@ -2,6 +2,9 @@
 import React, { memo } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Header from './components/Header';
+import ShopOutlined from '@ant-design/icons/ShopOutlined';
+import FileTextOutlined from '@ant-design/icons/FileTextOutlined';
+import UserOutlined from '@ant-design/icons/UserOutlined';
 
 const AccountRentalLayout = memo(({ children }: { children: React.ReactNode }) => {
   const router = useRouter();
@@ -40,21 +43,21 @@ const AccountRentalLayout = memo(({ children }: { children: React.ReactNode }) =
           onClick={handleMarketClick}
           className="flex flex-col items-center"
         >
-          <span className="text-xl">🏪</span>
+          <ShopOutlined className="text-xl" />
           <span className={`text-xs mt-1 ${isMarketActive ? 'text-blue-600' : 'text-gray-500'}`}>租赁市场</span>
         </button>
         <button 
           onClick={handlePublishClick}
           className="flex flex-col items-center"
         >
-          <span className="text-xl">📝</span>
+          <FileTextOutlined className="text-xl" />
           <span className={`text-xs mt-1 ${isPublishActive ? 'text-blue-600' : 'text-gray-500'}`}>发布租赁</span>
         </button>
         <button 
           onClick={handleMyClick}
           className="flex flex-col items-center"
         >
-          <span className="text-xl">👤</span>
+          <UserOutlined className="text-xl" />
           <span className={`text-xs mt-1 ${isMyActive ? 'text-blue-600' : 'text-gray-500'}`}>我的</span>
         </button>
       </footer>

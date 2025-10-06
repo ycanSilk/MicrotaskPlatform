@@ -5,6 +5,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "prebuild": "node -e \"const { existsSync, chmodSync, execSync } = require('fs'); const path = './scripts/build-gofly.sh'; if (existsSync(path)) { try { chmodSync(path, '755'); execSync(path, { stdio: 'inherit' }); } catch (e) { console.log('Build script failed but continuing...'); } }\"",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",

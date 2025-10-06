@@ -2,7 +2,20 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { WalletOutlined, CreditCardOutlined, ArrowUpOutlined, ArrowDownOutlined, SafetyOutlined, BellOutlined, InfoCircleOutlined, DownOutlined, CalendarOutlined, ClockCircleOutlined, SearchOutlined, FilterOutlined, MoreOutlined, UndoOutlined } from '@ant-design/icons';
+import WalletOutlined from '@ant-design/icons/WalletOutlined';
+import CreditCardOutlined from '@ant-design/icons/CreditCardOutlined';
+import ArrowUpOutlined from '@ant-design/icons/ArrowUpOutlined';
+import ArrowDownOutlined from '@ant-design/icons/ArrowDownOutlined';
+import SafetyOutlined from '@ant-design/icons/SafetyOutlined';
+import BellOutlined from '@ant-design/icons/BellOutlined';
+import InfoCircleOutlined from '@ant-design/icons/InfoCircleOutlined';
+import DownOutlined from '@ant-design/icons/DownOutlined';
+import CalendarOutlined from '@ant-design/icons/CalendarOutlined';
+import ClockCircleOutlined from '@ant-design/icons/ClockCircleOutlined';
+import SearchOutlined from '@ant-design/icons/SearchOutlined';
+import FilterOutlined from '@ant-design/icons/FilterOutlined';
+import MoreOutlined from '@ant-design/icons/MoreOutlined';
+import UndoOutlined from '@ant-design/icons/UndoOutlined';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/Tabs';
