@@ -13,6 +13,7 @@ import { Radio } from '@/components/ui/Radio';
 import { Label } from '@/components/ui/Label';
 import { useInfiniteScroll } from '@/hooks/useInfiniteScroll';
 import AccountCard from '../components/AccountCard';
+import AccountRentalLayout from '../layout';
 // 账号租赁信息接口定义
 interface AccountRentalInfo {
   id: string;
@@ -241,9 +242,23 @@ const MOCK_ACCOUNT_DATA: AccountRentalInfo[] = [
 
 
 
-export default function AccountRentalMarketPage() {
+export default function AccountRentalMarketPage({ searchParams }: { searchParams?: { [key: string]: string | string[] | undefined } }) {
   const router = useRouter();
   const [accounts, setAccounts] = useState<AccountRentalInfo[]>([]);
+  
+  // 处理返回逻辑
+  const handleBack = () => {
+    // 检查是否有from参数，如果有且等于commenter-hall，则返回抢单大厅
+    const fromParam = searchParams?.from;
+    if (fromParam === 'commenter-hall') {
+      router.push('/commenter/hall');
+    } else {
+      // 否则使用浏览器的返回功能
+      router.back();
+    }
+  };
+  
+  // 其他状态和逻辑保持不变
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedPlatform, setSelectedPlatform] = useState('all');
   const [selectedCategory, setSelectedCategory] = useState('all');
@@ -503,7 +518,7 @@ export default function AccountRentalMarketPage() {
                         </option>
                       ))}
                     </select>
-          
+              
                     {/* 分隔线 */}
                     {index < 2 && <div className="absolute right-0 top-1/2 transform -translate-y-1/2 h-6 w-px bg-gray-200"></div>}
                   </div>
@@ -614,3 +629,4 @@ export default function AccountRentalMarketPage() {
     </div>
   );
 }
+  

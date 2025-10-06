@@ -196,15 +196,13 @@ export default function CommenterLayout({
             <DollarOutlined className="text-lg" />
             <span className="text-xs">收益</span>
           </Link>
-          <button
-            onClick={showNotAvailableAlert}
-            className={`flex flex-col items-center py-2 ${
-              isActive('/lease') ? 'text-blue-500' : 'text-gray-400'
-            }`}
+          <Link
+            href="/accountrental/account-rental-market?from=commenter-hall"
+            className={`flex flex-col items-center py-2 ${isActive('/accountrental') ? 'text-blue-500' : 'text-gray-400'}`}
           >
             <PropertySafetyOutlined className="text-lg" />
             <span className="text-xs">账号租赁</span>
-          </button>
+          </Link>
           <Link
             href="/commenter/invite"
             className={`flex flex-col items-center py-2 ${
@@ -226,14 +224,7 @@ export default function CommenterLayout({
         </div>
       </div>
     
-    {/* 功能暂未开放提示框 */}
-    <AlertModal
-      isOpen={showAlertModal}
-      title="功能暂未开放"
-      message="该功能暂未开放"
-      icon={<WarningOutlined className="text-orange-500" />}
-      onClose={() => setShowAlertModal(false)}
-    />
+
   </div>
   );
 }

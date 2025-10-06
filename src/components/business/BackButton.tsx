@@ -5,9 +5,11 @@ import { LeftOutlined } from '@ant-design/icons';
 interface BackButtonProps {
   // 可选的自定义className
   className?: string;
+  // 可选的自定义返回处理函数
+  customBackHandler?: () => void;
 }
 
-export const BackButton: React.FC<BackButtonProps> = ({ className = '' }) => {
+export const BackButton: React.FC<BackButtonProps> = ({ className = '', customBackHandler }) => {
   const router = useRouter();
   const pathname = usePathname();
 
@@ -65,6 +67,12 @@ export const BackButton: React.FC<BackButtonProps> = ({ className = '' }) => {
   ];
 
   const handleBack = () => {
+    // 如果提供了自定义返回处理函数，则优先使用
+    if (customBackHandler) {
+      customBackHandler();
+      return;
+    }
+
     // 检查当前页面是否为一级页面
     if (firstLevelPages.includes(pathname)) {
       // 如果是一级页面，直接返回该模块的首页导航

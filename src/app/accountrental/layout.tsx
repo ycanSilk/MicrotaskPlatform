@@ -6,7 +6,11 @@ import ShopOutlined from '@ant-design/icons/ShopOutlined';
 import FileTextOutlined from '@ant-design/icons/FileTextOutlined';
 import UserOutlined from '@ant-design/icons/UserOutlined';
 
-const AccountRentalLayout = memo(({ children }: { children: React.ReactNode }) => {
+interface AccountRentalLayoutProps {
+  children: React.ReactNode;
+}
+
+const AccountRentalLayout = memo(({ children }: AccountRentalLayoutProps) => {
   const router = useRouter();
   const pathname = usePathname();
 

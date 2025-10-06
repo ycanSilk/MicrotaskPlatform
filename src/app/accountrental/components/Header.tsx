@@ -7,9 +7,10 @@ import SettingOutlined from '@ant-design/icons/SettingOutlined';
 
 interface HeaderProps {
   // 可以添加需要的props
+  customBackHandler?: () => void;
 }
 
-const Header: React.FC<HeaderProps> = () => {
+const Header: React.FC<HeaderProps> = ({ customBackHandler }) => {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState<string>('');
 
@@ -41,8 +42,8 @@ const Header: React.FC<HeaderProps> = () => {
 
   return (
     <header className="h-[56px] bg-white flex items-center px-4 border-b border-gray-200 sticky top-0 z-10">
-      {/* 使用公共 BackButton 组件 */}
-      <BackButton className="w-[36px] h-[36px] flex items-center justify-center" />
+      {/* 使用公共 BackButton 组件，并传递自定义返回处理函数 */}
+      <BackButton className="w-[36px] h-[36px] flex items-center justify-center" customBackHandler={customBackHandler} />
 
       {/* 搜索框 - 优化并实现搜索功能 */}
       <div className="flex-1 ml-3 relative">
