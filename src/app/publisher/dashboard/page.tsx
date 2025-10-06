@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { PublisherAuthStorage } from '@/auth/publisher/auth';
-import { Search } from 'lucide-react';
 import OverviewTab from './components/OverviewTab';
 import AuditTab from './components/AuditTab';
 import ActiveTasksTab from './components/ActiveTasksTab';

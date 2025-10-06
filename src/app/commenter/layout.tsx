@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { CommenterAuthStorage } from '@/auth/commenter/auth';
 import AlertModal from '../../components/ui/AlertModal';
 import { BackButton } from '../../components/business/BackButton';
+import { ReloadOutlined, UserOutlined, HomeOutlined, FileTextOutlined, DollarOutlined, PropertySafetyOutlined, UserAddOutlined, WarningOutlined } from '@ant-design/icons';
 
 export default function CommenterLayout({
   children,
@@ -122,7 +123,9 @@ export default function CommenterLayout({
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="text-2xl mb-2">🔄</div>
+          <div className="text-2xl mb-2 animate-spin">
+            <ReloadOutlined />
+          </div>
           <div>加载中...</div>
         </div>
       </div>
@@ -145,7 +148,9 @@ export default function CommenterLayout({
           <div>联系客服</div>
             
           </div>
-          <button onClick={handleLogout} className="text-sm">👤</button>
+          <button onClick={handleLogout} className="text-sm">
+            <UserOutlined />
+          </button>
         </div>
       </div>
 
@@ -170,7 +175,7 @@ export default function CommenterLayout({
               isActive('/hall') ? 'text-blue-500' : 'text-gray-400'
             }`}
           >
-            <span className="text-lg">🏠</span>
+            <HomeOutlined className="text-lg" />
             <span className="text-xs">抢单大厅</span>
           </Link>
           <Link
@@ -179,7 +184,7 @@ export default function CommenterLayout({
               isActive('/tasks') ? 'text-blue-500' : 'text-gray-400'
             }`}
           >
-            <span className="text-lg">📋</span>
+            <FileTextOutlined className="text-lg" />
             <span className="text-xs">任务</span>
           </Link>
           <Link
@@ -188,7 +193,7 @@ export default function CommenterLayout({
               isActive('/earnings') ? 'text-blue-500' : 'text-gray-400'
             }`}
           >
-            <span className="text-lg">💰</span>
+            <DollarOutlined className="text-lg" />
             <span className="text-xs">收益</span>
           </Link>
           <button
@@ -197,7 +202,7 @@ export default function CommenterLayout({
               isActive('/lease') ? 'text-blue-500' : 'text-gray-400'
             }`}
           >
-            <span className="text-lg">🏢</span>
+            <PropertySafetyOutlined className="text-lg" />
             <span className="text-xs">账号出租</span>
           </button>
           <Link
@@ -206,7 +211,7 @@ export default function CommenterLayout({
               isActive('/invite') ? 'text-blue-500' : 'text-gray-400'
             }`}
           >
-            <span className="text-lg">👥</span>
+            <UserAddOutlined className="text-lg" />
             <span className="text-xs">邀请</span>
           </Link>
           <Link
@@ -215,7 +220,7 @@ export default function CommenterLayout({
               isActive('/profile') ? 'text-blue-500' : 'text-gray-400'
             }`}
           >
-            <span className="text-lg">👤</span>
+            <UserOutlined className="text-lg" />
             <span className="text-xs">我的</span>
           </Link>
         </div>
@@ -226,7 +231,7 @@ export default function CommenterLayout({
       isOpen={showAlertModal}
       title="功能暂未开放"
       message="该功能暂未开放"
-      icon="⚠️"
+      icon={<WarningOutlined className="text-orange-500" />}
       onClose={() => setShowAlertModal(false)}
     />
   </div>

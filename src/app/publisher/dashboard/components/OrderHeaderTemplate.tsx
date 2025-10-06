@@ -1,5 +1,5 @@
 import React from 'react';
-import { Search,ChevronRight } from 'lucide-react';
+import { SearchOutlined, RightOutlined } from '@ant-design/icons';
 
 
 interface OrderHeaderTemplateProps {
@@ -44,7 +44,7 @@ const OrderHeaderTemplate: React.FC<OrderHeaderTemplateProps> = ({
         <div className="grid grid-cols-[79%_20%] gap-1">
           <div className="relative mr-1">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Search className="h-5 w-5 text-gray-400" />
+              <SearchOutlined className="h-5 w-5 text-gray-400" />
             </div>
             <input 
               type="text" 

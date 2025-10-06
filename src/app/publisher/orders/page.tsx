@@ -1,7 +1,7 @@
 'use client'
 import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { Search, Filter, Calendar, ChevronDown, ArrowUpDown, RefreshCw, CheckCircle, XCircle, AlertCircle, Clock, Download, Copy, Check } from 'lucide-react';
+import { SearchOutlined, FilterOutlined, CalendarOutlined, DownOutlined, ReloadOutlined, CheckCircleOutlined, CloseCircleOutlined, ExclamationCircleOutlined, ClockCircleOutlined, DownloadOutlined, CopyOutlined } from '@ant-design/icons';
 import ReorderButton from '../../components/ReorderButton';
 
 // 定义订单类型接口
@@ -458,13 +458,13 @@ const PublisherOrdersPage: React.FC = () => {
         <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
           <div className="bg-white shadow-sm rounded-lg p-6">
             <div className="flex flex-col items-center justify-center space-y-4">
-              <AlertCircle className="h-12 w-12 text-red-500" />
+              <ExclamationCircleOutlined className="h-12 w-12 text-red-500" />
               <p className="text-gray-700 text-lg font-medium">{error}</p>
               <button
                 onClick={handleRefresh}
                 className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
               >
-                <RefreshCw className="h-4 w-4 mr-2" />
+                <ReloadOutlined className="h-4 w-4 mr-2" />
                 重试
               </button>
             </div>
@@ -513,7 +513,7 @@ const PublisherOrdersPage: React.FC = () => {
                 onClick={handleExport}
                 className="inline-flex items-center justify-center h-9 px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150 ease-in-out"
               >
-                <Download className="h-4 w-4 mr-2" />
+                <DownloadOutlined className="h-4 w-4 mr-2" />
                 导出
               </button>
             </div>
@@ -526,7 +526,7 @@ const PublisherOrdersPage: React.FC = () => {
               <div className="flex-grow max-w-md flex space-x-2">
                 <div className="relative w-full">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Search className="h-5 w-5 text-gray-400" />
+                    <SearchOutlined className="h-5 w-5 text-gray-400" />
                   </div>
                   <input
                     type="text"
@@ -572,9 +572,9 @@ const PublisherOrdersPage: React.FC = () => {
                     onClick={() => setShowDatePicker(!showDatePicker)}
                     className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                   >
-                    <Calendar className="h-4 w-4 mr-2" />
+                    <CalendarOutlined className="h-4 w-4 mr-2" />
                     日期范围
-                    <ChevronDown className={`h-4 w-4 ml-2 transition-transform ${showDatePicker ? 'transform rotate-180' : ''}`} />
+                    <DownOutlined className={`h-4 w-4 ml-2 transition-transform ${showDatePicker ? 'transform rotate-180' : ''}`} />
                   </button>
                   {/* 日期选择器下拉菜单 - 实际项目中这里应该是一个真正的日期选择器组件 */}
                   {showDatePicker && (
@@ -627,7 +627,7 @@ const PublisherOrdersPage: React.FC = () => {
                   onClick={handleRefresh}
                   className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                 >
-                  <RefreshCw className="h-4 w-4 mr-2" />
+                  <ReloadOutlined className="h-4 w-4 mr-2" />
                   刷新
                 </button>
 
@@ -653,9 +653,9 @@ const PublisherOrdersPage: React.FC = () => {
                               aria-label="复制订单号"
                             >
                               {copiedOrderNumber === order.orderNumber ? (
-                                <Check className="h-4 w-4 text-blue-500 mr-1" />
+                                <CheckCircleOutlined className="h-4 w-4 text-blue-500 mr-1" />
                               ) : (
-                                <Copy className="h-4 w-4 text-blue-500 mr-1" />
+                                <CopyOutlined className="h-4 w-4 text-blue-500 mr-1" />
                               )}
                               复制
                             </button>

@@ -8,6 +8,7 @@ interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   error?: string;
   leftIcon?: React.ReactNode;
   rightIcon?: React.ReactNode;
+  suffix?: React.ReactNode | string;
 }
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(
@@ -33,6 +34,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
               'input',
               leftIcon && 'pl-10',
               rightIcon && 'pr-10',
+              props.suffix && 'pr-10',
               error && 'border-red-500 focus:ring-red-500 focus:border-red-500',
               className
             )}
@@ -42,6 +44,12 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           {rightIcon && (
             <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
               <div className="text-gray-500">{rightIcon}</div>
+            </div>
+          )}
+          
+          {props.suffix && !rightIcon && (
+            <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
+              <div className="text-gray-500">{props.suffix}</div>
             </div>
           )}
         </div>

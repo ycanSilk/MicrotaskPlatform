@@ -176,7 +176,7 @@ export interface ButtonProps {
   disabled?: boolean;
   children: React.ReactNode;
   className?: string;
-  onClick?: () => void;
+  onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void;
   type?: 'button' | 'submit' | 'reset';  // 添加type属性
 }
 
@@ -248,9 +248,11 @@ export interface MobileLayoutProps {
   title?: string;
 }
 
+import React from 'react';
+
 // 导航项类型
 export interface NavigationItem {
-  icon: string;
+  icon: string | React.ReactNode;
   label: string;
   path: string;
   active?: boolean;

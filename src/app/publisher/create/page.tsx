@@ -1,8 +1,6 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
-import AlertModal from '../../../components/ui/AlertModal';
 
 // 定义任务类型接口
 interface TaskType {
@@ -66,31 +64,18 @@ const TaskTypeCard = ({ taskType, onClick }: { taskType: TaskType, onClick: () =
 
 export default function CreateTask() {
   const router = useRouter();
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [modalConfig, setModalConfig] = useState({
-    icon: "🔧",
-    title: "功能暂未开放",
-    message: "功能暂未开放，无法使用"
-  });
 
   const handleTaskTypeClick = (taskType: TaskType) => {
     if (taskType.id === 'manual_comment') {
       // Manual Comment 跳转到 platformtype 页面
-      router.push('/publisher/create/platformtype');
+      router.push('/publisher/create/platformtype' as any);
     } else if (taskType.id === 'account_rental') {
-      // Account Rental 显示功能未可用提示
-      setModalConfig({
-        icon: "🔧",
-        title: "功能暂未开放",
-        message: "该功能暂未开放，无法使用"
-      });
-      setIsModalOpen(true);
+      // Account Rental 跳转到 account-rental 页面
+      router.push('/publisher/create/account-rental' as any);
     }
   };
 
-  const closeModal = () => {
-    setIsModalOpen(false);
-  };
+
 
   return (
     <div className="space-y-6 pb-20">
@@ -119,21 +104,12 @@ export default function CreateTask() {
             <div>
               <h3 className="font-medium text-blue-900 mb-1">任务类型说明</h3>
               <p className="text-blue-700 text-sm leading-relaxed">
-                请选择您需要发布的任务类型。选择"Manual Comment"将进入平台选择页面，您可以选择具体的社交平台发布评论任务。
+                请选择您需要发布的任务类型。选择"人工评论"将进入平台选择页面，选择"账号租用"将进入账号租用页面。
               </p>
             </div>
           </div>
         </div>
       </div>
-
-      {/* 功能未可用提示模态框 */}
-      <AlertModal
-        isOpen={isModalOpen}
-        icon={modalConfig.icon}
-        title={modalConfig.title}
-        message={modalConfig.message}
-        onClose={closeModal}
-      />
     </div>
   );
 }

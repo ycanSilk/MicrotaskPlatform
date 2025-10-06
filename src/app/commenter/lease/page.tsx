@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Card, Button } from '@/components/ui';
 import { useRouter } from 'next/navigation';
 import { CommenterAuthStorage } from '@/auth/commenter/auth';
+import { VideoCameraOutlined, CoffeeOutlined, BarChartOutlined } from '@ant-design/icons';
 
 export default function AccountRentalPage() {
   const router = useRouter();
@@ -11,7 +12,7 @@ export default function AccountRentalPage() {
     {
       id: 'task001',
       title: '抖音账号',
-      icon: '🎮',
+      icon: <VideoCameraOutlined className="text-purple-500" />,
       platform: '抖音',
       followers: '10k+',
       price: 50,
@@ -22,7 +23,7 @@ export default function AccountRentalPage() {
     {
       id: 'task002',
       title: '抖音账号',
-      icon: '🍳',
+      icon: <CoffeeOutlined className="text-amber-500" />,
       platform: '抖音',
       followers: '500+',
       price: 40,
@@ -33,7 +34,7 @@ export default function AccountRentalPage() {
     {
       id: 'task003',
       title: '抖音账号',
-      icon: '📈',
+      icon: <BarChartOutlined className="text-green-500" />,
       platform: '抖音',
       followers: '8k+',
       price: 60,

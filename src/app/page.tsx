@@ -195,6 +195,37 @@ export default function HomePage() {
               管理员登录 →
             </a>
           </div>
+
+          {/* 客服聊天系统 */}
+          <div className="bg-white rounded-2xl p-4 md:p-6 shadow-lg hover:shadow-xl transition-all border border-yellow-100">
+            <div className="w-10 h-10 md:w-12 md:h-12 bg-yellow-500 rounded-xl flex items-center justify-center mb-3 md:mb-4">
+              <span className="text-white text-lg md:text-xl">💬</span>
+            </div>
+            <h3 className="text-base md:text-lg font-bold text-gray-800 mb-1 md:mb-2">客服聊天系统</h3>
+            <p className="text-xs md:text-sm text-gray-600 mb-2 md:mb-3">Customer Service Chat</p>
+            <p className="text-xs text-gray-500 mb-3 md:mb-4 leading-relaxed">
+              <span className="block">即时在线沟通，</span>
+              <span className="block">问题快速解决，</span>
+              <span className="block">高效用户支持</span>
+            </p>
+            <div className="space-y-1 mb-4 md:mb-6">
+              <div className="flex items-center text-xs text-green-600">
+                <span className="mr-2">✓</span>用户端聊天界面
+              </div>
+              <div className="flex items-center text-xs text-green-600">
+                <span className="mr-2">✓</span>客服端管理界面
+              </div>
+              <div className="flex items-center text-xs text-green-600">
+                <span className="mr-2">✓</span>文字图片消息支持
+              </div>
+              <div className="flex items-center text-xs text-green-600">
+                <span className="mr-2">✓</span>聊天记录查询
+              </div>
+            </div>
+            <a href="/customchat" className="block w-full py-3 px-4 bg-yellow-500 text-white rounded-lg text-center text-sm font-medium hover:bg-yellow-600 transition-colors">
+              进入客服系统 →
+            </a>
+          </div>
         </div>
       </div>
 

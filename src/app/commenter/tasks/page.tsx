@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { BulbOutlined } from '@ant-design/icons';
 import { useRouter, useSearchParams } from 'next/navigation';
 import ProgressTasksTab from './components/ProgressTasksTab';
 import PendingReviewTasksTab from './components/PendingReviewTasksTab';
@@ -685,7 +686,7 @@ export default function CommenterTasksPage() {
       {/* 任务提示 */}
       <div className="mx-4 mt-6 bg-blue-50 rounded-lg p-4">
         <div className="flex items-start space-x-2">
-          <span className="text-blue-500 text-xl">💡</span>
+          <BulbOutlined className="text-blue-500 text-xl" />
           <div>
             <h4 className="font-medium text-blue-800 mb-1">任务小贴士</h4>
             <p className="text-sm text-blue-600">

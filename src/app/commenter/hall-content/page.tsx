@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { ClockCircleOutlined, WarningOutlined, CloseCircleOutlined, BulbOutlined, CheckCircleOutlined, DollarOutlined, MailOutlined, ReloadOutlined } from '@ant-design/icons';
 import { CommenterAuthStorage } from '@/auth/commenter/auth';
 import AlertModal from '../../../components/ui/AlertModal';
 
@@ -21,11 +22,28 @@ export default function CommenterHallContentPage() {
   const [alertConfig, setAlertConfig] = useState({
     title: '',
     message: '',
-    icon: '⚠️'
+    icon: <WarningOutlined className="text-yellow-500" />
   });
   
   // 显示通用提示框
-  const showAlert = (title: string, message: string, icon: string = '⚠️') => {
+  const showAlert = (title: string, message: string, iconType: 'warning' | 'error' | 'success' | 'info' = 'warning') => {
+    let icon;
+    switch (iconType) {
+      case 'warning':
+        icon = <WarningOutlined className="text-yellow-500" />;
+        break;
+      case 'error':
+        icon = <CloseCircleOutlined className="text-red-500" />;
+        break;
+      case 'success':
+        icon = <CheckCircleOutlined className="text-green-500" />;
+        break;
+      case 'info':
+        icon = <BulbOutlined className="text-blue-500" />;
+        break;
+      default:
+        icon = <WarningOutlined className="text-yellow-500" />;
+    }
     setAlertConfig({ title, message, icon });
     setShowAlertModal(true);
   };
@@ -115,11 +133,11 @@ export default function CommenterHallContentPage() {
         if (response.status === 401) {
           errorMessage = '您没有权限访问此功能，请以评论员身份登录';
         }
-        showAlert('获取订单失败', errorMessage, '❌');
+        showAlert('获取订单失败', errorMessage, 'error');
       }
     } catch (error) {
       console.error('获取订单错误:', error);
-      showAlert('网络错误', '获取订单时发生错误，请检查网络连接或稍后再试', '❌');
+      showAlert('网络错误', '获取订单时发生错误，请检查网络连接或稍后再试', 'error');
     }
   };
 
@@ -143,13 +161,13 @@ export default function CommenterHallContentPage() {
     try {
       const user = CommenterAuthStorage.getCurrentUser();
       if (!user) {
-        showAlert('提示', '请先登录', '💡');
+        showAlert('提示', '请先登录', 'info');
         return;
       }
 
       // 检查用户角色是否为评论员
       if (user.role !== 'commenter') {
-        showAlert('权限不足', '您不是评论员角色，无法抢单', '⚠️');
+        showAlert('权限不足', '您不是评论员角色，无法抢单', 'warning');
         return;
       }
 
@@ -157,7 +175,7 @@ export default function CommenterHallContentPage() {
       const auth = CommenterAuthStorage.getAuth();
       if (!auth || !auth.token) {
         console.error('无法获取认证token');
-        showAlert('认证错误', '认证信息无效，请重新登录', '❌');
+        showAlert('认证错误', '认证信息无效，请重新登录', 'error');
         return;
       }
 
@@ -180,7 +198,7 @@ export default function CommenterHallContentPage() {
       console.log('抢单API响应数据:', data);
       
       if (data.success) {
-        showAlert('抢单成功', data.message, '✅');
+        showAlert('抢单成功', data.message, 'success');
         
         // 设置10分钟冷却时间
         const tenMinutesInMs = 10 * 60 * 1000;
@@ -197,11 +215,11 @@ export default function CommenterHallContentPage() {
         if (response.status === 401) {
           errorMessage = '您没有权限抢单，请以评论员身份登录';
         }
-        showAlert('抢单失败', errorMessage, '❌');
+        showAlert('抢单失败', errorMessage, 'error');
       }
     } catch (error) {
       console.error('抢单错误:', error);
-      showAlert('网络错误', '抢单时发生错误，请检查网络连接或稍后再试', '❌');
+      showAlert('网络错误', '抢单时发生错误，请检查网络连接或稍后再试', 'error');
     } finally {
       setGrabbingTasks(prev => {
         const newSet = new Set(prev);
@@ -265,11 +283,11 @@ export default function CommenterHallContentPage() {
       {/* 冷却时间显示 */}
       {coolingDown && (
         <div className="bg-gradient-to-r from-orange-500 to-red-500 text-white mx-4 mt-4 rounded-lg p-4 shadow-md">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <span className="text-xl">⏱️</span>
-              <span className="font-medium">抢单冷却中</span>
-            </div>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <ClockCircleOutlined className="text-xl" />
+                <span className="font-medium">抢单冷却中</span>
+              </div>
             <div className="font-bold text-lg">
               {remainingTime.minutes.toString().padStart(2, '0')}:{remainingTime.seconds.toString().padStart(2, '0')}
             </div>
@@ -300,7 +318,9 @@ export default function CommenterHallContentPage() {
             }}
             className={`flex items-center space-x-1 px-3 py-2 rounded-lg text-sm ${sortBy === 'time' ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-600'}`}
           >
-            <span>🕰️</span>
+            <span>
+                <ClockCircleOutlined className="text-gray-500" />
+              </span>
             <span>发布时间</span>
             {sortBy === 'time' && (
               <span>{sortOrder === 'desc' ? '↓' : '↑'}</span>
@@ -319,7 +339,9 @@ export default function CommenterHallContentPage() {
             }}
             className={`flex items-center space-x-1 px-3 py-2 rounded-lg text-sm ${sortBy === 'price' ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-600'}`}
           >
-            <span>💰</span>
+            <span>
+                <DollarOutlined className="text-gray-500" />
+              </span>
             <span>单价</span>
             {sortBy === 'price' && (
               <span>{sortOrder === 'desc' ? '↓' : '↑'}</span>
@@ -339,7 +361,9 @@ export default function CommenterHallContentPage() {
 
         {sortedTasks.length === 0 ? (
           <div className="bg-white rounded-lg p-6 text-center">
-            <div className="text-5xl mb-3">📭</div>
+            <div className="text-5xl mb-3">
+              <MailOutlined className="text-gray-400" />
+            </div>
             <h3 className="font-medium text-gray-800 mb-2">暂无待领取订单</h3>
             <p className="text-gray-500 text-sm mb-4">请稍后刷新或关注新发布的任务</p>
             <button 
@@ -366,7 +390,7 @@ export default function CommenterHallContentPage() {
             <div className="flex justify-between items-center mb-3">
               <div className="text-lg font-bold text-orange-500">¥{typeof task.price === 'number' ? task.price.toFixed(2) : '0.00'}</div>
               <div className="text-xs text-gray-500">
-                🕰️ {new Date(task.publishTime).toLocaleString()}
+                <ClockCircleOutlined className="inline-block mr-1" /> {new Date(task.publishTime).toLocaleString()}
               </div>
             </div>
             
@@ -390,7 +414,9 @@ export default function CommenterHallContentPage() {
       {/* 任务提示 */}
       <div className="mx-4 mt-6 bg-blue-50 rounded-lg p-4">
         <div className="flex items-start space-x-3">
-          <span className="text-blue-500 text-xl">💡</span>
+          <span className="text-blue-500 text-xl">
+            <BulbOutlined />
+          </span>
           <div>
             <h4 className="font-medium text-blue-800 mb-1">接单小贴士</h4>
             <p className="text-sm text-blue-600">
@@ -409,7 +435,7 @@ export default function CommenterHallContentPage() {
         >
           <div className="flex items-center justify-center space-x-2">
             <span className={isRefreshing ? 'animate-spin' : ''}>
-              {isRefreshing ? '🔄' : '🔄'}
+              <ReloadOutlined />
             </span>
             <span>{isRefreshing ? '刷新中...' : '刷新代抢订单'}</span>
           </div>
@@ -419,7 +445,7 @@ export default function CommenterHallContentPage() {
       {/* 冷却提示模态框 - 使用统一的AlertModal组件 */}
       <AlertModal
         isOpen={showCoolingModal}
-        icon="⏱️"
+        icon={<ClockCircleOutlined className="text-orange-500" />}
         title="抢单冷却中"
         message={`您当前处于冷却期，还剩余 ${remainingTime.minutes} 分 ${remainingTime.seconds} 秒`}
         onClose={() => setShowCoolingModal(false)}

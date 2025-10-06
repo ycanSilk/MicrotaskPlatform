@@ -1,9 +1,9 @@
 "use client"
 import React, { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { ChevronLeft, CheckCircle, XCircle, AlertCircle, Clock, Download, MessageSquare, Users, DollarSign, Calendar, FileText, Award, Share2, ThumbsUp, Copy, Check } from 'lucide-react';
+import { LeftOutlined, CheckCircleOutlined, CloseCircleOutlined, ExclamationCircleOutlined, ClockCircleOutlined, DownloadOutlined, MessageOutlined, UserOutlined, DollarOutlined, CalendarOutlined, FileTextOutlined, TrophyOutlined, ShareAltOutlined, LikeOutlined, LockOutlined, TeamOutlined, CopyOutlined } from '@ant-design/icons';
 
-// 直接在文件中定义SubOrder接口
+
 export interface SubOrder {
   id: string;
   orderId: string;
@@ -100,13 +100,14 @@ const SubOrderDetailPage: React.FC = () => {
   // 获取状态对应的中文名称和样式
   const getStatusInfo = (status: string) => {
     const statusMap: Record<string, { text: string; className: string; icon: React.ReactNode }> = {
-      pending: { text: '待处理', className: 'bg-yellow-100 text-yellow-800', icon: <Clock className="h-4 w-4" /> },
-      processing: { text: '进行中', className: 'bg-blue-100 text-blue-800', icon: <Clock className="h-4 w-4" /> },
-      reviewing: { text: '审核中', className: 'bg-purple-100 text-purple-800', icon: <Clock className="h-4 w-4" /> },
-      completed: { text: '已完成', className: 'bg-green-100 text-green-800', icon: <CheckCircle className="h-4 w-4" /> },
-      rejected: { text: '已拒绝', className: 'bg-red-100 text-red-800', icon: <XCircle className="h-4 w-4" /> }
+      pending: { text: '待处理', className: 'bg-yellow-100 text-yellow-800', icon: <ClockCircleOutlined className="h-4 w-4" /> },
+      processing: { text: '进行中', className: 'bg-blue-100 text-blue-800', icon: <ClockCircleOutlined className="h-4 w-4" /> },
+      reviewing: { text: '审核中', className: 'bg-purple-100 text-purple-800', icon: <LockOutlined className="h-4 w-4" /> },
+      completed: { text: '已完成', className: 'bg-green-100 text-green-800', icon: <CheckCircleOutlined className="h-4 w-4" /> },
+      rejected: { text: '已拒绝', className: 'bg-red-100 text-red-800', icon: <CloseCircleOutlined className="h-4 w-4" /> },
+      cancelled: { text: '已取消', className: 'bg-gray-100 text-gray-800', icon: <CloseCircleOutlined className="h-4 w-4" /> }
     };
-    return statusMap[status] || { text: status, className: 'bg-gray-100 text-gray-800', icon: <AlertCircle className="h-4 w-4" /> };
+    return statusMap[status] || { text: status, className: 'bg-gray-100 text-gray-800', icon: <CloseCircleOutlined className="h-4 w-4" /> };
   };
 
   if (loading) {
@@ -142,12 +143,12 @@ const SubOrderDetailPage: React.FC = () => {
             onClick={handleBack}
             className="mb-4 inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
           >
-            <ChevronLeft className="h-4 w-4 mr-2" />
+            <LeftOutlined className="h-4 w-4 mr-2" />
             返回订单详情
           </button>
           <div className="bg-white shadow-sm rounded-lg p-6">
             <div className="flex flex-col items-center justify-center space-y-4">
-              <AlertCircle className="h-12 w-12 text-red-500" />
+              <CloseCircleOutlined className="h-12 w-12 text-red-500" />
               <p className="text-gray-700 text-lg font-medium">{error || '子订单不存在或已被删除'}</p>
               <button
                 onClick={handleBack}
@@ -173,7 +174,7 @@ const SubOrderDetailPage: React.FC = () => {
             onClick={handleBack}
             className="mb-4 inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
           >
-            <ChevronLeft className="h-4 w-4 mr-2" />
+            <LeftOutlined className="h-4 w-4 mr-2" />
             返回订单详情
           </button>
 
@@ -195,7 +196,7 @@ const SubOrderDetailPage: React.FC = () => {
                     className="ml-2 p-1 rounded-full hover:bg-gray-100"
                     aria-label="复制子订单ID"
                   >
-                    {copied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4 text-gray-400" />}
+                    {copied ? <CheckCircleOutlined className="h-4 w-4 text-green-500" /> : <CopyOutlined className="h-4 w-4 text-gray-400" />}
                   </button>
                   <span className="mx-2">|</span>
                   <span>订单ID: {orderId}</span>
@@ -206,7 +207,7 @@ const SubOrderDetailPage: React.FC = () => {
                   onClick={() => window.print()}
                   className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                 >
-                  <Download className="h-4 w-4 mr-2" />
+                  <DownloadOutlined className="h-4 w-4 mr-2" />
                   打印详情
                 </button>
               </div>
@@ -215,7 +216,7 @@ const SubOrderDetailPage: React.FC = () => {
             {/* 用户信息 */}
             <div className="mb-6 bg-blue-50 rounded-lg p-4">
               <h2 className="flex items-center text-lg font-semibold text-gray-900 mb-3">
-                <Users className="h-5 w-5 text-blue-500 mr-2" />
+                <TeamOutlined className="h-5 w-5 text-blue-500 mr-2" />
                 用户信息
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
@@ -234,7 +235,7 @@ const SubOrderDetailPage: React.FC = () => {
             {subOrder.content && (
               <div className="mb-6">
                 <h2 className="flex items-center text-lg font-semibold text-gray-900 mb-3">
-                  <MessageSquare className="h-5 w-5 text-gray-500 mr-2" />
+                  <MessageOutlined className="h-5 w-5 text-gray-500 mr-2" />
                   提交内容
                 </h2>
                 <div className="bg-gray-50 p-4 rounded-md text-sm text-gray-700 whitespace-pre-line border border-gray-200">
@@ -247,7 +248,7 @@ const SubOrderDetailPage: React.FC = () => {
             {subOrder.screenshots && subOrder.screenshots.length > 0 && (
               <div className="mb-6">
                 <h2 className="flex items-center text-lg font-semibold text-gray-900 mb-3">
-                  <FileText className="h-5 w-5 text-gray-500 mr-2" />
+                  <FileTextOutlined className="h-5 w-5 text-gray-500 mr-2" />
                   提交截图
                 </h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -262,7 +263,7 @@ const SubOrderDetailPage: React.FC = () => {
                         />
                       </div>
                       <div className="absolute bottom-2 right-2 bg-white bg-opacity-80 rounded-full p-1 cursor-pointer hover:bg-opacity-100 transition-colors">
-                        <FileText className="h-4 w-4 text-gray-600" onClick={(e) => {
+                        <FileTextOutlined className="h-4 w-4 text-gray-600" onClick={(e) => {
                           e.stopPropagation();
                           setSelectedScreenshot(screenshot);
                         }} />
@@ -278,7 +279,7 @@ const SubOrderDetailPage: React.FC = () => {
               {subOrder.submitTime && (
                 <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
                   <div className="flex items-center mb-2">
-                    <Calendar className="h-4 w-4 text-gray-500 mr-2" />
+                    <CalendarOutlined className="h-4 w-4 text-gray-500 mr-2" />
                     <div className="text-sm font-medium text-gray-900">提交时间</div>
                   </div>
                   <div className="text-sm text-gray-700">{formatDate(subOrder.submitTime)}</div>
@@ -287,7 +288,7 @@ const SubOrderDetailPage: React.FC = () => {
               {subOrder.reviewTime && (
                 <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
                   <div className="flex items-center mb-2">
-                    <Clock className="h-4 w-4 text-gray-500 mr-2" />
+                    <ClockCircleOutlined className="h-4 w-4 text-gray-500 mr-2" />
                     <div className="text-sm font-medium text-gray-900">审核时间</div>
                   </div>
                   <div className="text-sm text-gray-700">{formatDate(subOrder.reviewTime)}</div>
@@ -295,7 +296,7 @@ const SubOrderDetailPage: React.FC = () => {
               )}
               <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
                 <div className="flex items-center mb-2">
-                  <DollarSign className="h-4 w-4 text-gray-500 mr-2" />
+                  <DollarOutlined className="h-4 w-4 text-gray-500 mr-2" />
                   <div className="text-sm font-medium text-gray-900">奖励金额</div>
                 </div>
                 <div className="text-xl font-bold text-gray-900">¥{subOrder.reward.toFixed(2)}</div>
@@ -316,14 +317,14 @@ const SubOrderDetailPage: React.FC = () => {
                     onClick={() => handleReview(false)}
                     className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                   >
-                    <XCircle className="h-4 w-4 mr-2" />
+                    <CloseCircleOutlined className="h-4 w-4 mr-2" />
                     拒绝
                   </button>
                   <button
                     onClick={() => handleReview(true)}
                     className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
                   >
-                    <CheckCircle className="h-4 w-4 mr-2" />
+                    <CheckCircleOutlined className="h-4 w-4 mr-2" />
                     通过
                   </button>
                 </div>

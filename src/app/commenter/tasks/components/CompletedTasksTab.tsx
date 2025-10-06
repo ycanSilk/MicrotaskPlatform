@@ -1,5 +1,6 @@
 import React from 'react';
 import { useRouter } from 'next/navigation';
+import { MessageOutlined } from '@ant-design/icons';
 
 // 定义任务接口
 export interface Task {
@@ -139,7 +140,7 @@ const CompletedTasksTab: React.FC<CompletedTasksTabProps> = ({
           {/* 审核意见区域 - 如果有审核意见，显示橙色背景的审核意见卡片 */}
           {task.reviewNote && (
             <div className="mb-4 bg-orange-50 p-3 rounded-lg border border-orange-100">
-              <h4 className="text-sm font-medium text-orange-700 mb-1">💬 审核意见</h4>
+              <h4 className="text-sm font-medium text-orange-700 mb-1"><MessageOutlined className="inline-block mr-1" /> 审核意见</h4>
               <p className="text-sm text-gray-700 bg-white p-3 rounded border border-orange-100">
                 {task.reviewNote}
               </p>

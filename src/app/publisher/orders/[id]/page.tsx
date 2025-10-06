@@ -1,7 +1,7 @@
 "use client"
 import React, { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { ChevronLeft, CheckCircle, XCircle, AlertCircle, Clock, Download, MessageSquare, Users, DollarSign, Calendar, FileText, Award, Share2, ThumbsUp } from 'lucide-react';
+import { LeftOutlined, CheckCircleOutlined, CloseCircleOutlined, ExclamationCircleOutlined, ClockCircleOutlined, DownloadOutlined, MessageOutlined, UserOutlined, DollarOutlined, CalendarOutlined, FileTextOutlined, TrophyOutlined, ShareAltOutlined, LikeOutlined, LockOutlined, TeamOutlined } from '@ant-design/icons';
 import { Order, SubOrder } from '../page';
 
 // 订单详情页面组件
@@ -103,25 +103,25 @@ const OrderDetailPage: React.FC = () => {
   // 获取状态对应的中文名称和样式
   const getStatusInfo = (status: string) => {
     const statusMap: Record<string, { text: string; className: string; icon: React.ReactNode }> = {
-      pending: { text: '待处理', className: 'bg-yellow-100 text-yellow-800', icon: <Clock className="h-4 w-4" /> },
-      processing: { text: '进行中', className: 'bg-blue-100 text-blue-800', icon: <Clock className="h-4 w-4" /> },
-      reviewing: { text: '审核中', className: 'bg-purple-100 text-purple-800', icon: <Clock className="h-4 w-4" /> },
-      completed: { text: '已完成', className: 'bg-green-100 text-green-800', icon: <CheckCircle className="h-4 w-4" /> },
-      rejected: { text: '已拒绝', className: 'bg-red-100 text-red-800', icon: <XCircle className="h-4 w-4" /> },
-      cancelled: { text: '已取消', className: 'bg-gray-100 text-gray-800', icon: <AlertCircle className="h-4 w-4" /> }
+      pending: { text: '待处理', className: 'bg-yellow-100 text-yellow-800', icon: <ClockCircleOutlined className="h-4 w-4" /> },
+      processing: { text: '进行中', className: 'bg-blue-100 text-blue-800', icon: <ClockCircleOutlined className="h-4 w-4" /> },
+      reviewing: { text: '审核中', className: 'bg-purple-100 text-purple-800', icon: <LockOutlined className="h-4 w-4" /> },
+      completed: { text: '已完成', className: 'bg-green-100 text-green-800', icon: <CheckCircleOutlined className="h-4 w-4" /> },
+      rejected: { text: '已拒绝', className: 'bg-red-100 text-red-800', icon: <CloseCircleOutlined className="h-4 w-4" /> },
+      cancelled: { text: '已取消', className: 'bg-gray-100 text-gray-800', icon: <ExclamationCircleOutlined className="h-4 w-4" /> }
     };
-    return statusMap[status] || { text: status, className: 'bg-gray-100 text-gray-800', icon: <AlertCircle className="h-4 w-4" /> };
+    return statusMap[status] || { text: status, className: 'bg-gray-100 text-gray-800', icon: <ExclamationCircleOutlined className="h-4 w-4" /> };
   };
 
   // 获取任务类型对应的图标和文本
   const getTypeInfo = (type: string) => {
     const typeMap: Record<string, { text: string; icon: React.ReactNode; className: string }> = {
-      comment: { text: '评论任务', icon: <MessageSquare className="h-5 w-5" />, className: 'text-blue-500' },
-      like: { text: '点赞任务', icon: <ThumbsUp className="h-5 w-5" />, className: 'text-red-500' },
-      share: { text: '分享任务', icon: <Share2 className="h-5 w-5" />, className: 'text-green-500' },
-      other: { text: '其他任务', icon: <FileText className="h-5 w-5" />, className: 'text-gray-500' }
+      comment: { text: '评论任务', icon: <MessageOutlined className="h-5 w-5" />, className: 'text-blue-500' },
+      like: { text: '点赞任务', icon: <LikeOutlined className="h-5 w-5" />, className: 'text-red-500' },
+      share: { text: '分享任务', icon: <ShareAltOutlined className="h-5 w-5" />, className: 'text-green-500' },
+      other: { text: '其他任务', icon: <FileTextOutlined className="h-5 w-5" />, className: 'text-gray-500' }
     };
-    return typeMap[type] || { text: '未知类型', icon: <FileText className="h-5 w-5" />, className: 'text-gray-500' };
+    return typeMap[type] || { text: '未知类型', icon: <FileTextOutlined className="h-5 w-5" />, className: 'text-gray-500' };
   };
 
   // 计算子订单统计信息
@@ -185,12 +185,12 @@ const OrderDetailPage: React.FC = () => {
             onClick={handleBack}
             className="mb-4 inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
           >
-            <ChevronLeft className="h-4 w-4 mr-2" />
+            <LeftOutlined className="h-4 w-4 mr-2" />
             返回订单列表
           </button>
           <div className="bg-white shadow-sm rounded-lg p-6">
             <div className="flex flex-col items-center justify-center space-y-4">
-              <AlertCircle className="h-12 w-12 text-red-500" />
+              <ExclamationCircleOutlined className="h-12 w-12 text-red-500" />
               <p className="text-gray-700 text-lg font-medium">{error || '订单不存在或已被删除'}</p>
               <button
                 onClick={handleBack}
@@ -219,7 +219,7 @@ const OrderDetailPage: React.FC = () => {
             onClick={handleBack}
             className="mb-4 inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
           >
-            <ChevronLeft className="h-4 w-4 mr-2" />
+            <LeftOutlined className="h-4 w-4 mr-2" />
             返回订单列表
           </button>
 
@@ -387,7 +387,7 @@ const OrderDetailPage: React.FC = () => {
                   {/* 任务信息摘要 */}
                   <div className="bg-blue-50 border border-blue-100 rounded-lg p-4">
                     <h4 className="flex items-center text-sm font-medium text-blue-800 mb-3">
-                      <FileText className="h-4 w-4 mr-2" />
+                      <FileTextOutlined className="h-4 w-4 mr-2" />
                       任务摘要
                     </h4>
                     <div className="space-y-2 text-sm">
@@ -531,7 +531,7 @@ const OrderDetailPage: React.FC = () => {
                     </div>
                   ) : (
                     <div className="flex flex-col items-center justify-center py-8 text-gray-500">
-                      <Users className="h-10 w-10 mb-2 opacity-50" />
+                      <TeamOutlined className="h-10 w-10 mb-2 opacity-50" />
                       <p>暂无子订单</p>
                     </div>
                   )}
@@ -548,7 +548,7 @@ const OrderDetailPage: React.FC = () => {
                       <div className="flex items-start justify-between mb-2">
                         <div className="flex items-center">
                           <div className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
-                            <Calendar className="h-4 w-4" />
+                            <CalendarOutlined className="h-4 w-4" />
                           </div>
                           <span className="ml-2 text-sm font-medium text-gray-900">创建订单</span>
                         </div>
@@ -565,7 +565,7 @@ const OrderDetailPage: React.FC = () => {
                       <div className="flex items-start justify-between mb-2">
                         <div className="flex items-center">
                           <div className="flex-shrink-0 w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-green-600">
-                            <Users className="h-4 w-4" />
+                            <UserOutlined className="h-4 w-4" />
                           </div>
                           <span className="ml-2 text-sm font-medium text-gray-900">分配任务</span>
                         </div>
@@ -582,7 +582,7 @@ const OrderDetailPage: React.FC = () => {
                       <div className="flex items-start justify-between mb-2">
                         <div className="flex items-center">
                           <div className="flex-shrink-0 w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center text-purple-600">
-                            <FileText className="h-4 w-4" />
+                            <FileTextOutlined className="h-4 w-4" />
                           </div>
                           <span className="ml-2 text-sm font-medium text-gray-900">更新订单</span>
                         </div>
@@ -600,7 +600,7 @@ const OrderDetailPage: React.FC = () => {
                         <div className="flex items-start justify-between mb-2">
                           <div className="flex items-center">
                             <div className="flex-shrink-0 w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-green-600">
-                              <CheckCircle className="h-4 w-4" />
+                              <CheckCircleOutlined className="h-4 w-4" />
                             </div>
                             <span className="ml-2 text-sm font-medium text-gray-900">完成子任务</span>
                           </div>

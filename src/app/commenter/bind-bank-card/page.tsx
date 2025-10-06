@@ -1,20 +1,21 @@
 'use client';
 import React, { useState } from 'react';
+import { BankOutlined, EnvironmentOutlined, FlagOutlined, ToolOutlined, MessageOutlined, WalletOutlined, MedicineBoxOutlined, ShopOutlined, WarningOutlined, SunOutlined, GlobalOutlined, CreditCardOutlined } from '@ant-design/icons';
 import { useRouter } from 'next/navigation';
 
 // 定义银行列表数据
 const BANKS = [
-  { code: 'icbc', name: '工商银行', icon: '🏦' },
-  { code: 'abc', name: '农业银行', icon: '🌾' },
-  { code: 'boc', name: '中国银行', icon: '🇨🇳' },
-  { code: 'ccb', name: '建设银行', icon: '🏗️' },
-  { code: 'psbc', name: '邮储银行', icon: '📮' },
-  { code: 'cmb', name: '招商银行', icon: '💼' },
-  { code: 'cmbc', name: '民生银行', icon: '🏥' },
-  { code: 'spdb', name: '浦发银行', icon: '🚣' },
-  { code: 'cib', name: '兴业银行', icon: '💹' },
-  { code: 'ceb', name: '光大银行', icon: '☀️' },
-  { code: 'hxb', name: '华夏银行', icon: '🌏' }
+  { code: 'icbc', name: '工商银行', icon: <BankOutlined className="text-xl" /> },
+  { code: 'abc', name: '农业银行', icon: <EnvironmentOutlined className="text-xl" /> },
+  { code: 'boc', name: '中国银行', icon: <FlagOutlined className="text-xl" /> },
+  { code: 'ccb', name: '建设银行', icon: <ToolOutlined className="text-xl" /> },
+  { code: 'psbc', name: '邮储银行', icon: <MessageOutlined className="text-xl" /> },
+  { code: 'cmb', name: '招商银行', icon: <WalletOutlined className="text-xl" /> },
+  { code: 'cmbc', name: '民生银行', icon: <MedicineBoxOutlined className="text-xl" /> },
+  { code: 'spdb', name: '浦发银行', icon: <ShopOutlined className="text-xl" /> },
+  { code: 'cib', name: '兴业银行', icon: <WarningOutlined className="text-xl" /> },
+  { code: 'ceb', name: '光大银行', icon: <SunOutlined className="text-xl" /> },
+  { code: 'hxb', name: '华夏银行', icon: <GlobalOutlined className="text-xl" /> }
 ];
 
 export default function BindBankCardPage() {
@@ -68,7 +69,7 @@ export default function BindBankCardPage() {
   };
 
   // 处理银行选择
-  const handleBankSelect = (bank: { code: string; name: string; icon: string }) => {
+  const handleBankSelect = (bank: { code: string; name: string; icon: React.ReactNode }) => {
     setBankName(bank.name);
     setShowBankList(false);
   };
@@ -174,7 +175,7 @@ export default function BindBankCardPage() {
                 className="w-full flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
               >
                 <div className="flex items-center">
-                  <span className="text-xl mr-3">{BANKS.find(b => b.name === bankName)?.icon || '💳'}</span>
+                  <span className="text-xl mr-3">{BANKS.find(b => b.name === bankName)?.icon || <CreditCardOutlined className="text-xl" />}</span>
                   <span className="text-gray-600">{bankName || '请选择银行'}</span>
                 </div>
                 <svg className={`w-5 h-5 text-gray-500 transition-transform ${showBankList ? 'transform rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">

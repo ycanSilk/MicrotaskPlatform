@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { EditOutlined, CopyOutlined, LinkOutlined } from '@ant-design/icons';
 
 // 定义任务接口
 export interface Task {
@@ -179,12 +180,12 @@ const ProgressTasksTab: React.FC<ProgressTasksTabProps> = ({
           {/* 推荐评论区域 - 所有任务都显示 */}
       <div className="mb-4 bg-blue-50 p-3 rounded-lg border border-blue-100">
         <div className="flex justify-between items-center mb-1">
-          <h4 className="text-sm font-medium text-blue-700">✏️ 推荐评论</h4>
+          <h4 className="text-sm font-medium text-blue-700"><EditOutlined className="inline-block mr-1" /> 推荐评论</h4>
           <button 
             className="text-xs bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 transition-colors"
             onClick={() => handleCopyComment(task.id, task.recommendedComment)}
           >
-            📋 复制评论
+            <CopyOutlined className="inline-block mr-1" /> 复制评论
           </button>
         </div>
         <p className="text-sm text-gray-700 bg-white p-3 rounded border border-blue-100 whitespace-pre-line">
@@ -195,7 +196,7 @@ const ProgressTasksTab: React.FC<ProgressTasksTabProps> = ({
       {/* 评论链接输入框 - 新增 */}
       <div className="mb-4">
         <label className="block text-sm font-medium text-gray-700 mb-1">
-          🔗 评论链接
+          <LinkOutlined className="inline-block mr-1" /> 评论链接
         </label>
         <input
           type="text"

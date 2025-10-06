@@ -281,6 +281,7 @@ export default function PublishSearchKeywordTaskPage() {
           <p className="text-blue-100 text-sm mt-2">
             任务要求：在指定的视频链接所对应的视频页面中，通过右上角的搜索框搜索订单指定的搜索内容，并重复执行搜索操作100次。
           </p>
+          <p className="text-red-500 text-sm mt-2">*提示：该项功能为概率出放大镜，不退单，若用户未在规定时间内完成任务，系统将自动取消任务。</p>
         </div>
       </div>
 
@@ -369,9 +370,7 @@ export default function PublishSearchKeywordTaskPage() {
               +
             </button>
           </div>
-          <div className="mt-2 text-sm text-gray-500">
-            放大镜搜索词任务单价为¥{taskPrice}，最多可发布10个任务
-          </div>
+         
         </div>
 
         {/* 费用预览 */}
@@ -381,10 +380,6 @@ export default function PublishSearchKeywordTaskPage() {
             <div className="flex justify-between text-sm">
               <span className="text-gray-600">任务费用</span>
               <span className="font-bold text-lg">¥{baseCost.toFixed(2)}</span>
-            </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-600">平台手续费 (20%)</span>
-              <span className="font-bold text-lg">¥{(baseCost * 0.2).toFixed(2)}</span>
             </div>
             <div className="border-t border-gray-200 pt-2">
               <div className="flex justify-between">

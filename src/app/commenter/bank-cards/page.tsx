@@ -1,5 +1,6 @@
 'use client';
 import React, { useState } from 'react';
+import { BankOutlined, WalletOutlined } from '@ant-design/icons';
 import { useRouter } from 'next/navigation';
 
 // 定义银行卡数据接口
@@ -8,7 +9,7 @@ interface BankCard {
   bankName: string;
   cardNumber: string;
   cardHolderName: string;
-  icon: string;
+  icon: React.ReactNode;
   type: 'debit' | 'credit';
 }
 
@@ -22,7 +23,7 @@ export default function BankCardsPage() {
       bankName: '工商银行',
       cardNumber: '6222 **** **** **** 1234',
       cardHolderName: '王**',
-      icon: '🏦',
+      icon: <BankOutlined className="text-xl" />,
       type: 'debit'
     },
     {
@@ -30,7 +31,7 @@ export default function BankCardsPage() {
       bankName: '招商银行',
       cardNumber: '6225 **** **** **** 5678',
       cardHolderName: '王**',
-      icon: '💼',
+      icon: <WalletOutlined className="text-xl" />,
       type: 'debit'
     }
   ]);

@@ -1,6 +1,7 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { ShopOutlined, WalletOutlined, EditOutlined, OrderedListOutlined, BarChartOutlined, CreditCardOutlined } from '@ant-design/icons';
 
 interface BalanceData {
   balance: number;
@@ -37,7 +38,7 @@ export default function PublisherProfilePage() {
         <div className="px-6 py-5 flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <div className="w-16 h-16 bg-white bg-opacity-20 rounded-lg flex items-center justify-center text-2xl">
-              🏪
+              <ShopOutlined />
             </div>
             <div>
               <div className="font-bold text-lg flex items-center">
@@ -65,7 +66,7 @@ export default function PublisherProfilePage() {
           className="w-full flex items-center justify-between px-6 py-5 border-b border-gray-100"
         >
           <div className="flex items-center">
-            <span className="text-xl mr-4 text-green-500">💰</span>
+            <WalletOutlined className="text-xl mr-4 text-green-500" />
             <div>
               <div className="text-base text-gray-800">账户余额</div>
             </div>
@@ -79,7 +80,7 @@ export default function PublisherProfilePage() {
           className="w-full flex items-center justify-between px-6 py-5 border-b border-gray-100"
         >
           <div className="flex items-center">
-            <span className="text-xl mr-4 text-red-500">✏️</span>
+            <EditOutlined className="text-xl mr-4 text-red-500" />
             <span className="text-base text-gray-800">发布任务</span>
           </div>
           <span className="text-gray-400">{'>'}</span>
@@ -91,7 +92,7 @@ export default function PublisherProfilePage() {
           className="w-full flex items-center justify-between px-6 py-5 border-b border-gray-100"
         >
           <div className="flex items-center">
-            <span className="text-xl mr-4 text-green-500">📋</span>
+            <OrderedListOutlined className="text-xl mr-4 text-green-500" />
             <span className="text-base text-gray-800">订单管理</span>
           </div>
           <span className="text-gray-400">{'>'}</span>
@@ -103,7 +104,7 @@ export default function PublisherProfilePage() {
           className="w-full flex items-center justify-between px-6 py-5 border-b border-gray-100"
         >
           <div className="flex items-center">
-            <span className="text-xl mr-4 text-blue-500">📊</span>
+            <BarChartOutlined className="text-xl mr-4 text-blue-500" />
             <span className="text-base text-gray-800">数据统计</span>
           </div>
           <span className="text-gray-400">{'>'}</span>
@@ -115,7 +116,7 @@ export default function PublisherProfilePage() {
           className="w-full flex items-center justify-between px-6 py-5"
         >
           <div className="flex items-center">
-            <span className="text-xl mr-4 text-purple-500">💳</span>
+            <CreditCardOutlined className="text-xl mr-4 text-purple-500" />
             <span className="text-base text-gray-800">银行卡</span>
           </div>
           <span className="text-gray-400">{'>'}</span>

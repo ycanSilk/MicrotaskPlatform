@@ -1,6 +1,8 @@
 import React from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { BackButton } from './BackButton';
+import { SearchBox } from '../ui/SearchBox';
+import { HomeOutlined, MessageOutlined, UserOutlined } from '@ant-design/icons';
 
 interface PublisherHeaderProps {
   user: {
@@ -32,21 +34,41 @@ export const PublisherHeader: React.FC<PublisherHeaderProps> = ({ user }) => {
 
   // 返回按钮的显示逻辑已移至BackButton组件中
 
+  const handleSearch = (query: string) => {
+    console.log('Searching for:', query);
+    // 在实际应用中，这里会实现搜索逻辑
+  };
+
   return (
-    <div className="bg-green-500 text-white px-4 py-3 flex items-center justify-between">
+    <div className="bg-blue-500 text-white px-4 py-3 flex items-center justify-between">
       <div className="flex items-center space-x-3">
         <BackButton />
-        <div className="flex items-center space-x-2">
-          <span className="text-lg font-bold">¥{user?.balance?.toFixed(2)}</span>
-     
-        </div>
+        <button 
+            onClick={() => router.push('/publisher/dashboard')} 
+            className="text-lg font-bold text-black hover:text-blue-300 transition-colors"
+            aria-label="返回首页"
+          >
+            <HomeOutlined size={20} />
+          </button>
       </div>
+      
+      <div className="flex-1 max-w-md mx-4">
+        <SearchBox 
+          placeholder="搜索任务、用户或关键词"
+          onSearch={handleSearch}
+        />
+      </div>
+      
       <div className="flex items-center space-x-3">
-        <div className="relative">
-          <span className="text-yellow-400">🔔</span>
-          <span className="absolute -top-1 -right-1 bg-red-500 text-xs rounded-full px-1">2</span>
-        </div>
-        <button onClick={handleLogout} className="text-sm">👤</button>
+        <button 
+          className="text-lg font-bold text-black hover:text-blue-300 transition-colors"
+          aria-label="联系客服"
+        >
+          <MessageOutlined size={20} />
+        </button>
+        <button onClick={handleLogout} className="text-sm">
+          <UserOutlined size={20} />
+        </button>
       </div>
     </div>
   );

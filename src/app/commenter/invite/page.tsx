@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { UserOutlined, CodeOutlined, MessageOutlined, MobileOutlined, LaptopOutlined, ShareAltOutlined, BulbOutlined, RightOutlined, UserAddOutlined, DollarOutlined, CheckCircleOutlined } from '@ant-design/icons';
 
 // 邀请页面组件
 const InvitePage = () => {
@@ -13,7 +14,7 @@ const InvitePage = () => {
   const userInfo = {
     id: 'user-123',
     name: '张三',
-    avatar: '👨‍💼',
+    avatar: <UserOutlined />,
   };
 
   // 生成模拟邀请记录数据
@@ -21,7 +22,13 @@ const InvitePage = () => {
     return Array.from({ length: 5 }, (_, i) => ({
       id: `invite-${i + 1}`,
       inviteeName: `用户${i + 1}`,
-      inviteeAvatar: ['👨‍💼', '👩‍💼', '🧑‍💼', '👨‍💻', '👩‍💻'][i % 5],
+      inviteeAvatar: [
+        <UserOutlined />, 
+        <UserOutlined />, 
+        <UserOutlined />, 
+        <CodeOutlined />, 
+        <CodeOutlined />
+      ][i % 5],
       inviteDate: new Date(Date.now() - (i + 1) * 86400000).toISOString(),
       joinDate: i < 3 ? new Date(Date.now() - i * 86400000 - 43200000).toISOString() : null,
       status: i < 2 ? 'active' : i < 3 ? 'joined' : 'pending',
@@ -229,7 +236,7 @@ const InvitePage = () => {
                       onClick={copyInviteLink}
                       className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors w-full"
                       >
-                      {copied ? '✓' : '复制邀请链接'}
+                      {copied ? <CheckCircleOutlined /> : '复制邀请链接'}
                     </button>
                 </div>
               </div>
@@ -244,28 +251,28 @@ const InvitePage = () => {
                 onClick={() => shareToSocialMedia('wechat')}
                 className="flex flex-col items-center p-3 bg-blue-500 rounded hover:bg-blue-700 transition-colors"
               >
-                <div className="text-2xl mb-1">💬</div>
+                <MessageOutlined className="text-2xl mb-1 text-white" />
                 <div className="text-xs text-white">微信</div>
               </button>
               <button 
                 onClick={() => shareToSocialMedia('weibo')}
                 className="flex flex-col items-center p-3 bg-blue-500 rounded hover:bg-blue-700 transition-colors"
               >
-                <div className="text-2xl mb-1">📱</div>
+                <MobileOutlined className="text-2xl mb-1 text-white" />
                 <div className="text-xs text-white">微博</div>
               </button>
               <button 
                 onClick={() => shareToSocialMedia('qq')}
                 className="flex flex-col items-center p-3 bg-blue-500 rounded hover:bg-blue-700 transition-colors"
               >
-                <div className="text-2xl mb-1">💻</div>
+                <LaptopOutlined className="text-2xl mb-1 text-white" />
                 <div className="text-xs text-white">QQ</div>
               </button>
               <button 
                 onClick={() => shareToSocialMedia('other')}
                 className="flex flex-col items-center p-3 bg-blue-500 rounded hover:bg-blue-700 transition-colors"
               >
-                <div className="text-2xl mb-1">📤</div>
+                <ShareAltOutlined className="text-2xl mb-1 text-white" />
                 <div className="text-xs text-white">更多</div>
               </button>
             </div>
@@ -276,21 +283,21 @@ const InvitePage = () => {
             <h3 className="font-bold text-gray-800 mb-3">提高邀请成功率</h3>
             <div className="space-y-3">
               <div className="flex items-start space-x-3">
-                <div className="text-lg mt-1">💡</div>
+                <BulbOutlined className="text-lg mt-1 text-blue-500" />
                 <div>
                   <div className="font-medium text-gray-800">个性化邀请</div>
                   <div className="text-sm text-gray-600">告诉好友你在平台的真实体验和收获</div>
                 </div>
               </div>
               <div className="flex items-start space-x-3">
-                <div className="text-lg mt-1">🎯</div>
+                <RightOutlined className="text-lg mt-1 text-blue-500" />
                 <div>
                   <div className="font-medium text-gray-800">精准推荐</div>
                   <div className="text-sm text-gray-600">根据好友兴趣推荐适合的任务类型</div>
                 </div>
               </div>
               <div className="flex items-start space-x-3">
-                <div className="text-lg mt-1">👥</div>
+                <UserAddOutlined className="text-lg mt-1 text-blue-500" />
                 <div>
                   <div className="font-medium text-gray-800">提供帮助</div>
                   <div className="text-sm text-gray-600">指导好友完成首次任务，提高留存率</div>
@@ -336,7 +343,7 @@ const InvitePage = () => {
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center space-x-3">
                         <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center text-lg">
-                          {invite.inviteeAvatar || '👤'}
+                          {invite.inviteeAvatar || <UserOutlined />}
                         </div>
                         <div>
                           <div className="font-medium text-gray-800">{invite.inviteeName || '未知用户'}</div>
@@ -387,7 +394,7 @@ const InvitePage = () => {
                 ))
               ) : (
                 <div className="p-8 text-center">
-                  <div className="text-gray-400 text-5xl mb-4">👥</div>
+                  <UserAddOutlined className="text-gray-400 text-5xl mb-4" />
                   <div className="text-gray-500">您还没有邀请任何好友</div>
                   <div className="text-gray-400 text-sm mt-2">快去邀请好友加入吧，一起赚取佣金！</div>
                 </div>
@@ -644,7 +651,7 @@ const InvitePage = () => {
                 ))
               ) : (
                 <div className="p-8 text-center">
-                  <div className="text-gray-400 text-5xl mb-4">💰</div>
+                  <DollarOutlined className="text-gray-400 text-5xl mb-4" />
                   <div className="text-gray-500">暂无佣金记录</div>
                   <div className="text-gray-400 text-sm mt-2">邀请好友完成任务，即可获得佣金奖励！</div>
                 </div>

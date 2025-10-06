@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { ChevronLeft } from 'lucide-react';
+import { LeftOutlined } from '@ant-design/icons';
 
 interface BackButtonProps {
   // 可选的自定义className
@@ -34,7 +34,7 @@ export const BackButton: React.FC<BackButtonProps> = ({ className = '' }) => {
       className={`p-1 hover:bg-green-600 rounded-full transition-colors ${className}`}
       aria-label="返回上一页"
     >
-      <ChevronLeft size={20} />
+      <LeftOutlined size={20} />
     </button>
   );
 };

@@ -1,12 +1,5 @@
 import './globals.css';
-import { Inter } from 'next/font/google';
 import { cn } from '@/lib/utils';
-
-const inter = Inter({ 
-  subsets: ['latin'],
-  display: 'swap',
-  variable: '--font-inter',
-});
 
 export const metadata = {
   title: '抖音评论派单系统',
@@ -39,7 +32,7 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="zh-CN" className={cn(inter.variable)}>
+    <html lang="zh-CN">
       <head>
         <link rel="icon" href="/favicon.ico" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
@@ -47,9 +40,7 @@ export default function RootLayout({
         <meta name="application-name" content="派单系统" />
       </head>
       <body className={cn(
-        'min-h-screen bg-gray-50 font-sans antialiased',
-        'overscroll-none', // 防止橡皮筋效果
-        inter.className
+        'min-h-screen bg-gray-50 font-sans antialiased'
       )}>
         {children}
       </body>

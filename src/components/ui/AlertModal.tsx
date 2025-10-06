@@ -2,7 +2,7 @@ import React from 'react';
 
 interface AlertModalProps {
   isOpen: boolean;
-  icon?: string;
+  icon?: React.ReactNode;
   title: string;
   message: string;
   buttonText?: string;
