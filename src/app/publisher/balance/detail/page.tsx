@@ -21,7 +21,7 @@ interface TransactionDetail {
 export default function BalanceDetailPage() {
   const router = useRouter();
   const params = useParams();
-  const transactionId = params.id as string || '1';
+  const transactionId = params?.id as string || '1';
   const [transactionDetail, setTransactionDetail] = useState<TransactionDetail | null>(null);
   const [loading, setLoading] = useState(true);
 

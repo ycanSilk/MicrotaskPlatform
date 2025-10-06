@@ -27,9 +27,9 @@ const AccountRentalLayout = memo(({ children }: AccountRentalLayoutProps) => {
   };
 
   // 确定当前激活的导航项
-  const isMarketActive = pathname.includes('account-rental-market');
-  const isPublishActive = pathname.includes('account-rental-publish');
-  const isMyActive = pathname.includes('my-account-rental');
+  const isMarketActive = pathname?.includes('account-rental-market') ?? false;
+  const isPublishActive = pathname?.includes('account-rental-publish') ?? false;
+  const isMyActive = pathname?.includes('my-account-rental') ?? false;
 
   return (
     <div className="flex flex-col h-screen bg-gray-50">
@@ -42,27 +42,33 @@ const AccountRentalLayout = memo(({ children }: AccountRentalLayoutProps) => {
       </main>
 
       {/* 底部导航栏 */}
-      <footer className="h-[56px] bg-white border-t border-gray-200 flex justify-around items-center">
+      <footer className="h-[56px] bg-white flex justify-around items-center">
         <button 
           onClick={handleMarketClick}
           className="flex flex-col items-center"
         >
-          <ShopOutlined className="text-xl" />
-          <span className={`text-xs mt-1 ${isMarketActive ? 'text-blue-600' : 'text-gray-500'}`}>租赁市场</span>
+          <span className={`text-xl w-10 h-10 flex items-center justify-center rounded-full mb-1 ${isMarketActive ? 'bg-blue-500 text-white' : 'text-gray-500'}`}>
+            <ShopOutlined />
+          </span>
+          <span className={`text-xs ${isMarketActive ? 'text-blue-500' : 'text-gray-500'}`}>租赁市场</span>
         </button>
         <button 
           onClick={handlePublishClick}
           className="flex flex-col items-center"
         >
-          <FileTextOutlined className="text-xl" />
-          <span className={`text-xs mt-1 ${isPublishActive ? 'text-blue-600' : 'text-gray-500'}`}>发布租赁</span>
+          <span className={`text-xl w-10 h-10 flex items-center justify-center rounded-full mb-1 ${isPublishActive ? 'bg-blue-500 text-white' : 'text-gray-500'}`}>
+            <FileTextOutlined />
+          </span>
+          <span className={`text-xs ${isPublishActive ? 'text-blue-500' : 'text-gray-500'}`}>发布租赁</span>
         </button>
         <button 
           onClick={handleMyClick}
           className="flex flex-col items-center"
         >
-          <UserOutlined className="text-xl" />
-          <span className={`text-xs mt-1 ${isMyActive ? 'text-blue-600' : 'text-gray-500'}`}>我的</span>
+          <span className={`text-xl w-10 h-10 flex items-center justify-center rounded-full mb-1 ${isMyActive ? 'bg-blue-500 text-white' : 'text-gray-500'}`}>
+            <UserOutlined />
+          </span>
+          <span className={`text-xs ${isMyActive ? 'text-blue-500' : 'text-gray-500'}`}>我的</span>
         </button>
       </footer>
     </div>

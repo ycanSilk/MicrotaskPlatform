@@ -7,7 +7,7 @@ import { redirect } from 'next/navigation';
  */
 const CommenterPage = () => {
   // 自动重定向到抢单系统的仪表盘页面
-  redirect('/commenter/dashboard');
+  redirect('/commenter/hall');
 };
 
 export default CommenterPage;

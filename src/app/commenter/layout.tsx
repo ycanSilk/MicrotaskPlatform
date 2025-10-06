@@ -6,8 +6,10 @@ import { getCurrentLoggedInUser, commonLogout } from '@/auth/common';
 import Link from 'next/link';
 import { CommenterAuthStorage } from '@/auth/commenter/auth';
 import AlertModal from '../../components/ui/AlertModal';
-import { BackButton } from '../../components/business/BackButton';
+import { BackButton } from '../../components/button/ReturnToPreviousPage';
 import { ReloadOutlined, UserOutlined, HomeOutlined, FileTextOutlined, DollarOutlined, PropertySafetyOutlined, UserAddOutlined, WarningOutlined } from '@ant-design/icons';
+import TopNavigationBar from './components/TopNavigationBar';
+import BottomNavigationBar from './components/BottomNavigationBar';
 
 export default function CommenterLayout({
   children,
@@ -106,17 +108,17 @@ export default function CommenterLayout({
 
   // 获取当前页面标题
   const getPageTitle = () => {
-    if (pathname.includes('/hall')) return '任务大厅';
-    if (pathname.includes('/tasks')) return '我的任务';
-    if (pathname.includes('/earnings')) return '收益中心';
-    if (pathname.includes('/invite')) return '邀请好友';
-    if (pathname.includes('/profile')) return '个人中心';
+    if (pathname?.includes('/hall') ?? false) return '任务大厅';
+    if (pathname?.includes('/tasks') ?? false) return '我的任务';
+    if (pathname?.includes('/earnings') ?? false) return '收益中心';
+    if (pathname?.includes('/invite') ?? false) return '邀请好友';
+    if (pathname?.includes('/profile') ?? false) return '个人中心';
     return '评论员中心';
   };
 
   // 检查当前路由是否激活
   const isActive = (path: string) => {
-    return pathname.includes(path);
+    return pathname?.includes(path) ?? false;
   };
 
   if (isLoading) {
@@ -135,24 +137,7 @@ export default function CommenterLayout({
   return (
     <div className="min-h-screen bg-gray-50">
       {/* 顶部余额栏 */}
-      <div className="bg-blue-500 text-white px-4 py-3 flex items-center justify-between">
-        <div className="flex items-center space-x-2">
-          <BackButton className="text-white hover:bg-blue-600" />
-          <span className="text-lg font-bold">¥{user?.balance?.toFixed(2)}</span>
-          <div className="flex items-center space-x-1">
-            
-          </div>
-        </div>
-        <div className="flex items-center space-x-3">
-          <div className="relative">
-          <div>联系客服</div>
-            
-          </div>
-          <button onClick={handleLogout} className="text-sm">
-            <UserOutlined />
-          </button>
-        </div>
-      </div>
+      <TopNavigationBar user={user} />
 
       {/* 页面标题 */}
       <div className="bg-white px-4 py-4">
@@ -167,64 +152,8 @@ export default function CommenterLayout({
       </main>
 
       {/* 底部导航栏 */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t">
-        <div className="grid grid-cols-6 py-2">
-          <Link
-            href="/commenter/hall"
-            className={`flex flex-col items-center py-2 ${
-              isActive('/hall') ? 'text-blue-500' : 'text-gray-400'
-            }`}
-          >
-            <HomeOutlined className="text-lg" />
-            <span className="text-xs">抢单大厅</span>
-          </Link>
-          <Link
-            href="/commenter/tasks"
-            className={`flex flex-col items-center py-2 ${
-              isActive('/tasks') ? 'text-blue-500' : 'text-gray-400'
-            }`}
-          >
-            <FileTextOutlined className="text-lg" />
-            <span className="text-xs">任务</span>
-          </Link>
-          <Link
-            href="/commenter/earnings"
-            className={`flex flex-col items-center py-2 ${
-              isActive('/earnings') ? 'text-blue-500' : 'text-gray-400'
-            }`}
-          >
-            <DollarOutlined className="text-lg" />
-            <span className="text-xs">收益</span>
-          </Link>
-          <Link
-            href="/accountrental/account-rental-market?from=commenter-hall"
-            className={`flex flex-col items-center py-2 ${isActive('/accountrental') ? 'text-blue-500' : 'text-gray-400'}`}
-          >
-            <PropertySafetyOutlined className="text-lg" />
-            <span className="text-xs">账号租赁</span>
-          </Link>
-          <Link
-            href="/commenter/invite"
-            className={`flex flex-col items-center py-2 ${
-              isActive('/invite') ? 'text-blue-500' : 'text-gray-400'
-            }`}
-          >
-            <UserAddOutlined className="text-lg" />
-            <span className="text-xs">邀请</span>
-          </Link>
-          <Link
-            href="/commenter/profile"
-            className={`flex flex-col items-center py-2 ${
-              isActive('/profile') ? 'text-blue-500' : 'text-gray-400'
-            }`}
-          >
-            <UserOutlined className="text-lg" />
-            <span className="text-xs">我的</span>
-          </Link>
-        </div>
-      </div>
-    
+      <BottomNavigationBar />
 
-  </div>
+    </div>
   );
 }

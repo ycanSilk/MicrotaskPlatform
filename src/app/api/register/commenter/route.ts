@@ -1,23 +1,12 @@
 import { NextResponse } from 'next/server';
-import fs from 'fs';
-import path from 'path';
 
-// 读取评论员用户数据文件
-const getCommenterUsers = () => {
-  const filePath = path.join(process.cwd(), 'src/data/commenteruser/commenteruser.json');
-  const fileContents = fs.readFileSync(filePath, 'utf8');
-  return JSON.parse(fileContents);
-};
-
-// 写入评论员用户数据文件
-const saveCommenterUsers = (data: any) => {
-  const filePath = path.join(process.cwd(), 'src/data/commenteruser/commenteruser.json');
-  fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf8');
-};
-
+/**
+ * 评论员注册API
+ * 调用外部API完成真实数据库注册
+ */
 export async function POST(request: Request) {
   try {
-    const { username, password, phone, inviteCode } = await request.json();
+    const { username, password, phone, email, inviteCode } = await request.json();
 
     // 验证输入
     if (!username || !password) {
@@ -54,64 +43,81 @@ export async function POST(request: Request) {
       }
     }
 
-    // 读取现有用户数据
-    const userData = getCommenterUsers();
-    
-    // 检查用户名是否已存在
-    const existingUser = userData.users.find((u: any) => u.username === username);
-    if (existingUser) {
-      return NextResponse.json(
-        { success: false, message: '用户名已存在，请选择其他用户名' },
-        { status: 400 }
-      );
-    }
-
-    // 如果提供了手机号，检查手机号是否已存在
-    if (phone) {
-      const existingPhone = userData.users.find((u: any) => u.phone === phone);
-      if (existingPhone) {
+    // 如果提供了邮箱，则验证邮箱格式
+    if (email) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
         return NextResponse.json(
-          { success: false, message: '手机号已被注册，请使用其他手机号' },
+          { success: false, message: '请输入正确的邮箱地址' },
           { status: 400 }
         );
       }
     }
 
-    // 生成新用户ID
-    const newId = `com${(userData.users.length + 1).toString().padStart(3, '0')}`;
-
-    // 创建新用户
-    const newUser = {
-      id: newId,
+    // 准备请求数据
+    const requestData = {
       username,
-      password, // 注意：实际项目中应该加密存储密码
-      role: 'commenter',
-      phone: phone || '', // 如果没有提供手机号，则存储空字符串
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      password,
+      phone: phone || undefined,
+      email: email || undefined,
+      inviteCode: inviteCode || undefined,
+      role: 'commenter'
     };
 
-    // 添加新用户到用户列表
-    userData.users.push(newUser);
+    // 过滤空字段
+    const filteredRequestData = Object.fromEntries(
+      Object.entries(requestData).filter(([_, value]) => value !== undefined)
+    );
 
-    // 保存更新后的用户数据
-    saveCommenterUsers(userData);
+    // 调用外部注册API
+    const apiUrl = 'http://localhost:8888/api/users/register';
+    const response = await fetch(apiUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(filteredRequestData)
+    });
 
-    // 返回成功响应
+    // 解析API响应
+    const apiResponse = await response.json();
+    
+    if (!response.ok) {
+      // API返回错误
+      return NextResponse.json(
+        {
+          success: false,
+          message: apiResponse.message || '注册失败',
+          error: apiResponse.error,
+          timestamp: Date.now()
+        },
+        { status: response.status }
+      );
+    }
+
+    // 注册成功，构造返回数据
     return NextResponse.json({
       success: true,
-      message: '评论员账号注册成功！欢迎加入抖音派单系统。',
-      user: {
-        id: newUser.id,
-        username: newUser.username,
-        role: newUser.role
-      }
+      message: apiResponse.message || '评论员账号注册成功！欢迎加入抖音派单系统。',
+      data: {
+        id: apiResponse.userId || apiResponse.data?.id,
+        username: apiResponse.username || username,
+        role: 'commenter',
+        email: apiResponse.data?.email || email || null,
+        phone: apiResponse.data?.phone || phone
+      },
+      timestamp: Date.now()
     });
 
   } catch (error) {
     console.error('Commenter registration error:', error);
     return NextResponse.json(
-      { success: false, message: '服务器内部错误' },
+      { 
+        success: false, 
+        message: error instanceof Error ? error.message : '服务器内部错误',
+        error: error instanceof Error ? error.message : '未知错误',
+        timestamp: Date.now()
+      },
       { status: 500 }
     );
   }

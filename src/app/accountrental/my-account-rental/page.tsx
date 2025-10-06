@@ -32,22 +32,13 @@ const MyAccountRentalPage = () => {
   // 用户信息
   const userInfo = {
     name: '张小明',
-    avatar: '👤',
-    level: '高级用户',
-    score: 4.8,
-    memberSince: '2023-01-15',
-    accountNumber: 'ACC87654321'
+    imgurl: '/images/0e92a4599d02a7.jpg',
+    accountNumber: 'ACC87654321',
+    phoneNumber: '13800138000'
   };
 
   // 所有菜单项列表
   const menuItems: MenuItem[] = [
-    {
-      id: 'dashboard',
-      title: '个人主页',
-      icon: <HomeOutlined className="text-xl" />,
-      color: 'bg-blue-100',
-      path: '/accountrental/my-account-rental'
-    },
     {
       id: 'balance',
       title: '账户余额',
@@ -68,7 +59,7 @@ const MyAccountRentalPage = () => {
           icon: <ShopOutlined className="text-xl" />,
           color: 'bg-green-100',
           path: '/accountrental/my-account-rental/published'
-        },
+    },
     {
       id: 'rented',
       title: '已租赁账号',
@@ -77,26 +68,14 @@ const MyAccountRentalPage = () => {
       path: '/accountrental/my-account-rental/rented'
     },
     {
-      id: 'personal-info',
-      title: '个人信息',
-      icon: <UserOutlined className="text-xl" />,
-      color: 'bg-gray-100',
-      path: '/accountrental/my-account-rental/personal-info'
-    },
-    {
       id: 'help-center',
       title: '帮助中心',
       icon: <QuestionCircleOutlined className="text-xl" />,
       color: 'bg-red-100',
       path: '/accountrental/my-account-rental/help-center'
-    },
-    {
-      id: 'settings',
-      title: '设置',
-      icon: <SettingOutlined className="text-xl" />,
-      color: 'bg-indigo-100',
-      path: '/accountrental/my-account-rental/settings'
     }
+ 
+
   ];
 
   // 处理菜单项点击
@@ -117,58 +96,30 @@ const MyAccountRentalPage = () => {
   return (
     <div className="min-h-screen pb-28">
       {/* 顶部用户信息区域 */}
-      <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-6 mb-5">
-        <div className="flex items-center space-x-4 mb-4">
-          <div className="w-16 h-16 bg-white bg-opacity-20 rounded-full flex items-center justify-center text-4xl">
-            {userInfo.avatar}
-          </div>
-          <div>
-            <h1 className="text-xl font-bold">{userInfo.name}</h1>
-            <div className="flex items-center space-x-2 mt-1">
-              <span className="bg-white bg-opacity-20 text-xs px-2 py-0.5 rounded">{userInfo.level}</span>
-              <span className="text-blue-100 text-sm">评分 {userInfo.score}</span>
+      <div className="bg-blue-500 text-white p-6 mb-5">
+        <div 
+          className="flex items-center justify-between space-x-4 mb-4 cursor-pointer hover:bg-blue-600 rounded-lg p-2 transition-colors"
+          onClick={() => router.push('/accountrental/my-account-rental/information')}
+        >
+            <div className="flex items-center space-x-4">
+              <div className="w-16 h-16 flex ">
+                <img src={userInfo.imgurl} alt={userInfo.name} className="w-full h-full overflow-hidden rounded-lg" />
+              </div>
+              <div>
+                <span className="flex">{userInfo.name}</span>
+                <span className="flex">{userInfo.phoneNumber}</span>
+              </div>
+            </div>
+            <div className="text-white">
+              <RightOutlined className="h-5 w-5" />
             </div>
           </div>
-        </div>
-        <div className="text-sm text-blue-100">
-          账号: {userInfo.accountNumber} | 注册时间: {userInfo.memberSince}
-        </div>
       </div>
 
-      {/* 余额区域 */}
-      <div className="px-4 mb-5">
-        <div className="bg-white rounded-xl p-6 shadow-sm">
-          <div className="flex justify-between items-center mb-4">
-            <div>
-              <h2 className="text-gray-500 text-sm">我的余额</h2>
-              <p className="text-3xl font-bold mt-1">¥{balance.toFixed(2)}</p>
-            </div>
-            <Button
-              onClick={handleWithdraw}
-              className="bg-blue-600 hover:bg-blue-700 text-white min-h-12 active:scale-95 transition-all"
-            >
-              提现
-            </Button>
-          </div>
-          <div className="flex justify-around text-center">
-            <div className="text-gray-500 text-sm">
-              <div className="mb-1">总收益</div>
-              <div className="font-medium text-gray-800">¥5,620.00</div>
-            </div>
-            <div className="text-gray-500 text-sm">
-              <div className="mb-1">待结算</div>
-              <div className="font-medium text-gray-800">¥350.00</div>
-            </div>
-            <div className="text-gray-500 text-sm">
-              <div className="mb-1">优惠券</div>
-              <div className="font-medium text-orange-500">3张</div>
-            </div>
-          </div>
-        </div>
-      </div>
+     
 
       {/* 功能菜单列表 */}
-      <div className="px-4 mb-5">
+      <div className="mb-5">
         <div className="bg-white rounded-xl shadow-sm overflow-hidden">
           <div className="divide-y">
             {menuItems.map((item) => (
@@ -198,7 +149,7 @@ const MyAccountRentalPage = () => {
       </div>
 
       {/* 底部提示区域 */}
-      <div className="px-4">
+      <div>
         <div className="text-center text-gray-500 text-xs">
           <p>账号租赁系统 v1.0.0</p>
           <p className="mt-1">© 2023 版权所有</p>

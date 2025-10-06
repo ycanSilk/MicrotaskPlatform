@@ -39,7 +39,7 @@ interface TaskDetail extends Task {
 export default function TaskDetailPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const taskId = searchParams.get('id');
+  const taskId = (searchParams?.get('id') || '')?.trim();
   
   // 添加调试日志
   console.log('调试信息 - 任务详情页面初始化:');

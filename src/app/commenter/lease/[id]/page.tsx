@@ -7,7 +7,7 @@ import { useRouter, useParams } from 'next/navigation';
 export default function AccountRentalDetailPage() {
   const router = useRouter();
   const params = useParams();
-  const { id } = params;
+  const { id } = params || {};
   const [taskDetails, setTaskDetails] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

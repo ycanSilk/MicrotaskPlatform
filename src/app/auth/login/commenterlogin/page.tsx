@@ -2,17 +2,52 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { authenticateCommenter, CommenterAuthStorage, getCommenterHomePath, clearAllAuth } from '@/auth';
+import { CommenterAuthStorage, getCommenterHomePath, clearAllAuth } from '@/auth';
+import SuccessModal  from '../../../../components/button/authButton/SuccessModal';
+
+// 定义登录表单数据类型
+interface LoginFormData {
+  username: string;
+  password: string;
+  captcha: string;
+}
+
+// 表单验证规则
+const validationRules = {
+  username: {
+    minLength: 3,
+    maxLength: 10,
+    pattern: /^[a-zA-Z0-9_]{3,10}$/,
+    message: '用户名必须包含3-10个字符，且只能包含字母、数字和下划线'
+  },
+  password: {
+    minLength: 6,
+    maxLength: 20,
+    pattern: /^[a-zA-Z0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]{6,20}$/,
+    message: '密码必须包含6-20个字符'
+  },
+  captcha: {
+    minLength: 4,
+    maxLength: 6,
+    pattern: /^[a-zA-Z0-9]{4,6}$/,
+    message: '验证码格式不正确'
+  }
+};
 
 export default function CommenterLoginPage() {
-  const [formData, setFormData] = useState({
-    username: 'test123',
+  const [formData, setFormData] = useState<LoginFormData>({
+    username: 'testkf1',
     password: '123456',
     captcha: ''
   });
   const [captchaCode, setCaptchaCode] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [requestInfo, setRequestInfo] = useState<any | null>(null);
+  const [responseTime, setResponseTime] = useState<number | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Partial<Record<keyof LoginFormData, string>>>({});
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [loginSuccessMessage, setLoginSuccessMessage] = useState('');
   const router = useRouter();
 
   // 生成随机验证码
@@ -25,9 +60,52 @@ export default function CommenterLoginPage() {
     return result;
   }
 
+  // 验证单个字段
+  const validateField = (fieldName: keyof LoginFormData, value: string): string => {
+    const rules = validationRules[fieldName];
+    
+    if (!value.trim()) {
+      return '此字段不能为空';
+    }
+    
+    if (value.length < rules.minLength || value.length > rules.maxLength) {
+      return rules.message;
+    }
+    
+    if (!rules.pattern.test(value)) {
+      return rules.message;
+    }
+    
+    return '';
+  };
+  
+  // 全面验证表单
+  const validateForm = (): boolean => {
+    const errors: Partial<Record<keyof LoginFormData, string>> = {};
+    let isValid = true;
+    
+    // 验证每个字段
+    Object.keys(formData).forEach(key => {
+      const fieldName = key as keyof LoginFormData;
+      const error = validateField(fieldName, formData[fieldName]);
+      if (error) {
+        errors[fieldName] = error;
+        isValid = false;
+      }
+    });
+    
+    // 验证码特殊验证
+    if (formData.captcha && formData.captcha.toUpperCase() !== captchaCode.toUpperCase()) {
+      errors.captcha = '请输入正确的验证码';
+      isValid = false;
+    }
+    
+    setFieldErrors(errors);
+    return isValid;
+  };
+
   // 初始化验证码
   useEffect(() => {
-    console.log('Initializing captcha');
     const initialCaptcha = generateCaptcha();
     setCaptchaCode(initialCaptcha);
     // 默认填充验证码
@@ -38,7 +116,7 @@ export default function CommenterLoginPage() {
   useEffect(() => {
     // 设置默认测试账号
     setFormData({
-      username: 'test123',
+      username: 'testkf1',
       password: '123456',
       captcha: captchaCode
     });
@@ -46,7 +124,6 @@ export default function CommenterLoginPage() {
 
   // 刷新验证码
   const refreshCaptcha = () => {
-    console.log('Refreshing captcha');
     const newCaptcha = generateCaptcha();
     setCaptchaCode(newCaptcha);
     // 刷新验证码时保持用户名和密码不变，只更新验证码
@@ -56,59 +133,134 @@ export default function CommenterLoginPage() {
     }));
   };
 
+  // 处理表单输入变化
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    const fieldName = name as keyof LoginFormData;
+    
+    // 更新表单数据
+    setFormData(prev => ({
+      ...prev,
+      [fieldName]: value
+    }));
+    
+    // 实时验证当前字段
+    if (fieldName !== 'captcha') { // 验证码不实时验证，只在提交时验证
+      const error = validateField(fieldName, value);
+      setFieldErrors(prev => ({
+        ...prev,
+        [fieldName]: error
+      }));
+    }
+  };
+
+  // 重置表单
+  const handleReset = () => {
+    setFormData({
+      username: 'testkf1',
+      password: '123456',
+      captcha: captchaCode
+    });
+    setErrorMessage('');
+    setResponseTime(null);
+    setRequestInfo(null);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     // 重置错误信息
     setErrorMessage('');
     
-    // 验证用户名和密码
-    if (!formData.username || !formData.password) {
-      setErrorMessage('请输入用户名和密码');
-      return;
-    }
-    
-    // 验证验证码
-    if (!formData.captcha || formData.captcha.toUpperCase() !== captchaCode.toUpperCase()) {
-      setErrorMessage('请输入正确的验证码');
+    // 全面验证表单
+    if (!validateForm()) {
+      setErrorMessage('请检查输入的信息');
       return;
     }
     
     setIsLoading(true);
     setErrorMessage('');
+    setResponseTime(null);
     
-    try {
-      const result = await authenticateCommenter({
-        username: formData.username,
-        password: formData.password
+    const startTime = Date.now();
+    // 前端只调用本地后端API
+    const apiUrl = '/api/auth/login';
+    const requestData = {
+        method: 'POST',
+        headers: {
+          'accept': '*/*',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          username: formData.username,
+          password: formData.password
+        })
+      };
+      
+      // 记录请求信息
+      setRequestInfo({
+        url: apiUrl,
+        method: 'POST',
+        params: formData,
+        timestamp: new Date().toLocaleString('zh-CN')
       });
       
-      if (result.success && result.user && result.token) {
-        // 先清除所有其他角色的认证信息，确保只有评论员角色有效
-        clearAllAuth();
+      try {
+        // 调用本地后端API
+        const result = await fetch(apiUrl, requestData);
+        const endTime = Date.now();
+        setResponseTime(endTime - startTime);
+
+        const apiResponse = await result.json();
         
-        // 保存认证信息到本地存储
-        CommenterAuthStorage.saveAuth({
-          token: result.token,
-          user: result.user,
-          expiresAt: Date.now() + (24 * 60 * 60 * 1000) // 24小时后过期
-        });
-        
-        console.log('评论员登录成功，用户角色:', result.user.role);
-        console.log('保存的认证信息:', result.token.substring(0, 20) + '...');
-        
-        // 登录成功后跳转
-        // 使用window.location.href确保在任何环境下都能正确跳转
-        if (typeof window !== 'undefined') {
-          window.location.href = getCommenterHomePath();
+        // 根据后端LoginResponse格式处理响应
+        if (apiResponse.code !== 200 || !result.ok) {
+          setErrorMessage(apiResponse.message || '登录失败');
+          refreshCaptcha();
+          return;
+        } else if (apiResponse.data && apiResponse.data.token) {
+          const responseData = apiResponse.data;
+          
+          // 先清除所有其他角色的认证信息，确保只有评论员角色有效
+          clearAllAuth();
+          
+          // 保存认证信息到本地存储
+          CommenterAuthStorage.saveAuth({
+            token: responseData.token,
+            user: responseData.userInfo,
+            expiresAt: Date.now() + (responseData.expiresIn || 24 * 60 * 60 * 1000) // 默认24小时后过期
+          });
+          
+          // 保存token到本地缓存
+          if (responseData.token) {
+            const tokenData = {
+              token: responseData.token,
+              tokenType: responseData.tokenType || 'Bearer',
+              expiresIn: responseData.expiresIn || 3600,
+              timestamp: Date.now(),
+              expiresAt: Date.now() + (responseData.expiresIn || 3600) * 1000
+            };
+            
+            // 使用localStorage缓存token
+            if (typeof window !== 'undefined') {
+            localStorage.setItem('commenterAuthToken', JSON.stringify(tokenData));
+          }
         }
-      } else {
-        setErrorMessage(result.message || '登录失败');
-        refreshCaptcha();
-      }
+        
+        // 设置成功消息并显示模态框
+        setLoginSuccessMessage(`登录成功！欢迎 ${responseData.userInfo.username}`);
+        setShowSuccessModal(true);
+        } else {
+          setErrorMessage('登录失败：未获取到有效的用户信息');
+          refreshCaptcha();
+        }
     } catch (error) {
-      console.error('登录错误:', error);
-      setErrorMessage('登录过程中出现错误，请稍后再试');
+      // 提供更具体的错误信息
+      if (error instanceof Error) {
+        setErrorMessage(error.message);
+      } else {
+        setErrorMessage('登录过程中出现错误，请稍后再试');
+      }
       refreshCaptcha();
     } finally {
       setIsLoading(false);
@@ -121,10 +273,7 @@ export default function CommenterLoginPage() {
       <div className="bg-gradient-to-br from-blue-500 to-blue-600 pt-12 pb-16">
         <div className="max-w-md mx-auto px-4 text-center">
           <div className="text-white text-4xl font-bold mb-3">
-            💬 评论员登录
-          </div>
-          <div className="text-blue-100 text-sm">
-            抖音派单系统评论员平台
+            登录
           </div>
         </div>
       </div>
@@ -132,14 +281,7 @@ export default function CommenterLoginPage() {
       {/* 主要内容区域 */}
       <div className="flex-1 -mt-8">
         <div className="max-w-md mx-auto px-4">
-          {/* 登录卡片 */}
           <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
-            <div className="text-center mb-6">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">评论员登录</h2>
-              <p className="text-sm text-gray-600">请输入评论员账号信息</p>
-            </div>
-
-            {/* 登录表单 */}
             <form onSubmit={handleSubmit} className="space-y-4">
               {/* 用户名输入 */}
               <div>
@@ -147,12 +289,16 @@ export default function CommenterLoginPage() {
                   用户名
                 </label>
                 <input
-                  type="text"
-                  placeholder="请输入评论员用户名"
-                  value={formData.username}
-                  onChange={(e) => setFormData({...formData, username: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
+                    type="text"
+                    placeholder="请输入用户名"
+                    value={formData.username}
+                    onChange={handleInputChange}
+                    name="username"
+                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 ${fieldErrors.username ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'}`}
+                  />
+                  {fieldErrors.username && (
+                    <p className="text-red-500 text-xs mt-1">{fieldErrors.username}</p>
+                  )}
               </div>
 
               {/* 密码输入 */}
@@ -161,13 +307,17 @@ export default function CommenterLoginPage() {
                   密码
                 </label>
                 <input
-                  type="password"
-                  placeholder="请输入密码"
-                  autoComplete="current-password"
-                  value={formData.password}
-                  onChange={(e) => setFormData({...formData, password: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
+                    type="password"
+                    placeholder="请输入密码"
+                    autoComplete="current-password"
+                    value={formData.password}
+                    onChange={handleInputChange}
+                    name="password"
+                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 ${fieldErrors.password ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'}`}
+                  />
+                  {fieldErrors.password && (
+                    <p className="text-red-500 text-xs mt-1">{fieldErrors.password}</p>
+                  )}
               </div>
 
               {/* 验证码 */}
@@ -181,7 +331,7 @@ export default function CommenterLoginPage() {
                     placeholder="请输入验证码"
                     value={formData.captcha}
                     onChange={(e) => setFormData({...formData, captcha: e.target.value})}
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className={`flex-1 px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 ${fieldErrors.captcha ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'}`}
                   />
                   <div 
                     className="w-24 h-10 flex items-center justify-center bg-gray-100 border border-gray-300 rounded-lg font-bold text-lg cursor-pointer"
@@ -190,6 +340,9 @@ export default function CommenterLoginPage() {
                     {captchaCode}
                   </div>
                 </div>
+                {fieldErrors.captcha && (
+                  <p className="text-red-500 text-xs mt-1">{fieldErrors.captcha}</p>
+                )}
               </div>
 
               {/* 错误信息 */}
@@ -208,19 +361,25 @@ export default function CommenterLoginPage() {
                 disabled={isLoading}
                 className="w-full py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isLoading ? '登录中...' : '评论员登录'}
+                {isLoading ? '登录中...' : '登录'}
               </button>
             </form>
 
             {/* 注册提示 */}
             <div className="mt-6 text-center">
               <p className="text-sm text-gray-600">
-                还没有评论员账户？{' '}
+                还没有账户？{' '}
                 <button 
                   onClick={() => router.push('/auth/register/commenter')}
                   className="text-blue-500 hover:underline"
                 >
                   立即注册
+                </button>
+                <button 
+                  onClick={() => router.push('/auth/resetpwd')}
+                  className="text-blue-500 hover:underline ml-3"
+                >
+                  忘记密码
                 </button>
               </p>
             </div>
@@ -228,10 +387,19 @@ export default function CommenterLoginPage() {
 
           {/* 底部信息 */}
           <div className="text-center text-xs text-gray-500 mb-8">
-            <p>© 2024 抖音派单系统 版本 v2.0.0</p>
-            <p className="mt-1">安全登录 · 数据加密</p>
+            <p>© 2024 微任务系统 v2.0.0</p>
           </div>
         </div>
+        
+        {/* 登录成功提示框 */}
+        <SuccessModal
+          isOpen={showSuccessModal}
+          onClose={() => setShowSuccessModal(false)}
+          title="登录成功"
+          message={loginSuccessMessage}
+          buttonText="确认"
+          redirectUrl={getCommenterHomePath()}
+        />
       </div>
     </div>
   );

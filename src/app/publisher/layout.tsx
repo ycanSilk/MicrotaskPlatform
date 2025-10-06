@@ -4,8 +4,8 @@ import React, { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { PublisherAuthStorage } from '@/auth/publisher/auth';
 import Link from 'next/link';
-import { PublisherBottomNavigation } from '@/components/business';
-import { PublisherHeader } from '@/components/business/PublisherHeader';
+import { PublisherBottomNavigation } from './components/PublisherBottomNavigation';
+import { PublisherHeader } from '@/app/publisher/components/PublisherHeader';
 
 export default function PublisherLayout({
   children,

@@ -153,7 +153,7 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
               </button>
             </div>
           </div>
-          <div className="space-y-4 max-h-96 overflow-y-auto p-4">
+          <div className="space-y-4 overflow-y-auto p-4">
             {dispatchedTasks.slice(0, 10).map((task, index) => (
               <div key={`dispatched-${task.id}-${index}`} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
                 {/* 订单号和订单状态 - 调整为同一行显示 */}

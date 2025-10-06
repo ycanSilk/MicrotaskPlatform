@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import SuccessModal from '../../../../components/button/authButton/SuccessModal';
 
 export default function PublisherRegisterPage() {
   const [formData, setFormData] = useState({
@@ -18,6 +19,7 @@ export default function PublisherRegisterPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
   // 生成随机验证码
   function generateCaptcha(length = 4) {
     const chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
@@ -103,16 +105,12 @@ export default function PublisherRegisterPage() {
       if (result.success) {
         // 注册成功
         setSuccessMessage(result.message);
-        
-        // 2秒后跳转到登录页
-        setTimeout(() => {
-          router.push('/auth/login/publisherlogin');
-        }, 2000);
+        // 显示确认提示框
+        setShowConfirmModal(true);
       } else {
         setErrorMessage(result.message || '注册失败');
       }
     } catch (error) {
-      console.error('Registration error:', error);
       setErrorMessage('注册过程中发生错误，请重试');
     } finally {
       setIsLoading(false);
@@ -125,10 +123,7 @@ export default function PublisherRegisterPage() {
       <div className="bg-gradient-to-br from-blue-500 to-blue-600 pt-8 md:pt-12 pb-12 md:pb-16">
         <div className="max-w-md mx-auto px-4 text-center">
           <div className="text-white text-2xl md:text-4xl font-bold mb-2 md:mb-3">
-            🎯 派单员注册
-          </div>
-          <div className="text-blue-100 text-xs md:text-sm">
-            专业评论任务发布者申请
+            注册
           </div>
         </div>
       </div>
@@ -138,11 +133,6 @@ export default function PublisherRegisterPage() {
         <div className="max-w-md mx-auto px-4">
           {/* 注册卡片 */}
           <div className="bg-white rounded-lg shadow-lg p-4 md:p-6 mb-6">
-            <div className="text-center mb-4 md:mb-6">
-              <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-2">注册派单员账号</h2>
-              <p className="text-xs md:text-sm text-gray-600">填写基本信息，快速完成注册</p>
-            </div>
-
             {/* 注册表单 */}
             <form onSubmit={handleSubmit} className="space-y-4">
               {/* 账号信息 */}
@@ -316,24 +306,25 @@ export default function PublisherRegisterPage() {
             </div>
           </div>
 
-          {/* 新人礼包 */}
-          <div className="bg-gradient-to-r from-blue-100 to-purple-100 rounded-lg p-4 mb-6">
-            <div className="text-sm text-blue-800 font-medium mb-2">🎉 新人福利</div>
-            <ul className="text-xs text-blue-700 space-y-1">
-              <li>• 注册即送平台推广奖励（使用邀请码）</li>
-              <li>• 首次发布任务享受优惠费率</li>
-              <li>• 专属新手指导服务</li>
-              <li>• 优质用户推荐服务</li>
-            </ul>
-          </div>
+
 
           {/* 底部信息 */}
           <div className="text-center text-xs text-gray-500 mb-8">
-            <p>© 2024 抖音派单系统 版本 v2.0.0</p>
-            <p className="mt-1">安全注册 · 信息加密</p>
+            <p>© 2024 微任务系统 版本 v2.0.0</p>
+
           </div>
         </div>
       </div>
+      
+      {/* 注册成功确认提示框 */}
+      <SuccessModal
+        isOpen={showConfirmModal}
+        onClose={() => setShowConfirmModal(false)}
+        title="注册成功"
+        message={successMessage || '您的账号已成功注册，现在可以登录了！'}
+        buttonText="确认并登录"
+        redirectUrl="/auth/login/publisherlogin"
+      />
     </div>
   );
 }

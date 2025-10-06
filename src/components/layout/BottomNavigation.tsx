@@ -14,7 +14,7 @@ export const BottomNavigation: React.FC<BottomNavigationProps> = ({ items }) => 
   const pathname = usePathname();
 
   return (
-    <nav className="bg-white border-t border-gray-200 px-4 py-2 safe-area-bottom">
+    <nav className="bg-white px-1 py-2 safe-area-bottom items-center justify-around">
       <div className="flex items-center justify-around">
         {items.map((item, index) => {
           const isActive = pathname === item.path || item.active;
@@ -25,18 +25,20 @@ export const BottomNavigation: React.FC<BottomNavigationProps> = ({ items }) => 
               href={item.path as any}
               className={cn(
                 'flex flex-col items-center justify-center min-w-0 flex-1 py-2 px-1',
-                'touch-target transition-colors duration-200',
-                isActive 
-                  ? 'text-primary' 
-                  : 'text-gray-500 hover:text-gray-700'
+                'touch-target transition-all duration-200'
               )}
             >
-              <span className="text-xl mb-1">
+              <span className={cn(
+                'text-lg  w-7 h-7 flex items-center justify-center rounded-full',
+                isActive 
+                  ? 'text-blue-500' : 'text-gray-600'
+                  
+              )}>
                 {item.icon}
               </span>
               <span className={cn(
-                'text-xs font-medium truncate',
-                isActive && 'text-primary'
+                'text-xs truncate',
+                isActive ? 'text-blue-500' : 'text-gray-600'
               )}>
                 {item.label}
               </span>

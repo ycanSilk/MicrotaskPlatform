@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { getCurrentLoggedInUser, commonLogout } from '@/auth/common';
 import Link from 'next/link';
-import { AdminBottomNavigation } from '@/components/business';
+import { AdminBottomNavigation } from './components/AdminBottomNavigation';
 
 export default function AdminLayout({
   children,
@@ -57,16 +57,16 @@ export default function AdminLayout({
 
   // 获取当前页面标题
   const getPageTitle = () => {
-    if (pathname.includes('/dashboard')) return '数据总览';
-    if (pathname.includes('/users')) return '用户管理';
-    if (pathname.includes('/finance')) return '财务管理';
-    if (pathname.includes('/settings')) return '系统设置';
+    if (pathname?.includes('/dashboard')) return '数据总览';
+    if (pathname?.includes('/users')) return '用户管理';
+    if (pathname?.includes('/finance')) return '财务管理';
+    if (pathname?.includes('/settings')) return '系统设置';
     return '管理员中心';
   };
 
   // 检查当前路由是否激活
   const isActive = (path: string) => {
-    return pathname.includes(path);
+    return pathname?.includes(path) ?? false;
   };
 
   if (isLoading) {

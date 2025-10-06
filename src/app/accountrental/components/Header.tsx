@@ -1,7 +1,7 @@
 'use client';
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { BackButton } from '@/components/business/BackButton';
+import { BackButton } from '@/components/button/ReturnToPreviousPage';
 import CloseOutlined from '@ant-design/icons/CloseOutlined';
 import SettingOutlined from '@ant-design/icons/SettingOutlined';
 

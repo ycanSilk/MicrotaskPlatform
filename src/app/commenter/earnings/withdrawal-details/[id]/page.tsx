@@ -139,7 +139,7 @@ const getStatusInfo = (status: string) => {
 const WithdrawalDetailsPage: React.FC<WithdrawalDetailsPageProps> = () => {
   const router = useRouter();
   const params = useParams();
-  const withdrawalId = params.id as string;
+  const withdrawalId = params?.id as string || 'default';
   
   // 直接使用静态数据，不进行异步加载和验证
   // 如果找不到对应ID的数据，使用默认数据

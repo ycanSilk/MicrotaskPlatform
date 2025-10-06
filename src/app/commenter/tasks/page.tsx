@@ -43,7 +43,7 @@ export default function CommenterTasksPage() {
   const searchParams = useSearchParams();
   
   // 从URL参数中获取初始tab值，如果没有则默认为sub_progress
-  const tabFromUrl = searchParams.get('tab') as TaskStatus | null;
+  const tabFromUrl = (searchParams?.get('tab') || '')?.trim() as TaskStatus | null;
   const [activeTab, setActiveTab] = useState<TaskStatus>(tabFromUrl || 'sub_progress');
   const [tasks, setTasks] = useState<Task[]>([
     // 添加静态渲染数据，这些数据会在API请求完成前显示
@@ -138,7 +138,7 @@ export default function CommenterTasksPage() {
     setActiveTab(tab);
     
     // 更新URL参数而不刷新页面
-    const newParams = new URLSearchParams(searchParams);
+    const newParams = new URLSearchParams(searchParams || {});
     newParams.set('tab', tab);
     
     // 使用replaceState避免创建新的历史记录

@@ -1,5 +1,4 @@
 'use client';
-
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import WalletOutlined from '@ant-design/icons/WalletOutlined';
@@ -12,15 +11,13 @@ import InfoCircleOutlined from '@ant-design/icons/InfoCircleOutlined';
 import DownOutlined from '@ant-design/icons/DownOutlined';
 import CalendarOutlined from '@ant-design/icons/CalendarOutlined';
 import ClockCircleOutlined from '@ant-design/icons/ClockCircleOutlined';
-import SearchOutlined from '@ant-design/icons/SearchOutlined';
-import FilterOutlined from '@ant-design/icons/FilterOutlined';
 import MoreOutlined from '@ant-design/icons/MoreOutlined';
 import UndoOutlined from '@ant-design/icons/UndoOutlined';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/Tabs';
 import { Badge } from '@/components/ui/Badge';
-import { Input } from '@/components/ui/Input';
+
 
 // 交易记录类型定义
 interface Transaction {
@@ -64,10 +61,6 @@ const BalancePage = () => {
   const [withdrawalRecords, setWithdrawalRecords] = useState<WithdrawalRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('all');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedPeriod, setSelectedPeriod] = useState('all');
-  const [selectedType, setSelectedType] = useState('all');
-  const [isFilterVisible, setIsFilterVisible] = useState(false);
 
   // 模拟获取数据
   useEffect(() => {
@@ -234,49 +227,7 @@ const BalancePage = () => {
     fetchData();
   }, []);
 
-  // 筛选交易记录
-  const filteredTransactions = transactions.filter(txn => {
-    const matchesSearch = 
-      txn.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (txn.orderId && txn.orderId.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      txn.amount.toString().includes(searchTerm);
-    
-    const matchesPeriod = selectedPeriod === 'all' || 
-      (selectedPeriod === 'today' && isToday(txn.date)) ||
-      (selectedPeriod === 'week' && isThisWeek(txn.date)) ||
-      (selectedPeriod === 'month' && isThisMonth(txn.date));
-    
-    const matchesType = selectedType === 'all' || txn.type === selectedType;
-    
-    return matchesSearch && matchesPeriod && matchesType;
-  });
-
-  // 工具函数：判断是否为今天
-  const isToday = (dateString: string) => {
-    const today = new Date();
-    const date = new Date(dateString);
-    return date.toDateString() === today.toDateString();
-  };
-
-  // 工具函数：判断是否为本周
-  const isThisWeek = (dateString: string) => {
-    const today = new Date();
-    const date = new Date(dateString);
-    const firstDayOfWeek = new Date(today);
-    firstDayOfWeek.setDate(today.getDate() - today.getDay());
-    firstDayOfWeek.setHours(0, 0, 0, 0);
-    const lastDayOfWeek = new Date(firstDayOfWeek);
-    lastDayOfWeek.setDate(firstDayOfWeek.getDate() + 6);
-    lastDayOfWeek.setHours(23, 59, 59, 999);
-    return date >= firstDayOfWeek && date <= lastDayOfWeek;
-  };
-
-  // 工具函数：判断是否为本月
-  const isThisMonth = (dateString: string) => {
-    const today = new Date();
-    const date = new Date(dateString);
-    return date.getMonth() === today.getMonth() && date.getFullYear() === today.getFullYear();
-  };
+  // 交易记录直接显示，不进行筛选
 
   // 格式化日期
   const formatDate = (dateString: string) => {
@@ -398,31 +349,13 @@ const BalancePage = () => {
   // 处理查看资金流水
   const handleViewAllTransactions = () => {
     console.log('查看全部资金流水');
-    // 在实际项目中，应该跳转到资金流水页面
+    // 跳转到交易详情页面
+    router.push('/accountrental/my-account-rental/balance/transaction-list');
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* 顶部导航栏 */}
-      <header className="sticky top-0 z-10 bg-white shadow-sm">
-        <div className="flex items-center justify-between px-4 py-3">
-          <button 
-            onClick={() => router.back()}
-            className="p-1 rounded-full hover:bg-gray-100"
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M15 18l-6-6 6-6" />
-            </svg>
-          </button>
-          <h1 className="text-lg font-bold text-center flex-1">我的余额</h1>
-          <button 
-            className="p-1 rounded-full hover:bg-gray-100"
-            onClick={() => console.log('通知')}
-          >
-            <BellOutlined className="h-5 w-5 text-gray-600" />
-          </button>
-        </div>
-      </header>
+ 
 
       {/* 余额卡片 */}
       <div className="px-4 mt-3">
@@ -457,30 +390,17 @@ const BalancePage = () => {
                 onClick={handleRecharge}
                 className="bg-white text-blue-600 hover:bg-blue-50 font-medium"
               >
-                <CreditCardOutlined className="mr-2 h-4 w-4" />
-                充值
+                                充值
               </Button>
-              <Button 
-                onClick={handleWithdraw}
-                className="bg-blue-400 bg-opacity-30 text-white border border-white border-opacity-30 hover:bg-opacity-40 font-medium"
-              >
-                <ArrowDownOutlined className="mr-2 h-4 w-4" />
-                提现
+              <Button onClick={handleWithdraw} className="bg-green-500 text-white border border-white border-opacity-30 hover:bg-green-600 font-medium">
+                              提现
               </Button>
             </div>
           </div>
         </Card>
       </div>
 
-      {/* 安全提示 */}
-      <div className="px-4 py-3 mt-3 bg-white">
-        <div className="flex items-start">
-          <SafetyOutlined className="h-4 w-4 text-blue-500 mr-2 mt-0.5 flex-shrink-0" />
-          <p className="text-xs text-gray-600">
-            账户安全提醒：请妥善保管您的账户信息，不要向他人泄露密码和验证码
-          </p>
-        </div>
-      </div>
+    
 
       {/* 交易记录 */}
       <div className="mt-3 bg-white">
@@ -494,101 +414,7 @@ const BalancePage = () => {
           </Tabs>
         </div>
 
-        {/* 筛选和搜索 */}
-        <div className="px-4 py-3 border-b border-gray-100">
-          <div className="relative mb-3">
-            <SearchOutlined className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-            <Input
-              placeholder="搜索交易描述、订单号"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 pr-4 py-2 w-full rounded-lg border-gray-200 focus:border-blue-500 focus:ring-blue-500 text-sm"
-            />
-          </div>
-
-          <div className="flex justify-between items-center">
-            <button 
-              onClick={() => setIsFilterVisible(!isFilterVisible)}
-              className="flex items-center text-gray-600 text-sm px-3 py-1.5 rounded-full border border-gray-200"
-            >
-              <FilterOutlined className="mr-1 h-4 w-4" />
-              筛选
-            </button>
-          </div>
-        </div>
-
-        {/* 筛选条件 */}
-        {isFilterVisible && (
-          <div className="px-4 py-3 border-b border-gray-100">
-            <div className="mb-3">
-              <h3 className="text-sm font-medium text-gray-700 mb-2">时间范围</h3>
-              <div className="flex flex-wrap gap-2">
-                <button
-                  onClick={() => setSelectedPeriod('all')}
-                  className={`px-3 py-1.5 text-xs rounded-full ${selectedPeriod === 'all' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700'}`}
-                >
-                  全部
-                </button>
-                <button
-                  onClick={() => setSelectedPeriod('today')}
-                  className={`px-3 py-1.5 text-xs rounded-full ${selectedPeriod === 'today' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700'}`}
-                >
-                  今天
-                </button>
-                <button
-                  onClick={() => setSelectedPeriod('week')}
-                  className={`px-3 py-1.5 text-xs rounded-full ${selectedPeriod === 'week' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700'}`}
-                >
-                  本周
-                </button>
-                <button
-                  onClick={() => setSelectedPeriod('month')}
-                  className={`px-3 py-1.5 text-xs rounded-full ${selectedPeriod === 'month' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700'}`}
-                >
-                  本月
-                </button>
-              </div>
-            </div>
-            
-            {activeTab === 'all' && (
-              <div>
-                <h3 className="text-sm font-medium text-gray-700 mb-2">交易类型</h3>
-                <div className="flex flex-wrap gap-2">
-                  <button
-                    onClick={() => setSelectedType('all')}
-                    className={`px-3 py-1.5 text-xs rounded-full ${selectedType === 'all' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700'}`}
-                  >
-                    全部
-                  </button>
-                  <button
-                    onClick={() => setSelectedType('recharge')}
-                    className={`px-3 py-1.5 text-xs rounded-full ${selectedType === 'recharge' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700'}`}
-                  >
-                    充值
-                  </button>
-                  <button
-                    onClick={() => setSelectedType('withdraw')}
-                    className={`px-3 py-1.5 text-xs rounded-full ${selectedType === 'withdraw' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700'}`}
-                  >
-                    提现
-                  </button>
-                  <button
-                    onClick={() => setSelectedType('rental_payment')}
-                    className={`px-3 py-1.5 text-xs rounded-full ${selectedType === 'rental_payment' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700'}`}
-                  >
-                    租赁支付
-                  </button>
-                  <button
-                    onClick={() => setSelectedType('rental_income')}
-                    className={`px-3 py-1.5 text-xs rounded-full ${selectedType === 'rental_income' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700'}`}
-                  >
-                    租赁收入
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-        )}
+        {/* 交易记录区域 */}
 
         {/* 交易记录列表 */}
         <div>
@@ -606,7 +432,7 @@ const BalancePage = () => {
                 </div>
               ))}
             </div>
-          ) : activeTab === 'all' && filteredTransactions.length === 0 ? (
+          ) : activeTab === 'all' && transactions.length === 0 ? (
             // 空状态 - 全部明细
             <div className="py-12 px-4 text-center">
               <div className="text-5xl mb-3">📝</div>
@@ -643,7 +469,7 @@ const BalancePage = () => {
             // 交易记录列表
             <div>
               {activeTab === 'all' && (
-                filteredTransactions.map((transaction) => {
+                transactions.map((transaction) => {
                   const iconInfo = getTransactionIcon(transaction.type);
                   const isIncome = transaction.amount > 0;
                   
@@ -750,7 +576,9 @@ const BalancePage = () => {
 
       {/* 底部提示 */}
       <div className="px-4 py-4 text-center text-xs text-gray-500">
-        <p>交易记录保存期限为12个月</p>
+        <div>
+          <p>交易记录保存期限为12个月</p>
+        </div>
       </div>
     </div>
   );

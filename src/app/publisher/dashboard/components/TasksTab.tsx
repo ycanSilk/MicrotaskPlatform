@@ -1,5 +1,5 @@
 import React from 'react';
-import ReorderButton from '../../../components/ReorderButton';
+import ReorderButton from '../../../commenter/components/ReorderButton';
 import OrderHeaderTemplate from './OrderHeaderTemplate';
 
 interface Task {

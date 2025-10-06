@@ -7,7 +7,7 @@ import OverviewTab from './components/OverviewTab';
 import AuditTab from './components/AuditTab';
 import ActiveTasksTab from './components/ActiveTasksTab';
 import CompletedTasksTab from './components/CompletedTasksTab';
-import ReorderButton from '../../components/ReorderButton';
+import ReorderButton from '../../commenter/components/ReorderButton';
 
 // 定义数据类型
 interface Task {

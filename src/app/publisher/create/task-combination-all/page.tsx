@@ -11,12 +11,16 @@ export default function TaskCombinationAllPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   
-  // 从URL参数获取任务信息
-  const taskId = searchParams.get('taskId');
-  const taskTitle = searchParams.get('title') || '全包任务发布页';
-  const taskIcon = searchParams.get('icon') || '🌟';
-  const taskPrice = parseFloat(searchParams.get('price') || '0');
-  const taskDescription = searchParams.get('description') || '任务描述';
+  // 从URL参数获取任务信息，确保searchParams不为null
+  const getSearchParam = (key: string) => {
+    return searchParams?.get(key) || '';
+  };
+  
+  const taskId = getSearchParam('taskId').trim();
+  const taskTitle = getSearchParam('title').trim() || '全包任务发布页';
+  const taskIcon = getSearchParam('icon').trim() || '🌟';
+  const taskPrice = parseFloat(getSearchParam('price').trim() || '0');
+  const taskDescription = getSearchParam('description').trim() || '任务描述';
   
   // 新的表单数据结构，包含上评、中评和下评的完整套餐
   const [formData, setFormData] = useState({

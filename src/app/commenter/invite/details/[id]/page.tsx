@@ -7,7 +7,7 @@ import { InviteRecord } from '../../../../../types/invite';
 const InviteDetailsPage = () => {
   const router = useRouter();
   const params = useParams();
-  const id = params.id as string;
+  const id = params?.id as string || 'default';
   
   // 定义多个静态邀请记录数据
   const mockInviteData: Record<string, InviteRecord> = {

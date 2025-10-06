@@ -7,7 +7,7 @@ import { useRouter, useParams } from 'next/navigation';
 export default function EditAccountRentalPage() {
   const router = useRouter();
   const params = useParams();
-  const { id } = params;
+  const { id } = params || {};
   const [formData, setFormData] = useState({
     accountName: '',
     platform: 'douyin',

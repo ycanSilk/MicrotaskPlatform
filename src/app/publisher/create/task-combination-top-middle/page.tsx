@@ -11,10 +11,10 @@ export default function PublishTaskPage() {
   
   // 从URL参数获取任务信息
   const taskId = searchParams.get('taskId');
-  const taskTitle = searchParams.get('title') || '中评任务发布页';
-  const taskIcon = searchParams.get('icon') || '📝';
-  const taskPrice = parseFloat(searchParams.get('price') || '0');
-  const taskDescription = searchParams.get('description') || '任务描述';
+  const taskTitle = getSearchParam('title').trim() || '中评任务发布页';
+  const taskIcon = getSearchParam('icon').trim() || '📝';
+  const taskPrice = parseFloat(getSearchParam('price').trim() || '0');
+  const taskDescription = getSearchParam('description').trim() || '任务描述';
   
   // @用户相关状态 - 只用于中评
   const [mentionInput, setMentionInput] = useState('');

@@ -1,5 +1,4 @@
-import React, { useState } from 'react';
-import { MessageOutlined } from '@ant-design/icons';
+import { useState } from 'react';
 
 interface CustomerServiceButtonProps {
   // 可以根据需要添加更多props，使组件更灵活
@@ -37,10 +36,10 @@ export const CustomerServiceButton: React.FC<CustomerServiceButtonProps> = ({
       {/* 客服按钮 */}
       <button 
         onClick={openChatModal} 
-        className={`text-sm hover:text-green-300 transition-colors ${className}`}
+        className={`text-sm transition-colors ${className}`}
         aria-label={buttonText}
       >
-        <MessageOutlined size={20} /><span className="ml-1">{buttonText}</span>
+        <span className="inline-block text-2xl mr-1">👨‍💼</span><span>{buttonText}</span>
       </button>
       
       {/* 客服聊天模态框 */}

@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { authenticateAdmin, AdminAuthStorage, getAdminHomePath } from '@/auth';
+import SuccessModal  from '../../../../components/button/authButton/SuccessModal';
 
 export default function AdminLoginPage() {
   const [formData, setFormData] = useState({  
@@ -13,6 +14,8 @@ export default function AdminLoginPage() {
   const [captchaCode, setCaptchaCode] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [loginSuccessMessage, setLoginSuccessMessage] = useState('');
   const router = useRouter();
 
   // 生成随机验证码
@@ -82,11 +85,9 @@ export default function AdminLoginPage() {
           expiresAt: Date.now() + (24 * 60 * 60 * 1000) // 24小时过期
         });
         
-        // 显示成功消息
-        alert(`管理员登录成功！欢迎 ${result.user.username}`);
-        
-        // 跳转到管理员首页
-        router.replace(getAdminHomePath() as any);
+        // 设置成功消息并显示模态框
+        setLoginSuccessMessage(`管理员登录成功！欢迎 ${result.user.username}`);
+        setShowSuccessModal(true);
       } else {
         setErrorMessage(result.message || '登录失败');
       }
@@ -213,6 +214,16 @@ export default function AdminLoginPage() {
             <p className="mt-1">安全登录 · 数据加密</p>
           </div>
         </div>
+        
+        {/* 登录成功提示框 */}
+        <SuccessModal
+          isOpen={showSuccessModal}
+          onClose={() => setShowSuccessModal(false)}
+          title="登录成功"
+          message={loginSuccessMessage}
+          buttonText="确认"
+          redirectUrl={getAdminHomePath()}
+        />
       </div>
     </div>
   );

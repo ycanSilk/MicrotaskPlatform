@@ -7,7 +7,7 @@ import { CommissionRecord } from '../../../../../types/invite';
 const CommissionDetailsPage = () => {
   const router = useRouter();
   const params = useParams();
-  const id = params.id as string;
+  const id = params?.id as string || 'default';
 
   // 定义多个静态佣金数据
   const mockCommissionData: Record<string, CommissionRecord> = {
