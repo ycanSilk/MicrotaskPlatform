@@ -72,7 +72,7 @@ interface Stats {
 export default function PublisherDashboardPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const tabFromUrl = searchParams.get('tab') || 'overview';
+  const tabFromUrl = searchParams?.get('tab') || 'overview';
   const [activeTab, setActiveTab] = useState(tabFromUrl);
   const [sortBy, setSortBy] = useState('time'); // 'time' | 'status' | 'price'
   const [statsTimeRange, setStatsTimeRange] = useState('all'); // 'today' | 'yesterday' | 'week' | 'month' | 'all'

@@ -80,7 +80,7 @@ export default function PublisherProfilePage() {
 
   // 处理菜单项点击
   const handleMenuItemClick = (path: string) => {
-    router.push(path);
+    router.push(path as any);
   };
 
   return (

@@ -45,7 +45,7 @@ interface VideoSendTask {
 export default function VideoSendDetailPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const taskId = searchParams.get('id');
+  const taskId = searchParams?.get('id');
   
   const [loading, setLoading] = useState(true);
   const [task, setTask] = useState<VideoSendTask | null>(null);

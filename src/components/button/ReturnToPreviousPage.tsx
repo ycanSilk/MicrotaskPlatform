@@ -74,10 +74,10 @@ export const BackButton: React.FC<BackButtonProps> = ({ className = '', customBa
     }
 
     // 检查当前页面是否为一级页面
-    if (firstLevelPages.includes(pathname)) {
+    if (firstLevelPages.includes(pathname ?? '')) {
       // 如果是一级页面，直接返回该模块的首页导航
       for (const [modulePrefix, homePage] of Object.entries(moduleHomepages)) {
-        if (pathname.startsWith(modulePrefix)) {
+        if (pathname?.startsWith(modulePrefix)) {
           router.push(homePage as any);
           return;
         }
@@ -86,7 +86,7 @@ export const BackButton: React.FC<BackButtonProps> = ({ className = '', customBa
       router.push('/');
     } else {
       // 不是一级页面，提取上一级路由路径
-      const pathParts = pathname.split('/').filter(Boolean);
+      const pathParts = (pathname || '').split('/').filter(Boolean);
       if (pathParts.length > 0) {
         const parentPath = '/' + pathParts.slice(0, -1).join('/');
         // 使用类型断言解决 typedRoutes 的类型问题
@@ -100,10 +100,10 @@ export const BackButton: React.FC<BackButtonProps> = ({ className = '', customBa
 
   // 检查是否为二级及更深层级的页面
   // 通过检查路径中"/"的数量来判断层级
-  const isDeepPage = pathname.split('/').length > 2;
+  const isDeepPage = (pathname || '').split('/').length > 2;
 
   // 在首页不显示，在其他二级及更深层级页面显示
-  const shouldShow = isDeepPage && pathname !== '/';
+  const shouldShow = isDeepPage && (pathname || '') !== '/';
 
   if (!shouldShow) {
     return null;

@@ -199,7 +199,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
 
   // 处理搜索结果点击
   const handleResultClick = (result: SearchResult) => {
-    router.push(result.urlPath);
+    router.push(result.urlPath as any);
     handleCloseModal();
   };
 

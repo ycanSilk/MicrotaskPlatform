@@ -36,9 +36,9 @@ interface Task {
 export default function TaskDetailPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const taskId = searchParams.get('id');
+  const taskId = searchParams?.get('id');
   
-  console.log('TaskDetailPage rendered with searchParams:', Object.fromEntries(searchParams.entries()));
+  console.log('TaskDetailPage rendered with searchParams:', searchParams ? Object.fromEntries(searchParams.entries()) : {});
   console.log('Extracted taskId:', taskId);
   
   const [loading, setLoading] = useState(true);

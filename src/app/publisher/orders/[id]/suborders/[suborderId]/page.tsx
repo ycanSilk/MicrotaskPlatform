@@ -21,8 +21,8 @@ export interface SubOrder {
 const SubOrderDetailPage: React.FC = () => {
   const router = useRouter();
   const params = useParams();
-  const orderId = params.id as string;
-  const subOrderId = params.suborderId as string;
+  const orderId = params?.id as string || '';
+  const subOrderId = params?.suborderId as string || '';
 
   const [subOrder, setSubOrder] = useState<SubOrder | null>(null);
   const [loading, setLoading] = useState(true);

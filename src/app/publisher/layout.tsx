@@ -118,17 +118,17 @@ export default function PublisherLayout({
 
   // 获取当前页面标题
   const getPageTitle = () => {
-    if (pathname.includes('/orders')) return '订单管理';
-    if (pathname.includes('/create')) return '发布任务';
-    if (pathname.includes('/stats')) return '数据统计';
-    if (pathname.includes('/finance')) return '充值提现';
-    if (pathname.includes('/profile')) return '个人中心';
+    if (pathname?.includes('/orders')) return '订单管理';
+    if (pathname?.includes('/create')) return '发布任务';
+    if (pathname?.includes('/stats')) return '数据统计';
+    if (pathname?.includes('/finance')) return '充值提现';
+    if (pathname?.includes('/profile')) return '个人中心';
     return '任务管理';
   };
 
   // 检查当前路由是否激活
   const isActive = (path: string) => {
-    return pathname.includes(path);
+    return pathname?.includes(path) || false;
   };
 
   if (isLoading) {

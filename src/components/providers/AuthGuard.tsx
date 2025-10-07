@@ -40,17 +40,17 @@ export const AuthGuard = ({ children, requiredRole, allowedRoles }: AuthGuardPro
 
     // 检查是否为公开路由
     const isPublicRoute = publicRoutes.some(route => 
-      pathname === route || (route !== '/' && pathname.startsWith(route))
+      pathname === route || (route !== '/' && pathname?.startsWith(route))
     );
 
     // 如果用户未登录且不是公开路由，重定向到登录页
     if (!isAuthenticated && !isPublicRoute) {
       // 根据路径判断应该跳转到哪个登录页面
-      if (pathname.startsWith('/admin')) {
+      if (pathname?.startsWith('/admin')) {
         router.push('/auth/login/adminlogin');
-      } else if (pathname.startsWith('/publisher')) {
+      } else if (pathname?.startsWith('/publisher')) {
         router.push('/auth/login/publisherlogin');
-      } else if (pathname.startsWith('/commenter')) {
+      } else if (pathname?.startsWith('/commenter')) {
         router.push('/auth/login/commenterlogin');
       } else {
         router.push('/auth/login/publisherlogin'); // 默认跳转到派单员登录页
@@ -88,10 +88,10 @@ export const AuthGuard = ({ children, requiredRole, allowedRoles }: AuthGuardPro
 
       // 检查用户是否访问了正确的角色路由
       const userRoleRoutes = roleRoutes[user.role as keyof typeof roleRoutes] || [];
-      const isValidRoleRoute = userRoleRoutes.some(route => pathname.startsWith(route));
+      const isValidRoleRoute = userRoleRoutes.some(route => pathname?.startsWith(route));
       
       // 如果访问的不是公开路由，也不是用户角色对应的路由，重定向
-      if (!isValidRoleRoute && !isPublicRoute && pathname !== '/') {
+      if (!isValidRoleRoute && !isPublicRoute && (pathname || '') !== '/') {
           const homePath = getRoleHomePath(user.role);
           router.push(homePath as any);
           return;

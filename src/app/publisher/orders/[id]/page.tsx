@@ -8,7 +8,7 @@ import { Order, SubOrder } from '../page';
 const OrderDetailPage: React.FC = () => {
   const router = useRouter();
   const params = useParams();
-  const orderId = params.id as string;
+  const orderId = params?.id as string || '';
 
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);

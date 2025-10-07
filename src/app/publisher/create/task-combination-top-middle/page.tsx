@@ -9,8 +9,12 @@ export default function PublishTaskPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   
-  // 从URL参数获取任务信息
-  const taskId = searchParams.get('taskId');
+  // 从URL参数获取任务信息，确保searchParams不为null
+  const getSearchParam = (key: string) => {
+    return searchParams?.get(key) || '';
+  };
+  
+  const taskId = getSearchParam('taskId').trim();
   const taskTitle = getSearchParam('title').trim() || '中评任务发布页';
   const taskIcon = getSearchParam('icon').trim() || '📝';
   const taskPrice = parseFloat(getSearchParam('price').trim() || '0');

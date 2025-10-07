@@ -20,14 +20,15 @@ export const BottomNavigation: React.FC<BottomNavigationProps> = ({ items }) => 
           const isActive = pathname === item.path || item.active;
           
           return (
-            <Link
-              key={index}
-              href={item.path as any}
-              className={cn(
-                'flex flex-col items-center justify-center min-w-0 flex-1 py-2 px-1',
-                'touch-target transition-all duration-200'
-              )}
-            >
+                <Link
+                  key={index}
+                  href={item.path as string}
+                  className={cn(
+                    'flex flex-col items-center justify-center min-w-0 flex-1 py-2 px-1',
+                    'touch-target transition-all duration-200'
+                  )}
+                  legacyBehavior
+                >
               <span className={cn(
                 'text-lg  w-7 h-7 flex items-center justify-center rounded-full',
                 isActive 

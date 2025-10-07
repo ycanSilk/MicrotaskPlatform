@@ -7,7 +7,8 @@ import TransactionDetailTemplate, { TransactionDetail } from '../../../../compon
 // 原始页面保留数据获取和状态管理逻辑
 // 但使用模板组件进行渲染
 export default function TransactionDetailPage() {
-  const { id } = useParams();
+  const params = useParams();
+  const id = params?.id as string || '';
   const router = useRouter();
   const [transaction, setTransaction] = useState<TransactionDetail | null>(null);
   const [loading, setLoading] = useState(true);

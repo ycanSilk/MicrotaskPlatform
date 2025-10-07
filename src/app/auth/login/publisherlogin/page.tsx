@@ -112,12 +112,15 @@ export default function PublisherLoginPage() {
         // 保存认证信息
         PublisherAuthStorage.saveAuth(authSession);
         
-        console.log('Auth info saved, checking localStorage');
-        // 验证信息是否正确保存
-        const savedToken = localStorage.getItem('publisher_auth_token');
-        const savedUser = localStorage.getItem('publisher_user_info');
-        console.log('Saved token:', savedToken);
-        console.log('Saved user:', savedUser);
+        console.log('Auth info saved');
+        
+        // 在客户端验证信息是否正确保存
+        if (typeof window !== 'undefined') {
+          const savedToken = localStorage.getItem('publisher_auth_token');
+          const savedUser = localStorage.getItem('publisher_user_info');
+          console.log('Saved token:', savedToken);
+          console.log('Saved user:', savedUser);
+        }
         
         // 设置成功消息并显示模态框
         setLoginSuccessMessage(`发布者登录成功！欢迎 ${result.user.username}`);
