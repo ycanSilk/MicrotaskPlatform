@@ -3,6 +3,13 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { SearchOutlined, FilterOutlined, CalendarOutlined, DownOutlined, ReloadOutlined, CheckCircleOutlined, CloseCircleOutlined, ExclamationCircleOutlined, ClockCircleOutlined, DownloadOutlined, CopyOutlined } from '@ant-design/icons';
 import ReorderButton from '../../commenter/components/ReorderButton';
+// 导入主订单组件
+import MainOrderCard from '../../../components/task/main-order/MainOrderCard';
+// 修复导入路径
+import OrderStatus from '../../../components/order/OrderStatus';
+import OrderTaskType from '../../../components/order/OrderTaskType';
+import { OrderStatusType } from '../../../components/order/OrderStatus';
+import { TaskType } from '../../../components/order/OrderTaskType';
 
 // 定义订单类型接口
 export interface Order {
@@ -459,7 +466,7 @@ const PublisherOrdersPage: React.FC = () => {
           <div className="bg-white shadow-sm rounded-lg p-6">
             <div className="flex flex-col items-center justify-center space-y-4">
               <ExclamationCircleOutlined className="h-12 w-12 text-red-500" />
-              <p className="text-gray-700 text-lg font-medium">{error}</p>
+              <p className="mb-2text-lg font-medium">{error}</p>
               <button
                 onClick={handleRefresh}
                 className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
@@ -480,6 +487,7 @@ const PublisherOrdersPage: React.FC = () => {
       total: subOrders.length,
       pending: subOrders.filter(sub => sub.status === 'pending').length,
       processing: subOrders.filter(sub => sub.status === 'processing').length,
+      reviewing: subOrders.filter(sub => sub.status === 'reviewing').length,
       completed: subOrders.filter(sub => sub.status === 'completed').length,
       rejected: subOrders.filter(sub => sub.status === 'rejected').length
     };
@@ -495,11 +503,11 @@ const PublisherOrdersPage: React.FC = () => {
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <main className="flex-grow">
         <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-          <div className="mb-6 items-center">
+          <div className="mb-3 items-center">
             <div className="grid grid-cols-3 gap-3">
               <button
                 onClick={() => router.push('/publisher/dashboard')}
-                className="inline-flex items-center justify-center h-9 px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150 ease-in-out"
+                className="inline-flex items-center justify-center h-9 px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md mb-2bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150 ease-in-out"
               >
                 返回工作台
               </button>
@@ -570,7 +578,7 @@ const PublisherOrdersPage: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setShowDatePicker(!showDatePicker)}
-                    className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                    className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md mb-2 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                   >
                     <CalendarOutlined className="h-4 w-4 mr-2" />
                     日期范围
@@ -582,7 +590,7 @@ const PublisherOrdersPage: React.FC = () => {
                       <div className="p-4">
                         <div className="space-y-4">
                           <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">开始日期</label>
+                            <label className="block text-sm font-medium mb-2">开始日期</label>
                             <input
                               type="date"
                               value={dateRange?.start || ''}
@@ -591,7 +599,7 @@ const PublisherOrdersPage: React.FC = () => {
                             />
                           </div>
                           <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">结束日期</label>
+                            <label className="block text-sm font-medium mb-2">结束日期</label>
                             <input
                               type="date"
                               value={dateRange?.end || ''}
@@ -605,7 +613,7 @@ const PublisherOrdersPage: React.FC = () => {
                                 setDateRange(null);
                                 setShowDatePicker(false);
                               }}
-                              className="px-3 py-1 text-sm border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                              className="px-3 py-1 text-sm border border-gray-300 rounded-md mb-2bg-white hover:bg-gray-50"
                             >
                               清除
                             </button>
@@ -625,7 +633,7 @@ const PublisherOrdersPage: React.FC = () => {
                 {/* 刷新按钮 */}
                 <button
                   onClick={handleRefresh}
-                  className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                 >
                   <ReloadOutlined className="h-4 w-4 mr-2" />
                   刷新
@@ -637,70 +645,22 @@ const PublisherOrdersPage: React.FC = () => {
           </div>
 
           {/* 订单列表 - 移动优先的响应式卡片布局，适配全尺寸屏幕 */}
-          <div className="bg-white shadow-sm rounded-lg overflow-hidden">
+          <div className="overflow-hidden ">
             {/* 响应式布局：移动端单列，平板双列，桌面多列 */}
               {getCurrentOrders().length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 divide-y md:divide-y-0 md:divide-x divide-gray-200">
+                <div className="grid grid-cols-1  lg:grid-cols-2 gap-4 ">
                   {getCurrentOrders().map((order) => (
-                    <div key={order.id} className="p-4 hover:bg-gray-50 transition-colors">
-                      <div className="flex justify-between items-start mb-3">
-                        <div className="flex items-center space-x-2">
-                          <div className="text-sm font-medium text-black">订单编号：{order.orderNumber}</div>
-                          <div className="flex items-center">
-                            <button
-                              onClick={() => copyOrderNumber(order.orderNumber)}
-                              className="p-1 text-blue-500 hover:text-blue-700 focus:outline-none flex items-center"
-                              aria-label="复制订单号"
-                            >
-                              {copiedOrderNumber === order.orderNumber ? (
-                                <CheckCircleOutlined className="h-4 w-4 text-blue-500 mr-1" />
-                              ) : (
-                                <CopyOutlined className="h-4 w-4 text-blue-500 mr-1" />
-                              )}
-                              复制
-                            </button>
-                            {copiedOrderNumber === order.orderNumber && (
-                              <span className="text-xs text-blue-500 animate-fade-in ml-1">复制成功</span>
-                            )}
-                          </div>
-                        </div>
-                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusInfo(order.status).className}`}>
-                          {getStatusInfo(order.status).text}
-                        </span>
-                      </div>
-                        
-                      <div className="mb-3">
-                        <div className="text-base font-medium text-black mb-1">{order.title}</div>
-                        <div className="text-sm text-black line-clamp-2">{order.description}</div>
-                      </div>
-                        
-                      <div className="text-sm text-black mb-2">
-                        单价: ¥{(order.budget / (order.subOrders.length || 1)).toFixed(2)} | 总价: ¥{order.budget.toFixed(2)}
-                      </div>
-    
-                      <div className="text-xs text-black mb-3 grid grid-cols-5 text-center">
-                        <div className='text-left'>订单总数: {getSubOrderStats(order.subOrders).total}</div>
-                        <div>待领取: {getSubOrderStats(order.subOrders).pending}</div>
-                        <div>进行中: {getSubOrderStats(order.subOrders).processing}</div>
-                        <div>待审核: {getSubOrderStats(order.subOrders).processing}</div>
-                        <div>已完成: {getSubOrderStats(order.subOrders).completed}</div>
-                      </div>
-                        
-                      <div className="space-y-2 pt-2">
-                        <button
-                          onClick={() => viewOrderDetails(order.id)}
-                          className="w-full px-3 py-1.5 text-sm font-medium text-white bg-blue-600 border border-blue-600 rounded-md hover:bg-blue-700 transition-colors"
-                        >
-                          查看详情
-                        </button>
-                        {/* 修复：已完成状态订单显示补单按钮 */}
-                        {order.status === 'completed' && (
-                          <div className="w-full">
-                            <ReorderButton order={order} />
-                          </div>
-                        )}
-                      </div>
-                    </div>
+                    <MainOrderCard
+                      key={order.id}
+                      order={order}
+                      onCopyOrderNumber={copyOrderNumber}
+                      onViewDetails={viewOrderDetails}
+                      onReorder={(orderId) => {
+                        console.log('Reordering order:', orderId);
+                        // 这里可以添加实际的补单逻辑，比如调用API或导航到补单页面
+                      }}
+                      copiedOrderNumber={copiedOrderNumber}
+                    />
                   ))}
                 </div>
               ) : (

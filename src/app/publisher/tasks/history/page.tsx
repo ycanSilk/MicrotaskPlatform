@@ -152,7 +152,7 @@ const TaskHistoryPage: React.FC = () => {
     return (
       <div className="pb-20 flex flex-col items-center justify-center min-h-[80vh]">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-500 mb-4"></div>
-        <div className="text-gray-500">加载中，请稍候...</div>
+        <div className="text-black">加载中，请稍候...</div>
       </div>
     );
   }
@@ -181,7 +181,7 @@ const TaskHistoryPage: React.FC = () => {
       <div className="pb-20 flex flex-col items-center justify-center min-h-[80vh] p-4">
         <div className="text-gray-400 mb-4">📋</div>
         <h3 className="text-lg font-medium text-gray-700 mb-2">暂无历史订单</h3>
-        <p className="text-gray-500 text-center max-w-md">
+        <p className="text-black text-center max-w-md">
           您还没有任何历史订单记录。完成任务后，您可以在这里查看历史订单。
         </p>
       </div>
@@ -224,16 +224,16 @@ const TaskHistoryPage: React.FC = () => {
               className="bg-white rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow"
             >
               {/* 任务头部信息 */}
-              <div className="flex flex-wrap items-start justify-between gap-3 mb-3">
+              <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="flex-1 min-w-[0]">
-                  <div className="flex items-center space-x-2 mb-1 flex-wrap">
-                    <h3 className="font-bold text-gray-800 truncate">任务需求：{task.title}</h3>
-                    <span className={`px-2 py-1 rounded text-xs ${task.statusColor}`}>
+                  <div className="flex items-center  flex-wrap">
+                    <div className="font-bold text-gray-800 truncate mb-2">任务需求：{task.title}</div>
+                    <div className={`px-2 py-1 ml-0 mb-2 mr-2 rounded text-xs ${task.statusColor}`}>
                       {task.statusText}
-                    </span>
+                    </div>
                     {/* 任务类型显示 */}
                     {task.taskType && (
-                      <span className="px-2 py-1 bg-blue-100 text-blue-600 rounded text-xs">
+                      <div className="px-2 py-1 ml-0 mb-2 mr-2 bg-blue-100 text-blue-600 rounded text-xs">
                         {(() => {
                           const taskTypeMap: Record<string, string> = {
                             'comment_middle': '评论任务',
@@ -242,10 +242,10 @@ const TaskHistoryPage: React.FC = () => {
                           };
                           return taskTypeMap[task.taskType] || task.taskType;
                         })()}
-                      </span>
+                      </div>
                     )}
                   </div>
-                  <div className="text-sm text-gray-600 space-y-1">
+                  <div className="text-sm text-black space-y-1 mb-2">
                     <div>发布时间：{task.publishTime}</div>
                     <div>截止时间：{task.deadline}</div>   
                   </div>
@@ -255,23 +255,24 @@ const TaskHistoryPage: React.FC = () => {
               </div>
 
               {/* 任务描述 */}
-              <div className="mb-3">
-                <div className="text-sm text-gray-600 bg-gray-50 p-2 rounded">
+              <div className="mb-2">
+                <h2 className='text-sm text-balck mb-2'>提交内容：</h2>
+                <div className="text-sm text-black bg-gray-100 p-2 rounded mb-2">
                   {task.description}
                 </div>
                 {/* 订单单价 */}
-                <div className="text-green-800 ">
-                  总金额：<span className="text-lg font-bold">¥{(task.price * task.maxParticipants).toFixed(2)}</span>
+                <div className="text-black text-sm ">
+                  总金额：<span className="font-bold">¥{(task.price * task.maxParticipants).toFixed(2)}</span>
                 </div>
-                <div className="text-xs text-gray-500 mt-1">
+                <div className="text-xs text-black mt-1">
                   订单单价：¥{task.price.toFixed(2)} /条
                 </div>
               </div>
 
               {/* 子任务状态统计 */}
               {task.subOrders && task.subOrders.length > 0 && (
-                <div className="mb-3">
-                  <h4 className="text-sm font-medium text-gray-700 mb-2">子任务状态统计</h4>
+                <div className="mb-2">
+                  <h4 className="text-sm font-medium text-black mb-2">子任务状态统计</h4>
                   <div className="grid grid-cols-4 gap-2 text-xs">
                     <div className="flex items-center">
                       <span className="inline-block w-2 h-2 bg-green-500 rounded-full mr-1"></span>
@@ -294,9 +295,9 @@ const TaskHistoryPage: React.FC = () => {
               )}
 
               {/* 参与情况 */}
-              <div className="mb-3">
-                <div className="flex justify-between items-center mb-1">
-                  <span className="text-sm text-gray-600">订单进度</span>
+              <div className="mb-2">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-sm text-black">订单进度</span>
                   <span className="text-sm text-gray-800">
                     {task.participants}/{task.maxParticipants}
                   </span>

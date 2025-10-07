@@ -1,5 +1,7 @@
 import React from 'react';
 import { useRouter } from 'next/navigation';
+import MainOrderCard from '../../../../components/task/main-order/MainOrderCard';
+import type { Order } from '../../../../components/task/main-order/MainOrderCard';
 
 interface Stats {
   totalTasks: number;
@@ -75,19 +77,19 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
             <div className="flex bg-gray-100 rounded-lg p-2">
               <button
                 onClick={() => setStatsTimeRange('today')}
-                className={`px-4 py-2 text-sm rounded-md transition-colors ${statsTimeRange === 'today' ? 'bg-green-500 text-white' : 'text-gray-600 hover:bg-white'}`}
+                className={`px-4 py-2 text-sm rounded-md transition-colors ${statsTimeRange === 'today' ? 'bg-green-500 text-white' : 'text-black hover:bg-white'}`}
               >
                 今天
               </button>
               <button
                 onClick={() => setStatsTimeRange('yesterday')}
-                className={`px-4 py-2 text-sm rounded-md transition-colors ${statsTimeRange === 'yesterday' ? 'bg-green-500 text-white' : 'text-gray-600 hover:bg-white'}`}
+                className={`px-4 py-2 text-sm rounded-md transition-colors ${statsTimeRange === 'yesterday' ? 'bg-green-500 text-white' : 'text-black hover:bg-white'}`}
               >
                 昨天
               </button>
               <button
                 onClick={() => setStatsTimeRange('dayBeforeYesterday')}
-                className={`px-4 py-2 text-sm rounded-md transition-colors ${statsTimeRange === 'dayBeforeYesterday' ? 'bg-green-500 text-white' : 'text-gray-600 hover:bg-white'}`}
+                className={`px-4 py-2 text-sm rounded-md transition-colors ${statsTimeRange === 'dayBeforeYesterday' ? 'bg-green-500 text-white' : 'text-black hover:bg-white'}`}
               >
                 前天
               </button>
@@ -154,93 +156,72 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
             </div>
           </div>
           <div className="space-y-4 overflow-y-auto p-4">
-            {dispatchedTasks.slice(0, 10).map((task, index) => (
-              <div key={`dispatched-${task.id}-${index}`} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                {/* 订单号和订单状态 - 调整为同一行显示 */}
-                <div className="flex justify-between items-center mb-1">
-                  <div className="text-xs text-gray-500 flex items-center">
-                    订单号: {task.orderNumber || 'N/A'}
-                    <button 
-                      className="ml-2 px-2 py-0.5 bg-blue-100 text-blue-600 rounded hover:bg-blue-200 transition-colors text-xs"
-                      onClick={() => handleCopyOrderNumber(task.orderNumber || 'N/A')}
-                    >
-                      复制
-                    </button>
-                  </div>
-                  <span className={`px-2 py-1 rounded text-xs ${task.status === 'main_progress' ? 'bg-green-100 text-green-600' : task.status === 'main_completed' ? 'bg-green-100 text-green-600' : 'bg-green-100 text-green-600'}`}>
-                    {task.statusText}
-                  </span>
-                </div>
-                
-                {/* 时间信息 - 显示订单创建时间和最新更新时间 */}
-                <div className="text-xs text-gray-600 mb-1 flex flex-wrap gap-x-4 gap-y-1">
-                  <div>
-                    发布时间：
-                    {new Date(task.time).toLocaleString('zh-CN')}
-                  </div>
-                  <div>
-                    更新时间：
-                    {new Date(task.updatedTime || task.time).toLocaleString('zh-CN')}
-                  </div>
-                </div>
-                
-                {/* 任务需求 - 限制为单行显示 */}
-                <div className="text-sm font-medium text-black mb-2 whitespace-nowrap overflow-hidden text-ellipsis">
-                  任务需求：{task.taskRequirements}
-                </div>
-                
-                {/* 新增任务类型信息展示 */}
-                <div className="text-xs text-gray-500 mb-1">
-                  任务类型: {(() => {
-                    const taskTypeMap: Record<string, string> = {
-                      'comment_middle': '评论任务',
-                      'account_rental': '租号任务',
-                      'video_send': '视频推送任务'
-                    };
-                    return taskTypeMap[task.taskType] || task.taskType;
-                  })()}
-                </div>
-                
-                <div className="flex justify-between items-center mb-1">
-                  <div className="text-xs text-gray-600">
-                    完成: {task.completed} | 进行中: {task.inProgress} | 待领取: {task.pending} | 待审核: {task.pendingReview || 0} | 总计: {task.maxParticipants} 条
-                  </div>
-                </div>
-                <div className="flex justify-between items-center mb-2">
-                  <div className="text-sm">
-                    <span className="text-gray-600">订单单价:</span>
-                    <span className="font-medium text-black"> ¥{typeof task.price === 'number' ? task.price.toFixed(2) : '0.00'}</span>
-                  </div>
-                  <div className="text-sm">
-                    <span className="text-gray-600">总金额:</span>
-                    <span className="font-medium text-black"> 
-                      ¥{typeof task.price === 'number' && typeof task.maxParticipants === 'number' ? (task.price * task.maxParticipants).toFixed(2) : '0.00'}
-                    </span>
-                  </div>
-                </div>
-                {/* 在进度条上添加百分比数值显示 */}
-                <div className="relative bg-green-300 h-5 rounded w-full">
-                  
-                  <div 
-                    className="bg-green-500 h-5 rounded" 
-                    style={{width: `${task.maxParticipants > 0 ? (task.participants / task.maxParticipants) * 100 : 0}%`}}
-                  ></div>
-                  <div className="absolute  top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-xs font-medium text-white">
-                    完成进度：{task.maxParticipants > 0 ? Math.round((task.participants / task.maxParticipants) * 100) : 0}%
-                  </div>
-                </div>
-                
-                {/* 查看详情按钮 */}
-                <div className="mt-3">
-                  <button
-                    onClick={() => router.push(`/publisher/orders/${task.id}`)}
-                    className="w-full py-2 bg-blue-500 text-white rounded font-medium hover:bg-blue-600 transition-colors text-sm"
-                  >
-                    查看详情
-                  </button>
-                </div>
-              </div>
-            ))}
+            {dispatchedTasks.slice(0, 10).map((task, index) => {
+              // 转换数据格式以适配MainOrderCard组件
+              const order: Order = {
+                id: task.id,
+                orderNumber: task.orderNumber || 'N/A',
+                title: task.title,
+                description: task.taskRequirements,
+                status: task.status as Order['status'],
+                createdAt: new Date(task.time).toLocaleString('zh-CN'),
+                updatedAt: new Date(task.updatedTime || task.time).toLocaleString('zh-CN'),
+                budget: typeof task.price === 'number' && typeof task.maxParticipants === 'number' ? task.price * task.maxParticipants : 0,
+                type: 'other', // 根据实际任务类型映射
+                subOrders: [
+                  // 构建子订单数据，这里简化处理
+                  { id: `sub-${task.id}-1`, orderId: task.id, userId: '', userName: '', status: 'pending', reward: typeof task.price === 'number' ? task.price : 0 },
+                  ...Array.from({ length: task.completed || 0 }).map((_, i) => ({
+                    id: `sub-${task.id}-completed-${i}`,
+                    orderId: task.id,
+                    userId: '',
+                    userName: '',
+                    status: 'completed' as const,
+                    reward: typeof task.price === 'number' ? task.price : 0
+                  })),
+                  ...Array.from({ length: task.inProgress || 0 }).map((_, i) => ({
+                    id: `sub-${task.id}-processing-${i}`,
+                    orderId: task.id,
+                    userId: '',
+                    userName: '',
+                    status: 'processing' as const,
+                    reward: typeof task.price === 'number' ? task.price : 0
+                  })),
+                  ...Array.from({ length: task.pendingReview || 0 }).map((_, i) => ({
+                    id: `sub-${task.id}-reviewing-${i}`,
+                    orderId: task.id,
+                    userId: '',
+                    userName: '',
+                    status: 'reviewing' as const,
+                    reward: typeof task.price === 'number' ? task.price : 0
+                  }))
+                ]
+              };
+              
+              // 映射任务类型
+              switch(task.taskType) {
+                case 'comment_middle':
+                  order.type = 'comment';
+                  break;
+                case 'account_rental':
+                  order.type = 'other';
+                  break;
+                case 'video_send':
+                  order.type = 'share';
+                  break;
+                default:
+                  order.type = 'other';
+              }
+              
+              return (
+                <MainOrderCard 
+                  key={`dispatched-${task.id}-${index}`}
+                  order={order}
+                  onCopyOrderNumber={handleCopyOrderNumber}
+                  onViewDetails={(orderId) => router.push(`/publisher/orders/${orderId}`)}
+                />
+              );
+            })}
           </div>
         </div>
       </div>

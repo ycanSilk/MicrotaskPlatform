@@ -235,11 +235,11 @@ const OrderDetailPage: React.FC = () => {
             {/* 订单基本信息 */}
             <div className="mb-4">
               {/* 订单编号和订单类型在同一行显示 */}
-              <div className="flex flex-wrap gap-8 mb-4">
+              <div className="gap-8 mb-4">
                 {/* 订单编号和复制按钮 */}
                 <div>
                   <p className="text-sm text-gray-600">订单编号</p>
-                  <div className="flex items-center">
+                  <div className="flex items-center mb-2">
                     <p className="font-medium mr-2">{order.orderNumber}</p>
                     <button 
                       className="text-blue-500 hover:text-blue-700"
@@ -261,7 +261,7 @@ const OrderDetailPage: React.FC = () => {
               </div>
               
               {/* 其他信息保持grid布局 */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4">
               
                 <div>
                   <p className="text-sm text-gray-600">发布时间</p>
@@ -281,7 +281,7 @@ const OrderDetailPage: React.FC = () => {
                     href={order.videoUrl} 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    className="text-blue-600 hover:text-blue-800 underline break-all"
+                    className="text-blue-600 hover:text-blue-800 break-all"
                   >
                     {order.videoUrl}
                   </a>
@@ -315,15 +315,15 @@ const OrderDetailPage: React.FC = () => {
             <div className="grid grid-cols-3 gap-4">
               <div className="bg-blue-50 border border-blue-100 rounded-lg p-4 text-center">
                 <div className="text-sm font-medium text-blue-500 mb-1">总单价</div>
-                <div className="text-xl font-bold text-gray-900">¥{order.budget.toFixed(2)}</div>
+                <div className="text-sm font-bold text-gray-900">¥{order.budget.toFixed(2)}</div>
               </div>
               <div className="bg-green-50 border border-green-100 rounded-lg p-4 text-center">
                 <div className="text-sm font-medium text-green-500 mb-1">单价</div>
-                <div className="text-xl font-bold text-gray-900">¥{(order.budget / stats.total).toFixed(2)}</div>
+                <div className="text-sm font-bold text-gray-900">¥{(order.budget / stats.total).toFixed(2)}</div>
               </div>
               <div className="bg-purple-50 border border-purple-100 rounded-lg p-4 text-center">
                 <div className="text-sm font-medium text-purple-500 mb-1">订单总数</div>
-                <div className="text-xl font-bold text-gray-900">{stats.total}</div>
+                <div className="text-sm font-bold text-gray-900">{stats.total}</div>
               </div>
             </div>
           </div>

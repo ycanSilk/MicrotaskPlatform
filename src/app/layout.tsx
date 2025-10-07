@@ -15,15 +15,14 @@ export const metadata = {
     'apple-mobile-web-app-status-bar-style': 'default',
     'apple-touch-fullscreen': 'yes',
   },
-}
-
-export const viewport = {
-  width: 'device-width',
-  initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
-  viewportFit: 'cover',
-  themeColor: '#4A90E2',
+  viewport: {
+    width: 'device-width',
+    initialScale: 1,
+    maximumScale: 1,
+    userScalable: false,
+    viewportFit: 'cover',
+    themeColor: '#4A90E2',
+  }
 }
 
 export default function RootLayout({

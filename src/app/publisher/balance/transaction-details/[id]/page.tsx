@@ -9,7 +9,7 @@ import { Card } from '@/components/ui/Card';
 // 交易详情类型定义
 interface TransactionDetail {
   id: string;
-  type: 'recharge' | 'withdraw' | 'task_payment' | 'task_income' | 'platform_fee' | 'refund' | 'transfer';
+  type: 'recharge' | 'withdraw' | 'task_payment' | 'task_income' | 'platform_fee' | 'refund' | 'transfer' | 'rental_payment' | 'rental_income';
   amount: number;
   balanceAfter: number;
   datetime: string;
@@ -126,7 +126,9 @@ const TransactionDetailPage = () => {
       task_income: '任务收入',
       platform_fee: '平台服务费',
       refund: '退款',
-      transfer: '转账'
+      transfer: '转账',
+      rental_payment: '租赁支付',
+      rental_income: '租赁收入'
     };
     return typeMap[type] || type;
   };
@@ -172,7 +174,7 @@ const TransactionDetailPage = () => {
         <div className="flex items-center px-4 py-3">
           <Button 
             variant="ghost" 
-            size="icon" 
+            size="sm" 
             onClick={handleBack}
             className="h-8 w-8 mr-2"
           >
