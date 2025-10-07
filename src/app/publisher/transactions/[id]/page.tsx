@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import TransactionDetailTemplate, { TransactionDetail } from '../../../../components/page/transaction-etails/TransactionDetailTemplate';
+import TransactionDetailTemplate, { TransactionDetail } from '../../../../components/page/transaction-details/TransactionDetailTemplate';
 
 // 原始页面保留数据获取和状态管理逻辑
 // 但使用模板组件进行渲染

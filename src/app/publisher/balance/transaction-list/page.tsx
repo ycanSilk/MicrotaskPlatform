@@ -9,13 +9,13 @@ import InfoCircleOutlined from '@ant-design/icons/InfoCircleOutlined';
 import UndoOutlined from '@ant-design/icons/UndoOutlined';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/Tabs';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/Tabs';
 import { Badge } from '@/components/ui/Badge';
 
 // 交易记录类型定义
 interface Transaction {
   id: string;
-  type: 'recharge' | 'withdraw' | 'task_payment' | 'task_income' | 'platform_fee' | 'refund';
+  type: 'recharge' | 'withdraw' | 'rental_payment' | 'rental_income' | 'platform_fee' | 'refund';
   amount: number;
   balanceAfter: number;
   date: string;
@@ -45,10 +45,8 @@ interface WithdrawalRecord {
   orderId: string;
 }
 
-const BalancePage = () => {
+const TransactionListPage = () => {
   const router = useRouter();
-  const [balance, setBalance] = useState(1298.00);
-  const [frozenBalance, setFrozenBalance] = useState(0.00);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [rechargeRecords, setRechargeRecords] = useState<RechargeRecord[]>([]);
   const [withdrawalRecords, setWithdrawalRecords] = useState<WithdrawalRecord[]>([]);
@@ -67,65 +65,88 @@ const BalancePage = () => {
         const mockTransactions: Transaction[] = [
           {
             id: 'txn-001',
-            type: 'task_income',
-            amount: 580.00,
-            balanceAfter: 1298.00,
+            type: 'rental_payment',
+            amount: -480.00,
+            balanceAfter: 8965.50,
             date: '2023-07-01',
-            time: '14:30',
-            description: '任务报酬结算',
-            orderId: 'TASK-20230701-001',
+            time: '10:25',
+            description: '评论账号租赁订单支付',
+            orderId: 'ORD-20230701-001',
             status: 'completed'
           },
           {
             id: 'txn-002',
-            type: 'withdraw',
-            amount: -100.00,
-            balanceAfter: 718.00,
-            date: '2023-06-30',
-            time: '16:45',
-            description: '提现到银行卡',
+            type: 'rental_income',
+            amount: 280.00,
+            balanceAfter: 9445.50,
+            date: '2023-06-28',
+            time: '16:30',
+            description: '发布任务佣金收入',
+            orderId: 'ORD-20230628-002',
             status: 'completed'
           },
           {
             id: 'txn-003',
-            type: 'task_income',
-            amount: 320.00,
-            balanceAfter: 818.00,
-            date: '2023-06-28',
-            time: '10:20',
-            description: '任务报酬结算',
-            orderId: 'TASK-20230628-002',
+            type: 'rental_payment',
+            amount: -320.00,
+            balanceAfter: 9165.50,
+            date: '2023-06-25',
+            time: '09:15',
+            description: '评论账号租赁订单支付',
+            orderId: 'ORD-20230625-003',
             status: 'completed'
           },
           {
             id: 'txn-004',
             type: 'withdraw',
-            amount: -50.00,
-            balanceAfter: 498.00,
+            amount: -5000.00,
+            balanceAfter: 14165.50,
             date: '2023-06-25',
             time: '11:05',
-            description: '提现到银行卡',
+            description: '账户提现',
+            orderId: 'WITH-20230625-001',
             status: 'completed'
           },
           {
             id: 'txn-005',
-            type: 'task_income',
-            amount: 498.00,
-            balanceAfter: 548.00,
+            type: 'platform_fee',
+            amount: -15.00,
+            balanceAfter: 19165.50,
             date: '2023-06-20',
-            time: '15:30',
-            description: '任务报酬结算',
-            orderId: 'TASK-20230620-001',
+            time: '15:40',
+            description: '平台服务费',
             status: 'completed'
           },
           {
             id: 'txn-006',
-            type: 'recharge',
-            amount: 1000.00,
-            balanceAfter: 50.00,
+            type: 'rental_income',
+            amount: 1200.00,
+            balanceAfter: 19180.50,
+            date: '2023-06-20',
+            time: '14:20',
+            description: '发布任务佣金收入',
+            orderId: 'ORD-20230620-004',
+            status: 'completed'
+          },
+          {
+            id: 'txn-007',
+            type: 'refund',
+            amount: 65.50,
+            balanceAfter: 17980.50,
             date: '2023-06-15',
-            time: '10:15',
-            description: '支付宝充值',
+            time: '11:30',
+            description: '订单取消退款',
+            orderId: 'ORD-20230615-005',
+            status: 'completed'
+          },
+          {
+            id: 'txn-008',
+            type: 'recharge',
+            amount: 5000.00,
+            balanceAfter: 17915.00,
+            date: '2023-06-10',
+            time: '14:40',
+            description: '微信支付充值',
             status: 'completed'
           }
         ];
@@ -134,17 +155,25 @@ const BalancePage = () => {
         const mockRechargeRecords: RechargeRecord[] = [
           {
             id: 'recharge-001',
-            amount: 1000.00,
-            date: '2023-06-15 10:15',
+            amount: 2000.00,
+            date: '2023-06-30 16:45',
             paymentMethod: '支付宝',
             status: 'completed',
-            orderId: 'RECH-20230615-001'
+            orderId: 'RECH-20230630-001'
           },
           {
             id: 'recharge-002',
-            amount: 500.00,
-            date: '2023-06-01 09:20',
+            amount: 5000.00,
+            date: '2023-06-10 14:40',
             paymentMethod: '微信支付',
+            status: 'completed',
+            orderId: 'RECH-20230610-001'
+          },
+          {
+            id: 'recharge-003',
+            amount: 1000.00,
+            date: '2023-06-01 09:20',
+            paymentMethod: '支付宝',
             status: 'completed',
             orderId: 'RECH-20230601-001'
           }
@@ -154,19 +183,27 @@ const BalancePage = () => {
         const mockWithdrawalRecords: WithdrawalRecord[] = [
           {
             id: 'withdraw-001',
-            amount: 100.00,
-            date: '2023-06-30 16:45',
-            bankAccount: '工商银行 **** 5678',
-            status: 'completed',
-            orderId: 'WITH-20230630-001'
-          },
-          {
-            id: 'withdraw-002',
-            amount: 50.00,
+            amount: 5000.00,
             date: '2023-06-25 11:05',
             bankAccount: '工商银行 **** 5678',
             status: 'completed',
             orderId: 'WITH-20230625-001'
+          },
+          {
+            id: 'withdraw-002',
+            amount: 3000.00,
+            date: '2023-06-05 15:30',
+            bankAccount: '建设银行 **** 8901',
+            status: 'completed',
+            orderId: 'WITH-20230605-001'
+          },
+          {
+            id: 'withdraw-003',
+            amount: 2000.00,
+            date: '2023-07-02 10:15',
+            bankAccount: '工商银行 **** 5678',
+            status: 'processing',
+            orderId: 'WITH-20230702-001'
           }
         ];
         
@@ -174,7 +211,7 @@ const BalancePage = () => {
         setRechargeRecords(mockRechargeRecords);
         setWithdrawalRecords(mockWithdrawalRecords);
       } catch (error) {
-        console.error('获取余额和交易记录失败:', error);
+        console.error('获取交易记录失败:', error);
       } finally {
         setLoading(false);
       }
@@ -215,12 +252,12 @@ const BalancePage = () => {
         color: 'text-red-600',
         bgColor: 'bg-red-100'
       },
-      task_payment: {
+      rental_payment: {
         icon: <CreditCardOutlined className="h-4 w-4" />,
         color: 'text-purple-600',
         bgColor: 'bg-purple-100'
       },
-      task_income: {
+      rental_income: {
         icon: <WalletOutlined className="h-4 w-4" />,
         color: 'text-blue-600',
         bgColor: 'bg-blue-100'
@@ -248,8 +285,8 @@ const BalancePage = () => {
     const typeMap: Record<string, string> = {
       recharge: '充值',
       withdraw: '提现',
-      task_payment: '任务支付',
-      task_income: '任务收入',
+      rental_payment: '租赁支付',
+      rental_income: '租赁收入',
       platform_fee: '平台服务费',
       refund: '退款'
     };
@@ -267,20 +304,6 @@ const BalancePage = () => {
     return statusMap[status] || { text: status, color: 'text-gray-600' };
   };
 
-  // 处理充值
-  const handleRecharge = () => {
-    console.log('充值');
-    // @ts-ignore
-    alert('即将跳转到充值页面');
-  };
-
-  // 处理提现
-  const handleWithdraw = () => {
-    console.log('提现');
-    // @ts-ignore
-    alert('即将跳转到提现页面');
-  };
-
   // 处理查看交易详情
   const handleViewTransaction = (transactionId: string) => {
     router.push(`/publisher/balance/transaction-details/${transactionId}`);
@@ -296,59 +319,14 @@ const BalancePage = () => {
     router.push(`/publisher/balance/transaction-details/${withdrawalId}`);
   };
 
-  // 处理查看资金流水
-  const handleViewAllTransactions = () => {
-    console.log('查看全部资金流水');
-    // 跳转到交易详情页面
-    router.push('/publisher/balance/transaction-list');
+  // 返回上一页
+  const handleBack = () => {
+    router.back();
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
-    
-      {/* 余额卡片 */}
-      <div className="px-4 mt-3">
-        <Card className="bg-gradient-to-r from-blue-500 to-blue-600 text-white overflow-hidden relative">
-          <div className="absolute right-0 top-0 w-32 h-32 bg-white opacity-10 rounded-full -mr-16 -mt-16" />
-          <div className="absolute left-0 bottom-0 w-24 h-24 bg-white opacity-10 rounded-full -ml-12 -mb-12" />
-          
-          <div className="p-5 relative z-10">
-            <div className="flex justify-between items-start mb-4">
-              <h2 className="text-white text-opacity-80 font-medium">账户余额（元）</h2>
-              <Button 
-                onClick={handleViewAllTransactions}
-                className="bg-white bg-opacity-20 hover:bg-opacity-30 text-white text-xs px-3 py-1 rounded-full"
-              >
-                查看全部明细
-              </Button>
-            </div>
-            
-            <div className="flex items-baseline mb-5">
-              <span className="text-3xl font-bold">{balance.toFixed(2)}</span>
-              <span className="ml-2 text-sm text-white text-opacity-70">可用余额</span>
-            </div>
-            
-            {frozenBalance > 0 && (
-              <div className="text-sm text-white text-opacity-70 mb-6">
-                冻结余额: <span className="text-white">{frozenBalance.toFixed(2)}</span> 元
-              </div>
-            )}
-            
-            <div className="grid grid-cols-2 gap-3">
-              <Button 
-                onClick={handleRecharge}
-                className="bg-white text-blue-600 hover:bg-blue-50 font-medium"
-              >
-                充值
-              </Button>
-              <Button onClick={handleWithdraw} className="bg-green-500 text-white border border-white border-opacity-30 hover:bg-green-600 font-medium">
-                提现
-              </Button>
-            </div>
-          </div>
-        </Card>
-      </div>
-
+     
       {/* 交易记录 */}
       <div className="mt-3 bg-white">
         <div className="px-4 py-3 border-b border-gray-100">
@@ -390,12 +368,6 @@ const BalancePage = () => {
               <div className="text-5xl mb-3">💰</div>
               <h3 className="text-lg font-medium text-gray-800 mb-1">暂无充值记录</h3>
               <p className="text-gray-500 text-sm mb-4">您还没有充值过</p>
-              <Button
-                onClick={handleRecharge}
-                className="bg-blue-600 hover:bg-blue-700 text-white"
-              >
-                立即充值
-              </Button>
             </div>
           ) : activeTab === 'withdraw' && withdrawalRecords.length === 0 ? (
             // 空状态 - 提现记录
@@ -403,12 +375,6 @@ const BalancePage = () => {
               <div className="text-5xl mb-3">💳</div>
               <h3 className="text-lg font-medium text-gray-800 mb-1">暂无提现记录</h3>
               <p className="text-gray-500 text-sm mb-4">您还没有提现过</p>
-              <Button
-                onClick={handleWithdraw}
-                className="bg-blue-600 hover:bg-blue-700 text-white"
-              >
-                立即提现
-              </Button>
             </div>
           ) : (
             // 交易记录列表
@@ -421,13 +387,13 @@ const BalancePage = () => {
                   return (
                     <div 
                       key={transaction.id}
-                      onClick={() => handleViewTransaction(transaction.id)}
                       className="px-4 py-3 border-b border-gray-50 hover:bg-gray-50 flex items-center"
+                      onClick={() => handleViewTransaction(transaction.id)}
                     >
                       <div className={`h-10 w-10 rounded-full flex items-center justify-center ${iconInfo.bgColor} mr-3`}>
                         <div className={iconInfo.color}>{iconInfo.icon}</div>
                       </div>
-                      
+                       
                       <div className="flex-1">
                         <div className="flex justify-between items-start mb-1">
                           <h3 className="font-medium text-gray-900">{transaction.description}</h3>
@@ -456,13 +422,13 @@ const BalancePage = () => {
                   return (
                     <div 
                       key={record.id}
-                      onClick={() => handleViewRecharge(record.id)}
                       className="px-4 py-3 border-b border-gray-50 hover:bg-gray-50 flex items-center"
+                      onClick={() => handleViewRecharge(record.id)}
                     >
                       <div className="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center mr-3">
                         <ArrowUpOutlined className="h-4 w-4 text-green-600" />
                       </div>
-                      
+                       
                       <div className="flex-1">
                         <div className="flex justify-between items-start mb-1">
                           <h3 className="font-medium text-gray-900">账户充值</h3>
@@ -489,13 +455,13 @@ const BalancePage = () => {
                   return (
                     <div 
                       key={record.id}
-                      onClick={() => handleViewWithdrawal(record.id)}
                       className="px-4 py-3 border-b border-gray-50 hover:bg-gray-50 flex items-center"
+                      onClick={() => handleViewWithdrawal(record.id)}
                     >
                       <div className="h-10 w-10 rounded-full bg-red-100 flex items-center justify-center mr-3">
                         <ArrowDownOutlined className="h-4 w-4 text-red-600" />
                       </div>
-                      
+                       
                       <div className="flex-1">
                         <div className="flex justify-between items-start mb-1">
                           <h3 className="font-medium text-gray-900">账户提现</h3>
@@ -521,12 +487,10 @@ const BalancePage = () => {
 
       {/* 底部提示 */}
       <div className="px-4 py-4 text-center text-xs text-gray-500">
-        <div>
-          <p>交易记录保存期限为12个月</p>
-        </div>
+        <p>交易记录保存期限为12个月</p>
       </div>
     </div>
   );
 };
 
-export default BalancePage;
+export default TransactionListPage;

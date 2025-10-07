@@ -42,46 +42,40 @@ export const PublisherHeader: React.FC<PublisherHeaderProps> = ({ user }) => {
       <div className="bg-blue-500 text-white px-4 py-3 flex items-center justify-between">
         <div className="flex items-center space-x-3">
           <BackButton />
-          <button 
-              onClick={() => router.push('/publisher/dashboard')} 
-              className="text-lg font-bold text-white transition-colors"
-              aria-label="返回首页"
-            >
-              <HomeOutlined size={20} />
-            </button>
         </div>
         
-        <div className="flex-1 max-w-md mx-4">
-          <SearchBar 
-            placeholder="搜索任务、用户或关键词"
-            customModules={[
-              {
-                keywords: ['任务', '发布', '完成', '进行中'],
-                urlPath: '/publisher/tasks',
-                exactMatch: false
-              },
-              {
-                keywords: ['订单', '交易', '历史'],
-                urlPath: '/publisher/orders',
-                exactMatch: false
-              },
-              {
-                keywords: ['余额', '账户', '资金'],
-                urlPath: '/publisher/account',
-                exactMatch: false
-              },
-              {
-                keywords: ['银行卡', '支付', '提现'],
-                urlPath: '/publisher/bankcards',
-                exactMatch: false
-              }
-            ]}
-          />
-        </div>
+       
         
-        <div className="flex items-center space-x-2 mr-3">
-            <CustomerServiceButton />
-            <button onClick={handleLogout} className="text-sm">
+        <div className="flex items-center">
+            <div className="flex-1 max-w-md mr-1 text-lg">
+                <SearchBar 
+                  placeholder="搜索任务、用户或关键词"
+                  customModules={[
+                    {
+                      keywords: ['任务', '发布', '完成', '进行中'],
+                      urlPath: '/publisher/tasks',
+                      exactMatch: false
+                    },
+                    {
+                      keywords: ['订单', '交易', '历史'],
+                      urlPath: '/publisher/orders',
+                      exactMatch: false
+                    },
+                    {
+                      keywords: ['余额', '账户', '资金'],
+                      urlPath: '/publisher/account',
+                      exactMatch: false
+                    },
+                    {
+                      keywords: ['银行卡', '支付', '提现'],
+                      urlPath: '/publisher/bankcards',
+                      exactMatch: false
+                    }
+                  ]}
+                />
+            </div>  
+            <CustomerServiceButton className="font-bold text-xl mr-3" />
+            <button onClick={handleLogout} className="text-lg">
               <span className="ml-1">登出</span>
             </button>
           </div>

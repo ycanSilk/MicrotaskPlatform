@@ -1,4 +1,7 @@
 import { useState } from 'react';
+import { CustomerServiceOutlined } from '@ant-design/icons';
+
+
 
 interface CustomerServiceButtonProps {
   // 可以根据需要添加更多props，使组件更灵活
@@ -39,7 +42,7 @@ export const CustomerServiceButton: React.FC<CustomerServiceButtonProps> = ({
         className={`text-sm transition-colors ${className}`}
         aria-label={buttonText}
       >
-        <span className="inline-block text-2xl mr-1">👨‍💼</span><span>{buttonText}</span>
+        <CustomerServiceOutlined />
       </button>
       
       {/* 客服聊天模态框 */}

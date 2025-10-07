@@ -207,7 +207,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
     <>
       {/* 搜索按钮 - 显示白色放大镜图标，居中对齐 */}
       <button 
-        className={`pl-2.5 pt-1.5 pr-1 pb-1.5 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 ${className}`}
+        className={`pl-2.5 pt-2 pr-1 pb-1.5 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 ${className}`}
         onClick={handleSearchButtonClick}
         aria-label="搜索"
       >
