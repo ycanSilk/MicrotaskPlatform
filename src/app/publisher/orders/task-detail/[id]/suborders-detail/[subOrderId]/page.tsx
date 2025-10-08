@@ -1,8 +1,10 @@
 "use client"
 import React, { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { LeftOutlined } from '@ant-design/icons';
+import { LeftOutlined, CopyOutlined } from '@ant-design/icons';
 import { SubOrder } from '../../../../page';
+import OrderStatus from '../../../../../../../components/order/OrderStatus';
+import OrderTaskType, { TaskType } from '../../../../../../../components/order/OrderTaskType';
 
 // 子订单详情页面组件
 const SubOrderDetailPage: React.FC = () => {
@@ -14,6 +16,7 @@ const SubOrderDetailPage: React.FC = () => {
   const [subOrder, setSubOrder] = useState<SubOrder | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [copySuccess, setCopySuccess] = useState(false);
 
   // 模拟获取子订单详情数据
   useEffect(() => {
@@ -59,6 +62,13 @@ const SubOrderDetailPage: React.FC = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  // 复制订单编号
+  const handleCopyOrderId = (id: string) => {
+    navigator.clipboard.writeText(id);
+    setCopySuccess(true);
+    setTimeout(() => setCopySuccess(false), 2000);
+  };
+
   // 格式化日期
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleString('zh-CN');
@@ -73,6 +83,17 @@ const SubOrderDetailPage: React.FC = () => {
       completed: { text: '已完成', className: 'bg-green-100 text-green-800' }
     };
     return statusMap[status] || { text: status, className: 'bg-gray-100 text-gray-800' };
+  };
+
+  // 字符串状态转换为数字状态
+  const getStatusNumber = (status: string): number => {
+    const statusMap: Record<string, number> = {
+      pending: 0,
+      processing: 1,
+      reviewing: 2,
+      completed: 3
+    };
+    return statusMap[status] || 0;
   };
 
   if (loading) {
@@ -137,6 +158,7 @@ const SubOrderDetailPage: React.FC = () => {
   }
 
   const statusInfo = getStatusInfo(subOrder.status);
+  const statusNumber = getStatusNumber(subOrder.status);
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -155,15 +177,30 @@ const SubOrderDetailPage: React.FC = () => {
           <div className="bg-white shadow-sm rounded-lg overflow-hidden">
             {/* 子订单头部信息 */}
             <div className="p-4 border-b border-gray-200">
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-2">
+                <div className="flex items-center">
+                  <span className="text-sm font-medium  mr-2">所属订单编号:</span>
+                  <span className="text-sm text-gray-900">{subOrder.orderId}</span>
+                </div>
+              </div>
               <div className="flex flex-col md:flex-row md:items-center md:justify-between">
                 <div className="flex items-center mb-2 md:mb-0">
-                  <span className="text-sm font-medium text-gray-500 mr-2">订单编号:</span>
-                  <span className="text-sm text-gray-900 font-medium">{subOrder.id}</span>
+                  <span className="text-sm font-medium  mr-2">订单编号:</span>
+                  <span className="text-sm text-gray-900 font-medium mr-2">{subOrder.id}</span>
+                  <button
+                    onClick={() => handleCopyOrderId(subOrder.id)}
+                    className="text-blue-500 hover:text-white p-1 rounded hover:bg-blue-500"
+                    title="复制订单编号"
+                  >
+                    复制
+                  </button>
+                  {copySuccess && (
+                    <span className="text-xs text-green-500 ml-1">已复制</span>
+                  )}
                 </div>
-                <div className="flex items-center">
-                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusInfo.className}`}>
-                    <span className="ml-1">{statusInfo.text}</span>
-                  </span>
+                <div className="flex items-center space-x-2">
+                  <OrderStatus status={statusNumber} />
+                  <OrderTaskType type={TaskType.COMMENT} />
                 </div>
               </div>
             </div>
@@ -172,15 +209,15 @@ const SubOrderDetailPage: React.FC = () => {
             <div className="p-4">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                 <div className="flex items-start">
-                  <span className="text-sm font-medium text-gray-500 mr-2">领取用户:</span>
+                  <span className="text-sm font-medium  mr-2">领取用户:</span>
                   <span className="text-sm text-gray-900">{subOrder.userName}</span>
                 </div>
                 <div className="flex items-start">
-                  <span className="text-sm font-medium text-gray-500 mr-2">奖励金额:</span>
+                  <span className="text-sm font-medium  mr-2">奖励金额:</span>
                   <span className="text-sm text-gray-900 font-medium">¥{subOrder.reward.toFixed(2)}</span>
                 </div>
                 <div className="flex items-start">
-                  <span className="text-sm font-medium text-gray-500 mr-2">提交时间:</span>
+                  <span className="text-sm font-medium  mr-2">提交时间:</span>
                   <span className="text-sm text-gray-900">{subOrder.submitTime ? formatDate(subOrder.submitTime) : '未提交'}</span>
                 </div>
               </div>
@@ -209,14 +246,6 @@ const SubOrderDetailPage: React.FC = () => {
                   </div>
                 </div>
               )}
-              <div className="mt-4 flex space-x-2">
-                <button 
-                  className="flex-1 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 px-4 py-2"
-                  onClick={handleBackToTop}
-                >
-                  返回顶部
-                </button>
-              </div>
             </div>
           </div>
         </div>

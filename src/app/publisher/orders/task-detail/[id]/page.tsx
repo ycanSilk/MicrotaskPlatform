@@ -238,24 +238,22 @@ const OrderDetailPage: React.FC = () => {
               <div className="gap-8 mb-4">
                 {/* 订单编号和复制按钮 */}
                 <div>
-                  <p className="text-sm text-gray-600">订单编号</p>
+                  <p className="text-sm ">订单编号</p>
                   <div className="flex items-center mb-2">
                     <p className="font-medium mr-2">{order.orderNumber}</p>
                     <button 
-                      className="text-blue-500 hover:text-blue-700"
+                      className="text-blue-500 hover:text-white p-1 rounded hover:bg-blue-500"
                       onClick={() => copyToClipboard(order.orderNumber)}
                       title="复制订单编号"
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                      </svg>
+                      复制
                     </button>
                   </div>
                 </div>
                 
                 {/* 订单类型 */}
                 <div>
-                  <p className="text-sm text-gray-600">订单类型</p>
+                  <p className="text-sm ">订单类型</p>
                   <p className="font-medium">{typeInfo.text}</p>
                 </div>
               </div>
@@ -264,11 +262,11 @@ const OrderDetailPage: React.FC = () => {
               <div className="grid grid-cols-1 gap-4">
               
                 <div>
-                  <p className="text-sm text-gray-600">发布时间</p>
+                  <p className="text-sm ">发布时间</p>
                   <p className="font-medium">{formatDate(order.createdAt)}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600">截止时间</p>
+                  <p className="text-sm ">截止时间</p>
                   <p className="font-medium">{formatDate(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString())}</p>
                 </div>
               </div>
@@ -276,7 +274,7 @@ const OrderDetailPage: React.FC = () => {
               {/* 视频链接 */}
               {order.videoUrl && (
                 <div className="mt-4">
-                  <p className="text-sm text-gray-600">视频链接</p>
+                  <p className="text-sm ">视频链接</p>
                   <a 
                     href={order.videoUrl} 
                     target="_blank" 
@@ -291,7 +289,7 @@ const OrderDetailPage: React.FC = () => {
             
             {/* 任务描述 */}
             <div className="mb-4">
-              <p className="text-sm text-gray-600">任务描述</p>
+              <p className="text-sm ">任务描述</p>
               <div className="bg-gray-50 p-4 rounded-md text-sm text-gray-700 whitespace-pre-line">
                 {order.description}
               </div>
@@ -556,7 +554,7 @@ const OrderDetailPage: React.FC = () => {
                           {formatDate(order.createdAt)}
                         </div>
                       </div>
-                      <div className="text-sm text-gray-600 pl-10">
+                      <div className="text-sm  pl-10">
                         用户创建了订单 {order.orderNumber}
                       </div>
                     </div>
@@ -573,7 +571,7 @@ const OrderDetailPage: React.FC = () => {
                           {formatDate(new Date(Date.now() - 3600000).toISOString())}
                         </div>
                       </div>
-                      <div className="text-sm text-gray-600 pl-10">
+                      <div className="text-sm  pl-10">
                         向 {stats.total} 个用户分配了子任务
                       </div>
                     </div>
@@ -590,7 +588,7 @@ const OrderDetailPage: React.FC = () => {
                           {formatDate(order.updatedAt)}
                         </div>
                       </div>
-                      <div className="text-sm text-gray-600 pl-10">
+                      <div className="text-sm  pl-10">
                         更新了订单状态为 {statusInfo.text}
                       </div>
                     </div>
@@ -608,7 +606,7 @@ const OrderDetailPage: React.FC = () => {
                             {formatDate(new Date(Date.now() - 7200000).toISOString())}
                           </div>
                         </div>
-                        <div className="text-sm text-gray-600 pl-10">
+                        <div className="text-sm  pl-10">
                           已完成 {stats.completed} 个子任务的审核
                         </div>
                       </div>

@@ -148,10 +148,10 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
             <div className="flex items-center justify-between">
               <h3 className="font-bold text-gray-800">派发的任务</h3>
               <button 
-                onClick={() => router.push('/publisher/tasks/history')}
+                onClick={() => router.push('/publisher/orders')}
                 className="text-sm text-blue-500 hover:text-blue-700"
               >
-                查看全部历史订单 →
+                查看全部订单 →
               </button>
             </div>
           </div>
