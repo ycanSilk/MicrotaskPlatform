@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { SearchOutlined, FilterOutlined, CalendarOutlined, DownOutlined, ReloadOutlined, CheckCircleOutlined, CloseCircleOutlined, ExclamationCircleOutlined, ClockCircleOutlined, DownloadOutlined, CopyOutlined } from '@ant-design/icons';
 import ReorderButton from '../../commenter/components/ReorderButton';
 // 导入主订单组件
-import MainOrderCard from '../../../components/task/main-order/MainOrderCard';
+import MainOrderCard from '../../../components/task/main-order/Main-Order';
 // 修复导入路径
 import OrderStatus from '../../../components/order/OrderStatus';
 import OrderTaskType from '../../../components/order/OrderTaskType';
@@ -394,7 +394,7 @@ const PublisherOrdersPage: React.FC = () => {
 
   // 查看订单详情
   const viewOrderDetails = (orderId: string) => {
-    router.push(`/publisher/orders/${orderId}`);
+    router.push(`/publisher/orders/task-detail/${orderId}`);
   };
 
   // 复制订单号并显示成功提示

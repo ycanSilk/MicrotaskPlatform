@@ -286,7 +286,7 @@ export default function AccountRentalDetailPage() {
     try {
       setShowSuccessModal(true);
     } catch (error) {
-      console.error('Failed to claim subtask:', error);
+      // 静默处理错误
     }
   };
   
@@ -298,7 +298,7 @@ export default function AccountRentalDetailPage() {
       setScreenshotUrl('');
       setShowSuccessModal(true);
     } catch (error) {
-      console.error('Failed to submit result:', error);
+      // 静默处理错误
     }
   };
 

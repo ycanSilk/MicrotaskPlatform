@@ -46,7 +46,7 @@ export default function ActiveTabPage() {
               authToken = authSession.token;
             }
           } catch (e) {
-            console.log('获取认证token失败:', e);
+            // 静默处理认证错误
           }
         }
         
@@ -69,7 +69,7 @@ export default function ActiveTabPage() {
           setActiveTasks(result.data.activeTasks);
         }
       } catch (error) {
-        console.error('获取仪表板数据失败:', error);
+        // 静默处理错误，UI会显示加载状态
       } finally {
         setLoading(false);
       }
@@ -85,7 +85,6 @@ export default function ActiveTabPage() {
 
   // 处理任务操作
   const handleTaskAction = (taskId: string, action: string) => {
-    console.log(`处理任务 ${taskId} 的操作: ${action}`);
     // 这里可以添加具体的操作逻辑
   };
 

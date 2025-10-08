@@ -38,9 +38,6 @@ export default function TaskDetailPage() {
   const searchParams = useSearchParams();
   const taskId = searchParams?.get('id');
   
-  console.log('TaskDetailPage rendered with searchParams:', searchParams ? Object.fromEntries(searchParams.entries()) : {});
-  console.log('Extracted taskId:', taskId);
-  
   const [loading, setLoading] = useState(true);
   const [task, setTask] = useState<Task | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -61,21 +58,17 @@ export default function TaskDetailPage() {
   const fetchTaskDetail = async (id: string) => {
     try {
       setLoading(true);
-      console.log(`[任务详情调试] 开始获取任务ID: ${id} 的任务详情`);
       
       // 调用API获取任务详情
-      const startTime = Date.now();
       const url = `/api/publisher/task-detail?taskId=${id}`;
-      console.log(`[任务详情调试] API请求URL: ${url}`);
       
       // 获取认证token（如果存在）
       let authToken = null;
       if (typeof window !== 'undefined') {
         try {
           authToken = localStorage.getItem('publisher_auth_token');
-          console.log(`[任务详情调试] 获取到认证token: ${authToken ? '存在' : '不存在'}`);
         } catch (e) {
-          console.warn(`[任务详情调试] 获取认证token时出错: ${e}`);
+          // 静默处理获取认证token时的错误
         }
       }
       
@@ -89,41 +82,26 @@ export default function TaskDetailPage() {
         cache: 'no-store' as RequestCache
       };
       
-      console.log(`[任务详情调试] 请求选项:`, {
-        headers: requestOptions.headers,
-        cache: requestOptions.cache
-      });
-      
       // 发送请求
       const response = await fetch(url, requestOptions);
-      const responseTime = Date.now() - startTime;
-      
-      console.log(`[任务详情调试] API响应状态码: ${response.status}, 响应时间: ${responseTime}ms`);
       
       // 检查响应是否成功
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error(`[任务详情调试] API请求失败: ${response.status} - ${errorText}`);
         setError(`API请求失败: ${response.status}`);
         return;
       }
       
       // 解析响应数据
       const result = await response.json();
-      console.log(`[任务详情调试] API响应数据:`, result);
       
       if (result.success) {
-        console.log(`[任务详情调试] 成功获取任务详情，任务数据:`, result.data);
         setTask(result.data);
       } else {
-        console.error(`[任务详情调试] API返回错误:`, result.message || '获取任务详情失败');
         setError(result.message || '获取任务详情失败');
       }
     } catch (err) {
-      console.error(`[任务详情调试] 获取任务详情时捕获异常:`, err);
       setError(`获取任务详情时发生错误: ${err instanceof Error ? err.message : String(err)}`);
     } finally {
-      console.log(`[任务详情调试] 获取任务详情流程结束`);
       setLoading(false);
     }
   };

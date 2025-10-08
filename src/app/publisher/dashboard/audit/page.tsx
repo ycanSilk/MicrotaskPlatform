@@ -11,6 +11,7 @@ interface PendingOrder {
   taskTitle: string;
   commenterName: string;
   submitTime: string;
+  updatedTime?: string;
   content: string;
   images: string[];
   status: string;
@@ -25,50 +26,48 @@ export default function AuditTabPage() {
   const [loading, setLoading] = useState(true);
   const [pendingOrders, setPendingOrders] = useState<PendingOrder[]>([]);
 
-  // 获取仪表板数据
-  useEffect(() => {
-    const fetchDashboardData = async () => {
-      try {
-        setLoading(true);
-        
-        let authToken = null;
-        if (typeof window !== 'undefined') {
-          try {
-            const authSession = PublisherAuthStorage.getAuth();
-            if (authSession && authSession.token) {
-              authToken = authSession.token;
-            }
-          } catch (e) {
-            console.log('获取认证token失败:', e);
-          }
-        }
-        
-        const headers: Record<string, string> = {
-          'Content-Type': 'application/json',
-        };
-        
-        if (authToken) {
-          headers['Authorization'] = `Bearer ${authToken}`;
-        }
-        
-        const response = await fetch('/api/publisher/dashboard?timeRange=all', {
-          headers,
-          cache: 'no-store',
-          next: { revalidate: 0 }
-        });
-        const result = await response.json();
-        
-        if (result.success) {
-          setPendingOrders(result.data.pendingOrders);
-        }
-      } catch (error) {
-        console.error('获取仪表板数据失败:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
+  // 模拟订单数据
+  const mockOrders: PendingOrder[] = [
+    {
+      id: 'SUB1758353659512002',
+      orderNumber: 'SUB1758353659512002',
+      taskTitle: '使用提供的账号登录后，按照要求浏览指定内容并发表评论',
+      commenterName: '测试评论员1',
+      submitTime: new Date(Date.now() - 3600000).toISOString(), // 1小时前
+      updatedTime: new Date(Date.now() - 1800000).toISOString(), // 30分钟前
+      content: '这个内容很有价值，学到了很多东西。希望以后能有更多这样的优质内容分享。',
+      images: ['/images/1758380776810_96.jpg'],
+      status: 'reviewing'
+    },
+    {
+      id: 'SUB1758353659512003',
+      orderNumber: 'SUB1758353659512003',
+      taskTitle: '视频内容评论任务，需要观看完整视频并给出真实评价',
+      commenterName: '测试评论员2',
+      submitTime: new Date(Date.now() - 7200000).toISOString(), // 2小时前
+      updatedTime: new Date(Date.now() - 5400000).toISOString(), // 1.5小时前
+      content: '视频制作非常精良，内容讲解清晰易懂，强烈推荐给大家观看。',
+      images: ['/images/1758384598887_578.jpg'],
+      status: 'reviewing'
+    },
+    {
+      id: 'SUB1758353659512004',
+      orderNumber: 'SUB1758353659512004',
+      taskTitle: '账号租赁任务，按照要求使用指定账号进行操作',
+      commenterName: '测试评论员3',
+      submitTime: new Date(Date.now() - 10800000).toISOString(), // 3小时前
+      updatedTime: new Date(Date.now() - 9000000).toISOString(), // 2.5小时前
+      content: '已完成账号租赁任务，所有操作都已按照要求完成，请查看截图确认。',
+      images: ['/images/1758596791656_544.jpg', '/images/1758380776810_96.jpg'],
+      status: 'reviewing'
+    }
+  ];
 
-    fetchDashboardData();
+  // 直接使用模拟数据进行渲染
+  useEffect(() => {
+    console.log('使用模拟数据进行渲染');
+    setPendingOrders(mockOrders);
+    setLoading(false);
   }, []);
 
   // 处理搜索
@@ -78,13 +77,11 @@ export default function AuditTabPage() {
 
   // 处理订单审核
   const handleOrderReview = (orderId: string, action: string) => {
-    console.log(`处理订单 ${orderId} 的审核操作: ${action}`);
     // 这里可以添加具体的审核逻辑
   };
 
   // 打开图片查看器
   const openImageViewer = (imageUrl: string) => {
-    console.log('打开图片查看器:', imageUrl);
     // 这里可以添加图片查看器逻辑
   };
 

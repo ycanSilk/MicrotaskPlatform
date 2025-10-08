@@ -86,7 +86,7 @@ export default function OverviewTabPage() {
               authToken = authSession.token;
             }
           } catch (e) {
-            console.log('获取认证token失败:', e);
+            // 静默处理认证错误
           }
         }
         
@@ -110,7 +110,7 @@ export default function OverviewTabPage() {
           setDispatchedTasks(result.data.dispatchedTasks);
         }
       } catch (error) {
-        console.error('获取仪表板数据失败:', error);
+        // 静默处理错误，UI会显示加载状态
       } finally {
         setLoading(false);
       }

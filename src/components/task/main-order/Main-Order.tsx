@@ -103,7 +103,7 @@ const MainOrderCard: React.FC<MainOrderCardProps> = ({
     if (onViewDetails) {
       onViewDetails(order.id);
     } else {
-      router.push(`/publisher/orders/${order.id}`);
+      router.push(`/publisher/orders/task-detail/${order.id}`);
     }
   };
 
@@ -118,7 +118,7 @@ const MainOrderCard: React.FC<MainOrderCardProps> = ({
 
   return (
     <div className="p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow mb-2 bg-white">
-      <div className="flex items-center mb-3 overflow-hidden">
+      <div className="flex items-center mb-1 overflow-hidden">
         <div className="flex-1 mr-2 whitespace-nowrap overflow-hidden text-truncate">
           订单编号：{order.orderNumber}
         </div>
@@ -129,7 +129,7 @@ const MainOrderCard: React.FC<MainOrderCardProps> = ({
           {copiedOrderNumber === order.orderNumber ? '已复制' : '复制'}
         </button>
       </div>
-      <div className="flex items-center space-x-3 mb-2">
+      <div className="flex items-center space-x-3 mb-2 pb-1">
         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusInfo(order.status).className}`}>
           {getStatusInfo(order.status).text}
         </span>
@@ -137,19 +137,19 @@ const MainOrderCard: React.FC<MainOrderCardProps> = ({
           {getTaskTypeText(order.type)}
         </span>
       </div>
-      <div className="mb-2 text-sm text-gray-500">
+      <div className="mb-2 text-sm ">
         更新时间：{order.updatedAt}
       </div>
-      <div className="mb-2 text-sm text-gray-500">
+      <div className="mb-2 text-sm ">
         发布时间：{order.createdAt}
       </div>
       <div className="mb-2">
-        <p>视频链接：</p>
+        <p className='mb-2'>视频链接：</p>
         <a 
           href="#" 
           target="_blank" 
           rel="noopener noreferrer" 
-          className="text-blue-600 hover:text-blue-800 text-base font-medium mb-1 flex items-center"
+          className="text-blue-600 hover:text-blue-800 text-base font-medium mb-2 flex items-center"
         >
           {order.videoUrl || '暂无视频链接'}
         </a>
@@ -159,49 +159,49 @@ const MainOrderCard: React.FC<MainOrderCardProps> = ({
       </div>
       <div className="flex justify-between gap-2 mb-2">
         <div className="flex-1 bg-green-600 rounded-lg p-3 text-center">
-          <span className="text-white mb-1">总价格</span>
+          <span className="text-white mb-2">总价格</span>
           <span className="text-white block">¥{order.budget.toFixed(2)}</span>
         </div>
         <div className="flex-1 bg-green-600 rounded-lg p-3 text-center">
-          <span className="text-white mb-1">单价</span>
+          <span className="text-white mb-2">单价</span>
           <span className="text-white block">¥{(order.budget / Math.max(subOrderStats.total, 1)).toFixed(2)}</span>
         </div>
         <div className="flex-1 bg-green-600 rounded-lg p-3 text-center">
-          <span className="text-white mb-1">订单数</span>
+          <span className="text-white mb-2">订单数</span>
           <span className="text-white block">{subOrderStats.total}</span>
         </div>
       </div>
       <div className="grid grid-cols-5 gap-2 text-sm mb-2">
         <div className="text-center">
-          <div className="text-blue-500 mb-1 flex items-center justify-center">
+          <div className="text-blue-500 mb-2 flex items-center justify-center">
             <span className="w-2 h-2 rounded-full bg-blue-500 mr-1"></span>
             总览
           </div>
           <div className="font-medium text-blue-500">{subOrderStats.total}</div>
         </div>
         <div className="text-center">
-          <div className="text-gray-500 mb-1 flex items-center justify-center">
+          <div className="text-gray-500 mb-2 flex items-center justify-center">
             <span className="w-2 h-2 rounded-full bg-gray-500 mr-1"></span>
             待领取
           </div>
           <div className="font-medium text-gray-500">{subOrderStats.pending}</div>
         </div>
         <div className="text-center">
-          <div className="text-yellow-500 mb-1 flex items-center justify-center">
+          <div className="text-yellow-500 mb-2 flex items-center justify-center">
             <span className="w-2 h-2 rounded-full bg-yellow-500 mr-1"></span>
             进行中
           </div>
           <div className="font-medium text-yellow-500">{subOrderStats.processing}</div>
         </div>
         <div className="text-center">
-          <div className="text-purple-500 mb-1 flex items-center justify-center">
+          <div className="text-purple-500 mb-2 flex items-center justify-center">
             <span className="w-2 h-2 rounded-full bg-purple-500 mr-1"></span>
             待审核
           </div>
           <div className="font-medium text-purple-500">{subOrderStats.reviewing}</div>
         </div>
         <div className="text-center">
-          <div className="text-green-500 mb-1 flex items-center justify-center">
+          <div className="text-green-500 mb-2 flex items-center justify-center">
             <span className="w-2 h-2 rounded-full bg-green-500 mr-1"></span>
             已完成
           </div>
@@ -209,7 +209,7 @@ const MainOrderCard: React.FC<MainOrderCardProps> = ({
         </div>
       </div>
       <div className="mb-2">
-        <div className="flex justify-between text-sm text-black mb-1">
+        <div className="flex justify-between text-sm text-black mb-2">
           <span>完成进度</span>
           <span>{subOrderStats.completed}/{subOrderStats.total} ({completionRate}%)</span>
         </div>

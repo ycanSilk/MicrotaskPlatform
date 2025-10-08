@@ -8,6 +8,7 @@ import AuditTab from './components/AuditTab';
 import ActiveTasksTab from './components/ActiveTasksTab';
 import CompletedTasksTab from './components/CompletedTasksTab';
 import ReorderButton from '../../commenter/components/ReorderButton';
+import { ZoomInOutlined, ZoomOutOutlined, RedoOutlined, CloseOutlined } from '@ant-design/icons';
 
 // 定义数据类型
 interface Task {
@@ -107,7 +108,6 @@ export default function PublisherDashboardPage() {
     const fetchDashboardData = async () => {
       try {
         setLoading(true);
-        console.log(`正在获取仪表板数据，时间范围: ${statsTimeRange}`);
         
         // 使用PublisherAuthStorage获取认证信息
         let authToken = null;
@@ -116,12 +116,9 @@ export default function PublisherDashboardPage() {
             const authSession = PublisherAuthStorage.getAuth();
             if (authSession && authSession.token) {
               authToken = authSession.token;
-              console.log('获取到发布者认证token');
-            } else {
-              console.log('未找到发布者认证token或认证已过期');
             }
           } catch (e) {
-            console.log('获取认证token失败:', e);
+            // 静默处理认证错误
           }
         }
         
@@ -132,7 +129,6 @@ export default function PublisherDashboardPage() {
         
         if (authToken) {
           headers['Authorization'] = `Bearer ${authToken}`;
-          console.log('设置Authorization头');
         }
         
         // 获取仪表板数据
@@ -143,31 +139,8 @@ export default function PublisherDashboardPage() {
           next: { revalidate: 0 }
         });
         const result = await response.json();
-        console.log('API响应:', result);
         
         if (result.success) {
-          console.log('统计数据:', result.data.stats);
-          console.log('活动任务数量:', result.data.activeTasks.length);
-          console.log('已完成任务数量:', result.data.completedTasks.length);
-          console.log('待审核订单数量:', result.data.pendingOrders.length);
-          console.log('派发任务数量:', result.data.dispatchedTasks.length);
-          console.log('派发任务详情:', result.data.dispatchedTasks); // 添加这行来查看派发任务的详细信息
-          
-          // 检查派发任务中的价格信息
-          result.data.dispatchedTasks.forEach((task: any, index: number) => {
-            console.log(`派发任务[${index}] ID: ${task.id}, 价格: ${task.price}, 数量: ${task.maxParticipants}`);
-          });
-          
-          // 调试：检查活动任务和已完成任务的状态值
-          console.log('活动任务详情:', result.data.activeTasks);
-          result.data.activeTasks.forEach((task: any, index: number) => {
-            console.log(`活动任务[${index}] ID: ${task.id}, 状态: ${task.status}, 标题: ${task.title}`);
-          });
-          
-          console.log('已完成任务详情:', result.data.completedTasks);
-          result.data.completedTasks.forEach((task: any, index: number) => {
-            console.log(`已完成任务[${index}] ID: ${task.id}, 状态: ${task.status}, 标题: ${task.title}`);
-          });
           
           setStats(result.data.stats);
           setMyTasks([...result.data.activeTasks, ...result.data.completedTasks]);
@@ -177,13 +150,9 @@ export default function PublisherDashboardPage() {
           // 设置进行中和已完成的任务
           setActiveTasks(result.data.activeTasks);
           setCompletedTasks(result.data.completedTasks);
-          
-          console.log('数据更新完成');
-        } else {
-          console.error('API返回错误:', result.message);
         }
       } catch (error) {
-        console.error('获取仪表板数据失败:', error);
+        // 静默处理错误，UI会显示加载状态
       } finally {
         setLoading(false);
       }
@@ -242,14 +211,12 @@ export default function PublisherDashboardPage() {
       return taskDate >= fortyEightHoursAgo;
     });
     
-    console.log(`时间过滤前: ${tasks.length} 条, 过滤后: ${filtered.length} 条`);
     return filtered;
     */
   };
   
   // 搜索处理函数
   const handleSearch = () => {
-    console.log(`执行搜索操作，搜索词: ${searchTerm}`);
     // 搜索逻辑已经在searchOrders函数中实现，这里只需要触发重渲染
     setRefreshFlag(prev => prev + 1);
   };
@@ -270,7 +237,6 @@ export default function PublisherDashboardPage() {
       );
     });
     
-    console.log(`搜索过滤前: ${tasks.length} 条, 过滤后: ${filtered.length} 条, 搜索词: ${searchTerm}`);
     return filtered;
   };
   
@@ -302,85 +268,40 @@ export default function PublisherDashboardPage() {
   };
 
   const handleTaskAction = (taskId: string, action: string) => {
-    console.log(`[仪表盘调试] 开始处理任务操作 - 任务ID: ${taskId}, 操作: ${action}`);
-    
     if (action === '查看详情') {
-      console.log(`[仪表盘调试] 准备查看任务详情 - 当前活动标签: ${activeTab}`);
-      
-      // 详细记录任务ID信息
-      console.log(`[仪表盘调试] 任务ID类型: ${typeof taskId}`);
-      console.log(`[仪表盘调试] 任务ID值: ${taskId}`);
-      console.log(`[仪表盘调试] 任务ID长度: ${taskId.length}`);
-      console.log(`[仪表盘调试] 任务ID是否为空: ${!taskId}`);
-      
       // 确保taskId是有效的字符串
       if (!taskId || typeof taskId !== 'string' || taskId.trim() === '') {
-        console.error(`[仪表盘调试] 无效的任务ID:`, { taskId, type: typeof taskId });
         alert(`无法查看任务详情：任务ID无效`);
         return;
       }
       
       // 构建目标URL
       const encodedTaskId = encodeURIComponent(taskId);
-      const url = `/publisher/dashboard/task-detail?id=${encodedTaskId}`;
-      
-      console.log(`[仪表盘调试] 构建的目标URL: ${url}`);
-      console.log(`[仪表盘调试] 编码后的任务ID: ${encodedTaskId}`);
+      const url = `/publisher/orders/${encodedTaskId}`;
       
       try {
-        // 记录导航前的状态
-        console.log(`[仪表盘调试] 开始导航到任务详情页`);
-        console.log(`[仪表盘调试] 当前路由路径: ${typeof window !== 'undefined' ? window.location.pathname : '服务器端渲染'}`);
-        
         // 执行导航
         // Using type assertion to fix Next.js 14 router push type issue
         router.push(url as unknown as never);
-        
-        console.log(`[仪表盘调试] 导航操作已成功触发`);
-        
-        // 查找当前点击的任务详情进行记录
-        const currentTask = activeTab === 'active' 
-          ? activeTasks.find(task => task.id === taskId) 
-          : myTasks.find(task => task.id === taskId);
-        
-        if (currentTask) {
-          console.log(`[仪表盘调试] 导航的任务详情:`, {
-            id: currentTask.id,
-            title: currentTask.title,
-            status: currentTask.status,
-            statusText: currentTask.statusText
-          });
-        } else {
-          console.warn(`[仪表盘调试] 未在当前任务列表中找到ID为${taskId}的任务`);
-        }
-        
       } catch (error) {
-        console.error(`[仪表盘调试] 导航到任务详情页时出错:`, error);
         alert(`导航到任务详情页失败: ${error instanceof Error ? error.message : String(error)}`);
       }
     } else {
-      console.log(`[仪表盘调试] 执行非查看详情操作: ${action}`);
       alert(`对任务 ${taskId} 执行 ${action} 操作`);
     }
-    
-    console.log(`[仪表盘调试] 任务操作处理完成 - 任务ID: ${taskId}, 操作: ${action}`);
   };
 
   const handleOrderReview = async (orderId: string, action: 'approve' | 'reject') => {
-    console.log(`开始处理订单审核: orderId=${orderId}, action=${action}`);
-    
     // 弹出确认提示
     const actionText = action === 'approve' ? '通过审核' : '驳回订单';
     const confirmed = window.confirm(`确定要${actionText}这个订单吗？`);
     
     // 如果用户点击取消，则不执行操作
     if (!confirmed) {
-      console.log(`用户取消了${actionText}操作`);
       return;
     }
     
     try {
-      console.log(`用户确认${actionText}操作，开始发送API请求`);
       const response = await fetch('/api/publisher/review', {
         method: 'POST',
         headers: {
@@ -389,23 +310,18 @@ export default function PublisherDashboardPage() {
         body: JSON.stringify({ orderId, action }),
       });
       
-      console.log('API调用完成，状态码:', response.status);
       const result = await response.json();
-      console.log('API返回结果:', result);
       
       if (result.success) {
         // 显示成功消息
         alert(result.message);
-        console.log('审核操作成功');
         
         // 触发数据重新加载
         setRefreshFlag(prev => prev + 1);
       } else {
-        console.error('审核操作失败:', result.message);
         alert(`操作失败: ${result.message}`);
       }
     } catch (error) {
-      console.error('审核订单失败:', error);
       alert('审核订单时发生错误');
     }
   };
@@ -491,25 +407,25 @@ export default function PublisherDashboardPage() {
       <div className="mx-4 mt-4 grid grid-cols-4 gap-1">
         <button
           onClick={() => handleTabChange('overview')}
-          className={`py-3 px-4 rounded text-sm font-medium transition-colors ${activeTab === 'overview' ? 'bg-green-500 text-white shadow-md' : 'bg-white border border-gray-300 text-gray-600 hover:bg-green-50'}`}
+          className={`py-3 px-2 rounded text-sm font-medium transition-colors ${activeTab === 'overview' ? 'bg-green-500 text-white shadow-md' : 'bg-white border border-gray-300 text-gray-600 hover:bg-green-50'}`}
         >
           概览
         </button>
         <button
           onClick={() => handleTabChange('active')}
-          className={`py-3 px-4 rounded text-sm font-medium transition-colors ${activeTab === 'active' ? 'bg-green-500 text-white shadow-md' : 'bg-white border border-gray-300 text-gray-600 hover:bg-green-50'}`}
+          className={`py-3 px-2 rounded text-sm font-medium transition-colors ${activeTab === 'active' ? 'bg-green-500 text-white shadow-md' : 'bg-white border border-gray-300 text-gray-600 hover:bg-green-50'}`}
         >
           进行中
         </button>
         <button
           onClick={() => handleTabChange('audit')}
-          className={`py-3 px-4 rounded text-sm font-medium transition-colors ${activeTab === 'audit' ? 'bg-green-500 text-white shadow-md' : 'bg-white border border-gray-300 text-gray-600 hover:bg-green-50'}`}
+          className={`py-3 px-2 rounded text-sm font-medium transition-colors ${activeTab === 'audit' ? 'bg-green-500 text-white shadow-md' : 'bg-white border border-gray-300 text-gray-600 hover:bg-green-50'}`}
         >
-          审核任务
+          待审核
         </button>
         <button
           onClick={() => handleTabChange('completed')}
-          className={`py-3 px-4 rounded text-sm font-medium transition-colors ${activeTab === 'completed' ? 'bg-green-500 text-white shadow-md' : 'bg-white border border-gray-300 text-gray-600 hover:bg-green-50'}`}
+          className={`py-3 px-2 rounded text-sm font-medium transition-colors ${activeTab === 'completed' ? 'bg-green-500 text-white shadow-md' : 'bg-white border border-gray-300 text-gray-600 hover:bg-green-50'}`}
         >
           已完成
         </button>
@@ -584,14 +500,14 @@ export default function PublisherDashboardPage() {
           onMouseUp={handleDragEnd}
           onMouseLeave={handleDragEnd}
         >
-          <div className="relative max-w-4xl max-h-full w-full">
+          <div className="relative max-w-full max-h-full w-auto">
             {/* 关闭按钮 */}
             <button
               onClick={closeImageViewer}
               className="absolute -top-10 right-0 text-white text-2xl hover:text-gray-300 z-10"
               style={{ right: 'calc(50% - 200px)' }}
             >
-              ✕
+              <CloseOutlined />
             </button>
             
             {/* 缩放控制按钮 */}
@@ -601,21 +517,21 @@ export default function PublisherDashboardPage() {
                 className="text-white p-2 hover:bg-white hover:bg-opacity-20 rounded"
                 title="放大"
               >
-                🔍+
+                <ZoomInOutlined />
               </button>
               <button 
                 onClick={(e) => { e.stopPropagation(); zoomOut(); }}
                 className="text-white p-2 hover:bg-white hover:bg-opacity-20 rounded"
                 title="缩小"
               >
-                🔍-
+                <ZoomOutOutlined />
               </button>
               <button 
                 onClick={(e) => { e.stopPropagation(); resetImage(); }}
                 className="text-white p-2 hover:bg-white hover:bg-opacity-20 rounded"
                 title="重置"
               >
-                🔄
+                <RedoOutlined />
               </button>
             </div>
             
@@ -626,8 +542,8 @@ export default function PublisherDashboardPage() {
             
             {/* 可缩放拖拽的图片 */}
             <div 
-              className="flex items-center justify-center"
-              style={{ overflow: 'hidden', height: '80vh' }}
+              className="flex items-center justify-center w-full px-8"
+              style={{ overflow: 'hidden', height: '100vh' }}
             >
               <img 
                 src={currentImage} 
@@ -636,7 +552,8 @@ export default function PublisherDashboardPage() {
                 style={{ 
                   transform: `translate(${position.x}px, ${position.y}px) scale(${scale})`,
                   maxHeight: 'none',
-                  maxWidth: 'none'
+                  maxWidth: 'none',
+                  width: 'auto'
                 }}
                 onWheel={handleWheel}
                 onMouseDown={handleDragStart}

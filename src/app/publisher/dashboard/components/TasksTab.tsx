@@ -62,8 +62,8 @@ const TasksTab: React.FC<TasksTabProps> = ({
       setTimeout(() => {
         document.body.removeChild(tooltip);
       }, 2000);
-    }).catch(err => {
-      console.error('复制失败:', err);
+    }).catch(() => {
+      // 静默处理复制失败
     });
   };
 

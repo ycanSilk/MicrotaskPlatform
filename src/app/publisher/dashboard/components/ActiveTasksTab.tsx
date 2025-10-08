@@ -1,8 +1,9 @@
 import React from 'react';
 import ReorderButton from '../../../commenter/components/ReorderButton';
 import OrderHeaderTemplate from './OrderHeaderTemplate';
-import MainOrderCard from '../../../../components/task/main-order/MainOrderCard';
-import type { Order } from '../../../../components/task/main-order/MainOrderCard';
+import MainOrderCard from '../../../../components/task/main-order/Main-Order';
+import type { Order } from '../../../../components/task/main-order/Main-Order';
+import { useRouter } from 'next/navigation';
 
 interface Task {
   id: string;
@@ -50,6 +51,7 @@ const ActiveTasksTab: React.FC<ActiveTasksTabProps> = ({
   sortTasks,
   onViewAllClick
 }) => {
+  const router = useRouter();
   // 复制订单号功能
   const handleCopyOrderNumber = (orderNumber: string) => {
     navigator.clipboard.writeText(orderNumber).then(() => {
@@ -62,8 +64,8 @@ const ActiveTasksTab: React.FC<ActiveTasksTabProps> = ({
       setTimeout(() => {
         document.body.removeChild(tooltip);
       }, 2000);
-    }).catch(err => {
-      console.error('复制失败:', err);
+    }).catch(() => {
+      // 静默处理复制失败
     });
   };
 
@@ -107,26 +109,43 @@ const ActiveTasksTab: React.FC<ActiveTasksTabProps> = ({
     <div className="mx-4 mt-6 space-y-4">
       {/* 使用标准模板组件 */}
       <OrderHeaderTemplate
-        title="进行中的任务"
+        title="进行中任务"
+        totalCount={filteredTasks.length}
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}
         handleSearch={handleSearch}
         sortBy={sortBy}
         setSortBy={setSortBy}
-        viewAllUrl="/publisher/orders"
-        onViewAllClick={onViewAllClick}
         sortOptions={sortOptions}
+        viewAllUrl="/publisher/orders/active"
+        onViewAllClick={onViewAllClick}
       />
       
-      {/* 订单列表 */}
-      {filteredTasks.map((task, index) => (
-        <MainOrderCard
-          key={`task-${task.id}-${index}`}
-          order={convertToOrderFormat(task)}
-          onCopyOrderNumber={handleCopyOrderNumber}
-          onViewDetails={(orderId) => handleTaskAction(orderId, '查看详情')}
-        />
-      ))}
+      {/* 任务列表 */}
+      <div>
+        {filteredTasks.length > 0 ? (
+          filteredTasks.map((task) => (
+            <MainOrderCard
+              key={task.id}
+              order={convertToOrderFormat(task)}
+              onCopyOrderNumber={handleCopyOrderNumber}
+              onViewDetails={(orderId) => {
+                const orderType = task.category === '账号租赁' ? 'other' : 'comment';
+                if (orderType === 'comment') {
+                  router.push(`/publisher/orders/task-detail/${orderId}`);
+                } else {
+                  router.push(`/publisher/orders/account-rental/${orderId}`);
+                }
+              }}
+              onReorder={(orderId) => handleTaskAction(orderId, 'reorder')}
+            />
+          ))
+        ) : (
+          <div className="text-center py-8 bg-white rounded-lg shadow-sm">
+            <p className="text-gray-500">暂无相关任务</p>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

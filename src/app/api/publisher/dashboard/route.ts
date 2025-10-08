@@ -3,6 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import { validateTokenByRole } from '@/auth/common';
 
+
 // 读取评论订单数据文件
 const getCommentOrders = () => {
   const filePath = path.join(process.cwd(), 'src/data/commentOrder/commentOrder.json');
@@ -61,8 +62,6 @@ const filterOrdersByTimeRange = (orders: any[], timeRange: string) => {
   
   // 使用本地时间而不是UTC时间
   const now = new Date();
-  console.log(`当前时间: ${now.toString()}`);
-  console.log(`时间范围: ${timeRange}`);
   
   // 设置时间范围的开始时间和结束时间（使用本地时间）
   let startTime: Date;
@@ -86,19 +85,16 @@ const filterOrdersByTimeRange = (orders: any[], timeRange: string) => {
       endTime.setMilliseconds(-1); // 设为前天的最后一毫秒
       break;
     default:
-      console.log('未知时间范围，返回所有订单');
       return orders; // 返回所有订单
   }
   
-  console.log(`开始时间: ${startTime.toString()}`);
-  console.log(`结束时间: ${endTime.toString()}`);
+
   
   // 过滤在时间范围内的订单（检查发布时间，转换为本地时间进行比较）
   const filteredOrders = orders.filter(order => {
     try {
       // 确保order.publishTime存在且是有效的日期字符串
       if (!order.publishTime) {
-        console.log(`订单ID: ${order.id} 没有发布时间，跳过`);
         return false;
       }
       
@@ -106,20 +102,16 @@ const filterOrdersByTimeRange = (orders: any[], timeRange: string) => {
       
       // 检查publishTime是否是有效日期
       if (isNaN(publishTime.getTime())) {
-        console.log(`订单ID: ${order.id} 发布时间无效: ${order.publishTime}`);
         return false;
       }
       
       const isInRange = publishTime >= startTime && publishTime <= endTime;
-      console.log(`订单ID: ${order.id}, 发布时间: ${publishTime.toString()}, 是否在范围内: ${isInRange}`);
       return isInRange;
     } catch (error) {
-      console.error(`处理订单ID: ${order.id} 时出错:`, error);
       return false;
     }
   });
   
-  console.log(`过滤后的订单数量: ${filteredOrders.length}`);
   return filteredOrders;
 };
 
@@ -142,7 +134,6 @@ const transformOrdersToTasks = (orders: any[]) => {
       default:
         // 根据规范，主任务只有进行中和已完成两种状态
         // 如果状态不是这两个之一，默认设为进行中
-        console.log(`警告：发现未知状态 "${order.status}" 的订单 ${order.id}，将默认设为进行中`);
         status = 'main_progress';  // 保持原始状态值
         statusText = '进行中';
         statusColor = 'bg-green-100 text-green-600';
@@ -189,22 +180,15 @@ const getPendingOrders = (orders: any[], currentUserId: string) => {
   // 查找所有状态为"审核中"的子订单，并且主任务属于当前用户
   const pendingSubOrders: any[] = [];
   
-  console.log(`开始过滤用户 ${currentUserId} 的待审核订单`);
-  console.log(`总订单数: ${orders.length}`);
-  
   orders.forEach(order => {
     // 只处理当前用户的订单（确保订单属于当前用户）
     if (order.userId === currentUserId) {
-      console.log(`检查订单 ${order.id} 的子订单`);
       // 确保subOrders存在且为数组
       if (order.subOrders && Array.isArray(order.subOrders)) {
         const pendingSubs = order.subOrders.filter((subOrder: any) => {
           const isPendingReview = subOrder.status === 'sub_pending_review';
-          console.log(`子订单 ${subOrder.id} 状态: ${subOrder.status}, 是否为待审核状态: ${isPendingReview}`);
           return isPendingReview;
         });
-        
-        console.log(`订单 ${order.id} 找到 ${pendingSubs.length} 个pending_review子订单`);
         
         pendingSubs.forEach((subOrder: any) => {
           const pendingOrder = {
@@ -216,14 +200,12 @@ const getPendingOrders = (orders: any[], currentUserId: string) => {
             content: subOrder.commentContent || '无内容',
             images: subOrder.screenshotUrl ? [subOrder.screenshotUrl] : []
           };
-          console.log(`添加待审核订单:`, pendingOrder);
           pendingSubOrders.push(pendingOrder);
         });
       }
     }
   });
   
-  console.log(`总共找到 ${pendingSubOrders.length} 个待审核订单:`, pendingSubOrders.map(order => order.id));
   return pendingSubOrders;
 };
 
@@ -249,7 +231,6 @@ export async function GET(request: Request) {
       const token = authHeader.substring(7); // 移除 'Bearer ' 前缀
       // 使用新认证系统的验证函数来解析token
       const user = await validateTokenByRole(token, 'publisher');
-      console.log('解析token结果:', user);
       if (user && user.role === 'publisher') {
         currentUserId = user.id;
       }
@@ -257,14 +238,13 @@ export async function GET(request: Request) {
     
     // 如果没有有效的用户ID，返回错误
     if (!currentUserId) {
-      console.log('未找到有效的用户ID');
       return NextResponse.json(
         { success: false, message: '未授权访问' },
         { status: 401, headers }
       );
     }
     
-    console.log(`当前用户ID: ${currentUserId}`);
+    
 
     const url = new URL(request.url);
     const timeRange = url.searchParams.get('timeRange') || 'all'; // 默认使用'all'而不是'today'
@@ -275,7 +255,6 @@ export async function GET(request: Request) {
     
     // 过滤当前用户的订单
     const userOrders = filterOrdersByUser(allOrders, currentUserId);
-    console.log(`用户${currentUserId}的订单数量:`, userOrders.length);
     
     // 获取统计数据
     const stats = getStatsData(userOrders, timeRange);
@@ -289,7 +268,6 @@ export async function GET(request: Request) {
     
     // 获取待审核订单（只获取当前用户的）
     const pendingOrders = getPendingOrders(allOrders, currentUserId); // 修复：使用allOrders以确保能查找到所有用户的订单
-    console.log(`用户${currentUserId}的待审核订单数量:`, pendingOrders.length);
     
     // 获取派发的任务列表（最近10个）
     const dispatchedTasks = allTasks.slice(0, 10).map(task => ({
@@ -310,7 +288,7 @@ export async function GET(request: Request) {
       taskRequirements: task.description // 传递任务需求字段
     }));
     
-    console.log(`派发的任务列表:`, dispatchedTasks.map(task => ({id: task.id, status: task.status, statusText: task.statusText})));
+
     
     return NextResponse.json({
       success: true,
@@ -323,7 +301,6 @@ export async function GET(request: Request) {
       }
     }, { headers });
   } catch (error) {
-    console.error('Dashboard data fetch error:', error);
     return NextResponse.json(
       { success: false, message: '获取数据失败' },
       { status: 500 }

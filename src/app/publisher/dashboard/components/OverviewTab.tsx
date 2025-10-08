@@ -1,7 +1,7 @@
 import React from 'react';
 import { useRouter } from 'next/navigation';
-import MainOrderCard from '../../../../components/task/main-order/MainOrderCard';
-import type { Order } from '../../../../components/task/main-order/MainOrderCard';
+import MainOrderCard from '../../../../components/task/main-order/Main-Order';
+import type { Order } from '../../../../components/task/main-order/Main-Order';
 
 interface Stats {
   totalTasks: number;
@@ -61,8 +61,8 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
       setTimeout(() => {
         document.body.removeChild(tooltip);
       }, 2000);
-    }).catch(err => {
-      console.error('复制失败:', err);
+    }).catch(() => {
+      // 静默处理复制失败
     });
   };
 
@@ -218,7 +218,13 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
                   key={`dispatched-${task.id}-${index}`}
                   order={order}
                   onCopyOrderNumber={handleCopyOrderNumber}
-                  onViewDetails={(orderId) => router.push(`/publisher/orders/${orderId}`)}
+                  onViewDetails={(orderId) => {
+                    if (order.type === 'comment') {
+                      router.push(`/publisher/orders/task-detail/${orderId}`);
+                    } else {
+                      router.push(`/publisher/orders/account-rental/${orderId}`);
+                    }
+                  }}
                 />
               );
             })}

@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { LeftOutlined, CheckCircleOutlined, CloseCircleOutlined, ExclamationCircleOutlined, ClockCircleOutlined, DownloadOutlined, MessageOutlined, UserOutlined, DollarOutlined, CalendarOutlined, FileTextOutlined, TrophyOutlined, ShareAltOutlined, LikeOutlined, LockOutlined, TeamOutlined } from '@ant-design/icons';
-import { Order, SubOrder } from '../page';
+import { Order, SubOrder } from '../../page';
 
 // 订单详情页面组件
 const OrderDetailPage: React.FC = () => {
@@ -501,7 +501,7 @@ const OrderDetailPage: React.FC = () => {
                                 {/* 查看详情按钮 - 始终显示 */}
                                 <button 
                                   className="flex-1 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 px-4 py-2"
-                                  onClick={() => router.push(`/publisher/orders/${orderId}/suborders/${subOrder.id}`)}
+                                  onClick={() => router.push(`/publisher/orders/task-detail/${orderId}/suborders-detail/${subOrder.id}`)}
                                 >
                                   查看详情
                                 </button>

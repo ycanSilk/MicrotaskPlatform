@@ -73,7 +73,7 @@ export default function VideoSendDetailPage() {
         try {
           authToken = localStorage.getItem('publisher_auth_token');
         } catch (e) {
-          console.warn(`获取认证token时出错: ${e}`);
+          // 静默处理获取认证token时的错误
         }
       }
       
