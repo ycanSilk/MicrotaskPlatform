@@ -33,6 +33,11 @@ export default function PublisherTransactionsPage() {
   const initialLoadSize = 20;
   const loadMoreSize = 10;
   
+  // 日历组件状态
+  const [startDate, setStartDate] = useState<string>('');
+  const [endDate, setEndDate] = useState<string>('');
+  const calendarRef = useRef<HTMLDivElement>(null);
+  
   // 通用提示框状态
   const [showAlertModal, setShowAlertModal] = useState(false);
   const [alertConfig, setAlertConfig] = useState({
@@ -142,10 +147,48 @@ export default function PublisherTransactionsPage() {
     setShowCalendar(false);
   };
 
+  // 处理自定义日期范围选择
+  const handleCustomDateSelect = () => {
+    if (startDate && endDate) {
+      // 计算日期范围对应的预设选项
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      const now = new Date();
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const yesterday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
+      const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+      const firstDayOfThisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      const firstDayOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+      const lastDayOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0);
+
+      // 判断选择的日期范围是否匹配预设选项
+      if (start.getTime() === today.getTime() && end.getTime() === today.getTime()) {
+        setSelectedDate('today');
+      } else if (start.getTime() === yesterday.getTime() && end.getTime() === yesterday.getTime()) {
+        setSelectedDate('yesterday');
+      } else if (start.getTime() === sevenDaysAgo.getTime() && end.getTime() === today.getTime()) {
+        setSelectedDate('7days');
+      } else if (start.getTime() === thirtyDaysAgo.getTime() && end.getTime() === today.getTime()) {
+        setSelectedDate('30days');
+      } else if (start.getTime() === firstDayOfThisMonth.getTime() && end.getTime() === today.getTime()) {
+        setSelectedDate('thisMonth');
+      } else if (start.getTime() === firstDayOfLastMonth.getTime() && end.getTime() === lastDayOfLastMonth.getTime()) {
+        setSelectedDate('lastMonth');
+      } else {
+        // 自定义日期范围
+        setSelectedDate(`custom:${startDate}:${endDate}`);
+      }
+      setShowCalendar(false);
+    }
+  };
+
   // 刷新数据
   const handleRefresh = () => {
     setSearchQuery('');
     setSelectedDate(null);
+    setStartDate('');
+    setEndDate('');
     fetchTransactions();
   };
 
@@ -193,6 +236,19 @@ export default function PublisherTransactionsPage() {
       const now = new Date();
       let startDate: Date;
       
+      if (selectedDate.startsWith('custom:')) {
+        // 自定义日期范围
+        const [, start, end] = selectedDate.split(':');
+        const customStartDate = new Date(start);
+        const customEndDate = new Date(end);
+        customEndDate.setHours(23, 59, 59, 999); // 设置为当天的最后一刻
+        filtered = filtered.filter(transaction => {
+          const transactionDate = new Date(transaction.time);
+          return transactionDate >= customStartDate && transactionDate <= customEndDate;
+        });
+        return filtered;
+      }
+      
       switch (selectedDate) {
         case 'today':
           startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -233,6 +289,23 @@ export default function PublisherTransactionsPage() {
     
     return filtered;
   }, [transactions, searchQuery, selectedDate]);
+
+  // 点击外部关闭日历
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (calendarRef.current && !calendarRef.current.contains(event.target as Node)) {
+        setShowCalendar(false);
+      }
+    };
+    
+    if (showCalendar) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showCalendar]);
 
   // 直接获取交易记录，移除登录验证
   useEffect(() => {
@@ -325,6 +398,33 @@ export default function PublisherTransactionsPage() {
     }
   }, [loading, transactions.length]);
 
+  // 显示选择的日期文本
+  const getSelectedDateText = () => {
+    if (!selectedDate) {
+      return '选择日期';
+    }
+    
+    if (selectedDate.startsWith('custom:')) {
+      const [, start, end] = selectedDate.split(':');
+      // 格式化日期为 MM/DD 格式
+      const formatDate = (dateString: string) => {
+        const date = new Date(dateString);
+        return `${String(date.getMonth() + 1).padStart(2, '0')}/${String(date.getDate()).padStart(2, '0')}`;
+      };
+      return `${formatDate(start)} 至 ${formatDate(end)}`;
+    }
+    
+    switch (selectedDate) {
+      case 'today': return '今天';
+      case 'yesterday': return '昨天';
+      case '7days': return '近7天';
+      case '30days': return '近30天';
+      case 'thisMonth': return '本月';
+      case 'lastMonth': return '上月';
+      default: return '选择日期';
+    }
+  };
+
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
       {/* 顶部导航和标题 */}
@@ -334,7 +434,7 @@ export default function PublisherTransactionsPage() {
             onClick={handleBack} 
             className="py-2 px-4 rounded-full bg-blue-500 hover:bg-blue-600 transition-colors text-white"
           >
-            <ArrowLeftOutlined className="mr-1" /> 返回
+            <ArrowLeftOutlined className="mr-1 " /> 返回
           </button>
           <h1 className="text-xl font-bold text-gray-800">交易记录</h1>
         </div>
@@ -348,28 +448,26 @@ export default function PublisherTransactionsPage() {
             onChange={handleSearch}
             className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full md:w-64"
           />
-          <SearchOutlined className="absolute left-3 top-2.5 text-gray-400" />
+          <SearchOutlined className="absolute left-3 top-3.5 text-gray-400" />
         </div>
       </div>
       
-      {/* 日历筛选组件 */}
+      {/* 日历筛选组件 - 改进为日历组件界面 */}
       <div className="mb-6 relative">
         <button
           onClick={() => setShowCalendar(!showCalendar)}
           className="px-4 py-2 rounded-lg flex items-center bg-blue-500 hover:bg-blue-600 transition-colors text-white shadow-md"
         >
           <CalendarOutlined className="mr-2" />
-          {selectedDate ? 
-            (selectedDate === 'today' ? '今天' : 
-             selectedDate === 'yesterday' ? '昨天' : 
-             selectedDate === '7days' ? '近7天' : 
-             selectedDate === '30days' ? '近30天' : 
-             selectedDate === 'thisMonth' ? '本月' : '上月') : '选择日期'}
+          {getSelectedDateText()}
         </button>
         
         {showCalendar && (
-          <div className="absolute top-full left-0 mt-2 bg-white rounded-lg shadow-xl border border-gray-200 z-10 w-48 overflow-hidden">
-            <div className="flex justify-between items-center px-4 py-2 bg-gray-50 border-b border-gray-200">
+          <div 
+            ref={calendarRef} 
+            className="absolute top-full left-0 mt-2 bg-white rounded-lg shadow-xl border border-gray-200 z-10 w-80 overflow-hidden"
+          >
+            <div className="flex justify-between items-center px-4 py-3 bg-gray-50 border-b border-gray-200">
               <span className="text-sm font-medium text-gray-700">日期筛选</span>
               <button 
                 onClick={() => setShowCalendar(false)}
@@ -378,21 +476,62 @@ export default function PublisherTransactionsPage() {
                 ×
               </button>
             </div>
-            {getDateOptions().map(option => (
-              <button
-                key={option.value}
-                onClick={() => handleDateSelect(option.value)}
-                className={`block w-full text-left px-4 py-3 hover:bg-blue-50 transition-colors ${selectedDate === option.value ? 'bg-blue-100 text-blue-600 font-medium' : 'text-gray-700'}`}
-              >
-                {option.label}
-              </button>
-            ))}
+            
+            {/* 日期范围选择器 - 改进为更友好的日历组件界面 */}
+            <div className="p-4 border-b border-gray-200">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm text-gray-500 mb-1">开始日期</label>
+                  <input
+                    type="date"
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                    className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm text-gray-500 mb-1">结束日期</label>
+                  <input
+                    type="date"
+                    value={endDate}
+                    onChange={(e) => setEndDate(e.target.value)}
+                    className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+              <div className="mt-3">
+                <button
+                  onClick={handleCustomDateSelect}
+                  disabled={!startDate || !endDate}
+                  className={`w-full py-2 rounded-md transition-colors ${startDate && endDate ? 'bg-blue-500 text-white hover:bg-blue-600' : 'bg-gray-200 text-gray-500 cursor-not-allowed'}`}
+                >
+                  确认选择
+                </button>
+              </div>
+            </div>
+            
+            {/* 快速筛选选项 */}
+            <div className="py-2">
+              <div className="px-4 py-2 text-xs font-medium text-gray-500">常用筛选</div>
+              <div className="grid grid-cols-2 gap-1 p-2">
+                {getDateOptions().map(option => (
+                  <button
+                    key={option.value}
+                    onClick={() => handleDateSelect(option.value)}
+                    className={`text-sm px-3 py-2 rounded-md transition-colors text-center ${selectedDate === option.value ? 'bg-blue-100 text-blue-600 font-medium' : 'text-gray-700 hover:bg-gray-50'}`}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            
             <div className="border-t border-gray-200">
               <button 
                 onClick={handleRefresh}
-                className="block w-full text-left px-4 py-3 hover:bg-gray-50 text-gray-600"
+                className="block w-full text-left px-4 py-3 hover:bg-gray-50 text-gray-600 transition-colors"
               >
-                <ReloadOutlined className="inline mr-2" /> 全部记录
+                <ReloadOutlined className="inline mr-2" /> 清除筛选
               </button>
             </div>
           </div>
@@ -420,7 +559,7 @@ export default function PublisherTransactionsPage() {
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-4">
-                    <div className="text-2xl">{getTransactionIcon(transaction.type)}</div>
+                    <div className="text-2xl text-gray-700">{getTransactionIcon(transaction.type)}</div>
                     <div>
                       <div className="font-medium text-lg">{getTransactionTypeText(transaction.type)}</div>
                       <div className="text-sm text-gray-500">{new Date(transaction.time).toLocaleString('zh-CN')}</div>

@@ -262,7 +262,7 @@ const PublisherOrdersPage: React.FC = () => {
   const [showDatePicker, setShowDatePicker] = useState(false);
   // 日历组件点击外部关闭的引用
   const calendarRef = useRef<HTMLDivElement>(null);
-
+  
   // 点击外部关闭日历组件
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -270,11 +270,11 @@ const PublisherOrdersPage: React.FC = () => {
         setShowDatePicker(false);
       }
     };
-
+  
     if (showDatePicker) {
       document.addEventListener('mousedown', handleClickOutside);
     }
-
+  
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
@@ -554,92 +554,100 @@ const PublisherOrdersPage: React.FC = () => {
               </div>
 
               {/* 筛选和操作按钮 */}
-              <div className="grid grid-cols-2 gap-2 w-full">
+              <div className="grid grid-cols-5 gap-2 w-full">
                 {/* 状态筛选 */}
-                <div className="relative">
+                <div className="relative col-span-2">
                   <select
                     value={statusFilter}
                     onChange={(e) => setStatusFilter(e.target.value)}
                     className="block w-full pl-3 pr-10 py-2 text-base border border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md appearance-none"
                   >
                     <option value="all">全部状态</option>
-                    <option value="pending">待处理</option>
+                    <option value="pending">待领取</option>
                     <option value="processing">进行中</option>
                     <option value="reviewing">审核中</option>
                     <option value="completed">已完成</option>
-                    <option value="rejected">已拒绝</option>
-                    <option value="cancelled">已取消</option>
                   </select>
-              
                 </div>
 
                 {/* 日期筛选 */}
-                <div className="relative" ref={calendarRef}>
+                <div className="relative col-span-3" ref={calendarRef}>
                   <button
                     type="button"
                     onClick={() => setShowDatePicker(!showDatePicker)}
                     className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md mb-2 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 w-full"
                   >
                     <CalendarOutlined className="h-4 w-4 mr-2" />
-                    日期范围
+                    {dateRange ? (
+                      `${dateRange.start.split('-')[1]}/${dateRange.start.split('-')[2]} 至 ${dateRange.end.split('-')[1]}/${dateRange.end.split('-')[2]}`
+                    ) : '日期'}
                     <DownOutlined className={`h-4 w-4 ml-2 transition-transform ${showDatePicker ? 'transform rotate-180' : ''}`} />
                   </button>
-                  {/* 日期选择器下拉菜单 - 实际项目中这里应该是一个真正的日期选择器组件 */}
+                  
+                  {/* 改进的日期日历组件 */}
                   {showDatePicker && (
                     <div 
                       className="fixed inset-0 z-50 flex items-start justify-center pt-[20%] bg-black bg-opacity-25"
                       onClick={() => setShowDatePicker(false)}
                     >
                       <div 
-                        className="w-64 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5"
+                        className="w-80 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 overflow-hidden"
                         onClick={(e) => e.stopPropagation()}
                       >
-                        <div className="p-4 relative">
-                          {/* 右上角关闭按钮 */}
-                          <button
-                            className="absolute top-2 right-2 text-gray-400 hover:text-gray-600 focus:outline-none"
-                            onClick={() => setShowDatePicker(false)}
-                            aria-label="关闭"
-                          >
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                              <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                            </svg>
-                          </button>
+                        <div className="p-4">
+                          <div className="flex items-center justify-between mb-4">
+                            <h3 className="text-lg font-medium text-gray-900">日期</h3>
+                            <button
+                              className="text-gray-400 hover:text-gray-600 focus:outline-none"
+                              onClick={() => setShowDatePicker(false)}
+                              aria-label="关闭"
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                              </svg>
+                            </button>
+                          </div>
                           
                           <div className="space-y-4">
                             <div>
-                              <label className="block text-sm font-medium mb-2">开始日期</label>
-                              <input
-                                type="date"
-                                value={dateRange?.start || ''}
-                                onChange={(e) => setDateRange(prev => ({ start: e.target.value, end: prev?.end || '' }))}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                              />
+                              <label className="block text-sm font-medium text-gray-700 mb-2">开始日期</label>
+                              <div className="relative">
+                                <input
+                                  type="date"
+                                  value={dateRange?.start || ''}
+                                  onChange={(e) => setDateRange(prev => ({ start: e.target.value, end: prev?.end || '' }))}
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                                />
+                              </div>
                             </div>
+                            
                             <div>
-                              <label className="block text-sm font-medium mb-2">结束日期</label>
-                              <input
-                                type="date"
-                                value={dateRange?.end || ''}
-                                onChange={(e) => setDateRange(prev => ({ start: prev?.start || '', end: e.target.value }))}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                              />
+                              <label className="block text-sm font-medium text-gray-700 mb-2">结束日期</label>
+                              <div className="relative">
+                                <input
+                                  type="date"
+                                  value={dateRange?.end || ''}
+                                  onChange={(e) => setDateRange(prev => ({ start: prev?.start || '', end: e.target.value }))}
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                                />
+                              </div>
                             </div>
-                            <div className="flex justify-end space-x-2 pt-2">
+                            
+                            <div className="flex justify-between pt-4 border-t border-gray-200">
                               <button
                                 onClick={() => {
                                   setDateRange(null);
                                   setShowDatePicker(false);
                                 }}
-                                className="w-1/2 px-3 py-1.5 text-sm border border-gray-300 rounded-md bg-white hover:bg-gray-50"
+                                className="px-4 py-2 text-sm border border-gray-300 rounded-md bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                               >
                                 清除
                               </button>
                               <button
                                 onClick={() => setShowDatePicker(false)}
-                                className="w-1/2 px-3 py-1.5 text-sm border border-transparent rounded-md text-white bg-blue-600 hover:bg-blue-700"
+                                className="px-4 py-2 text-sm border border-transparent rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                               >
-                                应用
+                                确认
                               </button>
                             </div>
                           </div>
@@ -647,11 +655,9 @@ const PublisherOrdersPage: React.FC = () => {
                       </div>
                     </div>
                   )}
-
                 </div>
 
-              
-                {/* 导出按钮已移至上方 */}
+                
               </div>
             </div>
           </div>
