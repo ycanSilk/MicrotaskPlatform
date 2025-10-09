@@ -22,6 +22,7 @@ export interface TransactionDetail {
   completedTime?: string;
   relatedId?: string;
   expenseType?: string;
+  balanceAfterTransaction?: number;
   // 自定义字段配置
   customFields?: Array<{
     label: string;
@@ -155,105 +156,79 @@ const TransactionDetailTemplate: React.FC<TransactionDetailTemplateProps> = ({
         {/* 金额区域 */}
         {showAmountSection && (
           <div className="p-8 flex flex-col items-center justify-center border-b">
-            <h2 className="text-lg text-gray-600 mb-2">{getTransactionTypeText(transaction.type)}</h2>
+            <h2 className="text-lg text-gray-600 w-2/5 text-center mb-2">{getTransactionTypeText(transaction.type)}</h2>
             <div className={`text-4xl font-bold ${getAmountColorClass(transaction.amount)}`}>
               {transaction.amount > 0 ? '+' : ''}¥{Math.abs(transaction.amount).toFixed(2)}
             </div>
-            <div className={`mt-4 text-sm ${getStatusColorClass(transaction.status)}`}>
-              {getStatusText(transaction.status)}
-            </div>
+           
           </div>
         )}
 
         {/* 详情信息区域 */}
         {showDetailsSection && (
           <div className="p-6">
-            <h3 className="text-sm font-medium text-gray-500 mb-4">交易信息</h3>
-            
+        
             <div className="space-y-4">
-              <div className="flex justify-between items-center pb-3 border-b">
-                <span className="text-gray-600">交易时间</span>
-                <span className="font-medium">{transaction.time || transaction.completedTime || '未知'}</span>
+              <div className="flex  pb-3 border-b">
+                <span className="text-gray-600 w-2/5 text-left">交易时间</span>
+                <span className="w-3/5  text-left">{transaction.time || transaction.completedTime || '未知'}</span>
               </div>
               
-              <div className="flex justify-between items-center pb-3 border-b">
-                <span className="text-gray-600">交易类型</span>
-                <span className="font-medium">{getTransactionTypeText(transaction.type)}</span>
+              <div className="flex  pb-3 border-b">
+                <span className="text-gray-600 w-2/5 text-left">交易类型</span>
+                <span className="w-3/5  text-left">{getTransactionTypeText(transaction.type)}</span>
               </div>
               
-              {transaction.method === 'alipay' && (
-                <div className="flex justify-between items-center pb-3 border-b">
-                  <span className="text-gray-600">支付方式</span>
-                  <div className="flex flex-col items-end">
-                    <span className="font-medium mb-2">支付宝</span>
-                    {/* 使用静态图片代替真实二维码链接 */}
-                    <div className="w-32 h-32 bg-gray-100 flex items-center justify-center rounded">
-                      <span className="text-gray-500">支付宝二维码</span>
-                    </div>
-                  </div>
-                </div>
-              )}
-              
-              <div className="flex justify-between items-center pb-3 border-b">
-                <span className="text-gray-600">交易状态</span>
-                <span className={`font-medium ${getStatusColorClass(transaction.status)}`}>
-                  {getStatusText(transaction.status)}
-                </span>
+             <div className="flex  pb-3 border-b">
+                <span className="text-gray-600 w-2/5 text-left">支付方式</span>
+                <span className="w-3/5  text-left">{getTransactionTypeText(transaction.method)}</span>
               </div>
               
-              <div className="flex justify-between items-center pb-3 border-b">
-                <span className="text-gray-600">订单编号</span>
-                <span className="font-medium text-gray-800">{transaction.orderId}</span>
+   
+              <div className="flex  pb-3 border-b">
+                <span className="text-gray-600 w-2/5 text-left">订单编号</span>
+                <span className="w-3/5  text-left">{transaction.orderId}</span>
               </div>
               
               {transaction.transactionId && (
-                <div className="flex justify-between items-center pb-3 border-b">
-                  <span className="text-gray-600">交易编号</span>
-                  <span className="font-medium text-gray-800">{transaction.transactionId}</span>
+                <div className="flex  pb-3 border-b">
+                  <span className="text-gray-600 w-2/5 text-left">交易编号</span>
+                  <span className="w-3/5  text-left">{transaction.transactionId}</span>
                 </div>
               )}
               
               {transaction.description && (
-                <div className="flex justify-between items-center pb-3 border-b">
-                  <span className="text-gray-600">交易描述</span>
-                  <span className="font-medium">{transaction.description}</span>
+                <div className="flex  pb-3 border-b">
+                  <span className="text-gray-600 w-2/5 text-left">交易描述</span>
+                  <span className="w-3/5  text-left">{transaction.description}</span>
                 </div>
               )}
               
               {transaction.expenseType && (
-                <div className="flex justify-between items-center pb-3 border-b">
-                  <span className="text-gray-600">消费类型</span>
-                  <span className="font-medium">
+                <div className="flex  pb-3 border-b">
+                  <span className="text-gray-600 w-2/5 text-left">消费类型</span>
+                  <span className="w-3/5  text-left">
                     {transaction.expenseType === 'task_publish' ? '任务发布' : transaction.expenseType}
                   </span>
                 </div>
               )}
               
               {transaction.relatedId && (
-                <div className="flex justify-between items-center pb-3 border-b">
-                  <span className="text-gray-600">关联ID</span>
-                  <span className="font-medium text-gray-800">{transaction.relatedId}</span>
+                <div className="flex pb-3 border-b">
+                  <span className="text-gray-600 w-2/5 text-left">关联ID</span>
+                  <span className="w-3/5 text-left">{transaction.relatedId}</span>
                 </div>
               )}
               
-              {/* 渲染自定义字段 */}
-              {transaction.customFields && transaction.customFields.map((field, index) => {
-                if (field.show === false) return null;
-                
-                return (
-                  <div 
-                    key={index} 
-                    className={`flex justify-between items-center pb-3 border-b ${field.className || ''}`}
-                  >
-                    <span className="text-gray-600">{field.label}</span>
-                    {typeof field.value === 'string' ? (
-                      <span className="font-medium">{field.value}</span>
-                    ) : (
-                      field.value
-                    )}
-                  </div>
-                );
-              })}
+              {/* 交易完成后的余额显示 */}
+              {transaction.balanceAfterTransaction !== undefined && (
+                <div className="flex pb-3 border-b">
+                  <span className="text-gray-600 w-2/5 text-left">余额</span>
+                  <span className="w-3/5 text-left">¥{(transaction.balanceAfterTransaction || 0).toFixed(2)}</span>
+                </div>
+              )}
+              
+           
             </div>
           </div>
         )}

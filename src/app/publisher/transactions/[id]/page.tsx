@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import TransactionDetailTemplate, { TransactionDetail } from '../../../../components/page/transaction-details/TransactionDetailTemplate';
+import { WalletOutlined } from '@ant-design/icons';
 
 // 原始页面保留数据获取和状态管理逻辑
 // 但使用模板组件进行渲染
@@ -30,28 +31,40 @@ export default function TransactionDetailPage() {
     setShowAlertModal(false);
   };
 
-  // 从token中获取用户信息
-  const getUserInfoFromToken = () => {
-    try {
-      const token = localStorage.getItem('publisher_auth_token');
-      
-      if (!token) {
-        return null;
-      }
-      
-      const decodedToken = JSON.parse(atob(token));
-      
-      // 验证token是否过期
-      if (decodedToken.exp && decodedToken.exp < Date.now() / 1000) {
-        localStorage.removeItem('publisher_auth_token');
-        return null;
-      }
-      
-      return decodedToken;
-    } catch (error) {
-      console.error('解析token失败:', error);
-      return null;
-    }
+  // 生成模拟交易详情数据
+  const generateMockTransactionDetail = (transactionId: string): TransactionDetail => {
+    // 模拟不同类型的交易
+    const transactionTypes = ['expense', 'recharge'];
+    const randomType = transactionTypes[Math.floor(Math.random() * transactionTypes.length)];
+    const amount = randomType === 'expense' ? -Math.floor(Math.random() * 100) : Math.floor(Math.random() * 1000);
+    const balance = 1298 + Math.floor(Math.random() * 1000);
+    
+    return {
+      id: transactionId,
+      type: randomType,
+      amount: amount,
+      status: 'completed',
+      method: randomType === 'expense' ? '任务支付' : '微信支付',
+      time: new Date().toLocaleString('zh-CN'),
+      orderId: transactionId,
+      description: randomType === 'expense' ? '发布任务费用' : '账户充值',
+      balanceAfterTransaction: balance + amount,
+      customFields: [
+        { label: '数据来源', value: '模拟数据', className: 'text-gray-700' },
+        { label: '交易类型', value: randomType === 'recharge' ? '充值' : '支出' },
+        { label: '交易金额', value: `${amount > 0 ? '+' : ''}¥${Math.abs(amount).toFixed(2)}` },
+        { label: '交易状态', value: '成功' },
+        { label: '交易时间', value: new Date().toLocaleString('zh-CN') },
+        { label: '余额', value: `¥${balance.toFixed(2)}` }
+      ],
+      transactionId: `trans${Date.now()}`,
+      paymentMethod: randomType === 'recharge' ? 'wechat_pay' : '',
+      currency: 'CNY',
+      orderTime: new Date().toISOString(),
+      completedTime: new Date().toISOString(),
+      relatedId: transactionId,
+      expenseType: randomType === 'expense' ? 'task_publish' : ''
+    };
   };
 
   // 获取交易详情
@@ -62,75 +75,15 @@ export default function TransactionDetailPage() {
     try {
       setLoading(true);
       console.log('设置加载状态为true');
-      
-      // 从token中获取用户信息
-      console.log('尝试从token中获取用户信息');
-      const userInfo = getUserInfoFromToken();
-      console.log('获取到的用户信息:', userInfo);
-      
-      // 如果没有用户信息，提示登录
-      if (!userInfo) {
-        console.log('未获取到用户信息，提示登录');
-        showAlert('提示', '请先登录', '💡');
-        return;
-      }
-      
-      // 从localStorage获取token
-      console.log('尝试从localStorage获取token');
-      const token = localStorage.getItem('publisher_auth_token');
-      console.log('token获取状态:', !!token ? '成功获取token' : '未获取到token');
-      
-      if (!token) {
-        console.log('未获取到token，提示登录');
-        showAlert('提示', '请先登录', '💡');
-        return;
-      }
 
-      // 请求交易详情数据
-      console.log('开始发送API请求获取交易详情');
-      console.log('请求URL:', `/api/publisher/transactions/detail?id=${id}`);
-      console.log('请求使用的token前缀:', token.substring(0, 20) + '...'); // 只在日志中显示token的前20个字符
+      // 创建一个延迟，模拟网络请求
+      await new Promise(resolve => setTimeout(resolve, 500));
       
-      const startTime = Date.now();
-      const response = await fetch(`/api/publisher/transactions/detail?id=${id}`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`, // 发送完整的token用于认证
-          'Content-Type': 'application/json'
-        },
-        cache: 'no-store'
-      });
-      const endTime = Date.now();
-      
-      console.log(`API请求完成，耗时: ${endTime - startTime}ms`);
-      console.log('响应状态码:', response.status);
-      console.log('响应状态文本:', response.statusText);
+      // 直接使用模拟数据，跳过登录验证
+      const mockTransaction = generateMockTransactionDetail(id);
+      setTransaction(mockTransaction);
+      console.log('设置模拟交易详情数据成功');
 
-      const data = await response.json();
-      console.log('API响应数据:', data);
-      
-      if (data.success && data.data) {
-        console.log('交易详情获取成功，设置交易数据');
-        // 这里可以添加一些自定义字段到transaction对象中
-        const enhancedTransaction: TransactionDetail = {
-          ...data.data,
-          customFields: [
-            {
-              label: '数据来源',
-              value: 'API接口',
-              className: 'text-gray-700'
-            },
-            {
-              label: '请求耗时',
-              value: `${endTime - startTime}ms`
-            }
-          ]
-        };
-        setTransaction(enhancedTransaction);
-      } else {
-        console.log('交易详情获取失败:', data.message || '未知错误');
-        showAlert('获取失败', data.message || '无法获取交易详情', '❌');
-      }
     } catch (error) {
       console.error('获取交易详情发生异常:', error);
       showAlert('获取失败', '网络错误，请稍后重试', '❌');

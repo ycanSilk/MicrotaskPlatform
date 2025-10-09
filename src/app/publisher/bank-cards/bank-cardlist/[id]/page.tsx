@@ -8,6 +8,7 @@ interface BankCard {
   bankName: string;
   cardType: string;
   cardNumber: string;
+  isDefault?: boolean;
 }
 
 export default function BankCardDetail() {
@@ -28,7 +29,8 @@ export default function BankCardDetail() {
         id: params.id,
         bankName: '招商银行',
         cardType: '储蓄卡',
-        cardNumber: '6226 8888 8888 0280'
+        cardNumber: '6226 8888 8888 0280',
+        isDefault: params.id === '1' // 假设ID为1的卡是bg-white卡
       };
       setBankCard(mockCard);
     };
@@ -70,6 +72,28 @@ export default function BankCardDetail() {
   const handleFeatureClick = (feature: string) => {
     // 在实际项目中，这里应该根据不同功能跳转到相应页面
     alert(`跳转到${feature}页面`);
+  };
+
+  // 设置默认银行卡
+  const handleSetDefaultCard = async () => {
+    if (!bankCard) return;
+    
+    const confirmSetDefault = window.confirm(`确定要将${bankCard.bankName}${bankCard.cardType}设为默认银行卡吗？`);
+    
+    if (confirmSetDefault) {
+      try {
+        // 在实际项目中，这里应该是一个API调用，设置默认银行卡
+        // 模拟API调用延迟
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        // 设置成功后返回银行卡列表页
+        alert('默认银行卡设置成功');
+        router.push('/publisher/bank-cards');
+      } catch (error) {
+        alert('设置默认银行卡失败，请稍后再试');
+        console.error('设置默认银行卡失败:', error);
+      }
+    }
   };
 
   if (!bankCard) {
@@ -120,6 +144,27 @@ export default function BankCardDetail() {
 
       {/* 功能列表 */}
       <div className="mt-4 divide-y divide-gray-200 mb-10">
+        {/* 设置默认银行卡选项 - 如果不是默认卡才显示 */}
+        {!bankCard.isDefault && (
+          <div 
+            className="flex items-center justify-between px-4 py-4 cursor-pointer rounded-lg hover:bg-gray-200"
+            onClick={handleSetDefaultCard}
+          >
+            <span className="text-blue-600 font-medium">设为默认银行卡</span>
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+            </svg>
+          </div>
+        )}
+        
+        {/* 如果是默认卡，显示默认标识 */}
+        {bankCard.isDefault && (
+          <div className="flex items-center justify-between px-4 py-4 rounded-lg hover:bg-gray-200">
+            <span className="font-medium">默认银行卡</span>
+            <span className=" text-xs px-2 py-1 rounded-full">已设置</span>
+          </div>
+        )}
+        
         <div 
           className="flex items-center justify-between px-4 py-4 cursor-pointer rounded-lg hover:bg-gray-200"
           onClick={() => handleFeatureClick('还款')}

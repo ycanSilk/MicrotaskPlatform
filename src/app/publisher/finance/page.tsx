@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import AlertModal from '../../../components/ui/AlertModal';
 import transactionData from '../../../data/financialRecords/transactionRecords.json';
+import { WalletOutlined, CreditCardOutlined, DollarOutlined, ShoppingOutlined, CoffeeOutlined, InfoCircleOutlined } from '@ant-design/icons';
 
 // 定义类型接口
 export interface BalanceData {
@@ -259,16 +260,16 @@ export default function PublisherFinancePage() {
 
   // 获取交易图标
   const getTransactionIcon = (type: string, expenseType?: string) => {
-    if (type === 'recharge') return '💰';
-    if (type === 'withdraw') return '🏦';
+    if (type === 'recharge') return <WalletOutlined className="h-6 w-6" />;
+    if (type === 'withdraw') return <DollarOutlined className="h-6 w-6" />;
     if (type === 'expense') {
       switch (expenseType) {
-        case 'task_publish': return '📝';
-        case 'platform_fee': return '💼';
-        default: return '📤';
+        case 'task_publish': return <ShoppingOutlined className="h-6 w-6" />;
+        case 'platform_fee': return <CreditCardOutlined className="h-6 w-6" />;
+        default: return <CoffeeOutlined className="h-6 w-6" />;
       }
     }
-    return '💳';
+    return <InfoCircleOutlined className="h-6 w-6" />;
   };
   
   // 跳转到交易详情页
@@ -433,71 +434,70 @@ export default function PublisherFinancePage() {
               </div>
               
               {/* 记录内容 */}
-              <div className="max-h-[60vh] overflow-y-auto">
+              <div className="overflow-y-auto">
                 {loading ? (
                   <div className="p-8 text-center text-gray-500">加载中...</div>
                 ) : transactions.length > 0 ? (
                   <>
-                    {/* 按月份分组显示交易记录 */}
-                    {Object.entries(monthlyTransactions).map(([month, records]) => (
-                      <div key={month}>
-                        {/* 月份标题 */}
-                        <div className="px-4 py-3 bg-gray-50 border-b">
-                          <span className="text-sm font-medium text-gray-600">{month}</span>
-                        </div>
-                        
-                        {/* 交易记录列表 */}
-                        {records.map((record) => (
-                          <div 
-                            key={record.id} 
-                            className="border-b last:border-0"
-                          >
-                            <button
-                              onClick={() => handleTransactionClick(record.id)}
-                              className="w-full p-4 hover:bg-gray-50 transition-colors flex justify-between items-center"
+                    {/* 按月份分组显示交易记录，默认显示10条 */}
+                    {Object.entries(monthlyTransactions).map(([month, records], monthIndex) => {
+                      // 默认只显示前10条记录
+                      let displayRecords = records;
+                      if (monthIndex === 0) {
+                        // 只在第一个月份限制显示数量
+                        displayRecords = records.slice(0, 10);
+                      }
+                      return (
+                        <div key={month}>            
+                          {/* 交易记录列表 */}
+                          {displayRecords.map((record) => (
+                            <div 
+                              key={record.id} 
+                              className="border-b last:border-0"
                             >
-                              {/* 左侧：图标、标题、描述 */}
-                              <div className="flex items-center space-x-3">
-                                <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center">
-                                  <span className="text-xl">
-                                    {getTransactionIcon(record.type, record.expenseType)}
-                                  </span>
-                                </div>
-                                <div className="text-left">
-                                  <div className="font-medium text-gray-800 mb-1">
-                                    {record.method || (record.type === 'recharge' ? '账户充值' : '账户支出')}
+                              <button
+                                onClick={() => handleTransactionClick(record.id)}
+                                className="w-full p-4 hover:bg-gray-50 transition-colors flex justify-between items-center"
+                              >
+                                {/* 左侧：图标、标题、描述 */}
+                                <div className="flex items-center space-x-3">
+                                  <div className="rounded-full items-center  w-12 h-12 bg-orange-400 flex items-center justify-center">
+                                    <div className="flex items-center justify-center text-white text-3xl">
+                                      {getTransactionIcon(record.type, record.expenseType)}
+                                    </div>
                                   </div>
-                                  <div className="text-sm text-gray-500">
-                                    {record.expenseType === 'task_publish' ? '任务发布' : ''}
+                                  <div className="text-left">
+                         
+                                    <div className="text-lg ">
+                                      {record.expenseType === 'task_publish' ? '任务发布' : ''}
+                                    </div>
+                                    <div className="text-sm text-gray-500 mt-1">
+                                      {new Date(record.time).toLocaleDateString('zh-CN', { 
+                                        year: 'numeric',
+                                        month: '2-digit', 
+                                        day: '2-digit',
+                                        hour: '2-digit',
+                                        minute: '2-digit'
+                                      }).replace(/\//g, '-')}
+                                    </div>
                                   </div>
-                                  <div className="text-xs text-gray-400 mt-1">
-                                    {new Date(record.time).toLocaleDateString('zh-CN', { 
-                                      month: '2-digit', 
-                                      day: '2-digit',
-                                      hour: '2-digit',
-                                      minute: '2-digit'
-                                    })}
+                                </div>
+                                
+                                {/* 右侧：金额和余额 */}
+                                <div className="text-right">
+                                  <div className={` text-lg ${getTransactionColor(record.type)}`}>
+                                    {record.amount > 0 ? '+' : ''}{Math.abs(record.amount).toFixed(2)}
+                                  </div>
+                                  <div className="text-sm text-gray-500 mt-1">
+                                    余额 {record.balanceAfter || balance.balance}元
                                   </div>
                                 </div>
-                              </div>
-                              
-                              {/* 右侧：金额和状态 */}
-                              <div className="text-right">
-                                <div className={`font-bold text-lg ${getTransactionColor(record.type)}`}>
-                                  {record.amount > 0 ? '+' : ''}¥{Math.abs(record.amount).toFixed(2)}
-                                </div>
-                                <div className={`text-xs ${getStatusColor(record.status)} mt-1`}>
-                                  {getStatusText(record.status)}
-                                </div>
-                                <div className="text-xs text-gray-400 mt-1">
-                                  {record.orderId}
-                                </div>
-                              </div>
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    ))}
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      );
+                    })}
                   </>
                 ) : (
                   <div className="p-8 text-center text-gray-500">暂无交易记录</div>

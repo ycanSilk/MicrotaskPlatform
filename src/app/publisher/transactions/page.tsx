@@ -1,8 +1,10 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import AlertModal from '../../../components/ui/AlertModal';
+import { useInfiniteScroll } from '../../../hooks/useInfiniteScroll';
+import { CalendarOutlined, SearchOutlined, ArrowLeftOutlined, ReloadOutlined, CreditCardOutlined, RollbackOutlined, GiftOutlined, FileTextOutlined, WalletOutlined } from '@ant-design/icons';
 
 // 定义交易记录类型接口
 export interface Transaction {
@@ -14,16 +16,23 @@ export interface Transaction {
   time: string;
   orderId: string;
   description: string;
+  balance: number; // 交易后余额
 }
 
 export default function PublisherTransactionsPage() {
   const router = useRouter();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [filteredTransactions, setFilteredTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const recordsPerPage = 10;
-
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const [showCalendar, setShowCalendar] = useState(false);
+  const initialLoadSize = 20;
+  const loadMoreSize = 10;
+  
   // 通用提示框状态
   const [showAlertModal, setShowAlertModal] = useState(false);
   const [alertConfig, setAlertConfig] = useState({
@@ -38,249 +47,401 @@ export default function PublisherTransactionsPage() {
     setShowAlertModal(true);
   };
 
-  // 处理提示框关闭
+  // 关闭通用提示框
   const handleAlertClose = () => {
     setShowAlertModal(false);
   };
 
-  // 从token中获取用户信息
-  const getUserInfoFromToken = () => {
-    try {
-      const token = localStorage.getItem('publisher_auth_token');
-      
-      if (!token) {
-        return null;
-      }
-      
-      const decodedToken = JSON.parse(atob(token));
-      
-      // 验证token是否过期
-      if (decodedToken.exp && decodedToken.exp < Date.now()) {
-        localStorage.removeItem('publisher_auth_token');
-        return null;
-      }
-      
-      return decodedToken;
-    } catch (error) {
-      console.error('解析token失败:', error);
-      return null;
+  // 加载更多交易记录
+  const loadMoreTransactions = () => {
+    if (!loading && !loadingMore && hasMore) {
+      fetchTransactions(true);
     }
   };
+  
+  // 使用无限滚动钩子
+  const { containerRef } = useInfiniteScroll({
+    hasMore,
+    loading: loading || loadingMore,
+    onLoadMore: loadMoreTransactions
+  });
 
   // 获取交易记录数据
-  const fetchTransactions = async () => {
-    try {
+  const fetchTransactions = async (isLoadMore = false) => {
+    const isInitialLoad = !isLoadMore;
+    if (isInitialLoad) {
       setLoading(true);
-      
-      // 从token中获取用户信息
-      const userInfo = getUserInfoFromToken();
-      
-      // 如果没有用户信息，提示登录
-      if (!userInfo) {
-        showAlert('提示', '请先登录', '💡');
-        return;
-      }
-      
-      // 从localStorage获取token
-      const token = localStorage.getItem('publisher_auth_token');
-      
-      if (!token) {
-        showAlert('提示', '请先登录', '💡');
-        return;
-      }
+      setPage(1);
+      setHasMore(true);
+    } else {
+      setLoadingMore(true);
+    }
 
-      // 请求交易记录数据
-      const response = await fetch('/api/publisher/transactions', {
+    try {
+      // 模拟API请求
+      const response = await fetch('http://localhost:3000/api/transactions', {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json',
         },
-        cache: 'no-store'
       });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch transactions');
+      }
 
       const data = await response.json();
       
-      if (data.success && Array.isArray(data.data)) {
-        setTransactions(data.data);
-        setTotalPages(Math.ceil(data.data.length / recordsPerPage));
-        setCurrentPage(1); // 重置为第一页
+      // 按日期降序排序
+      data.sort((a: Transaction, b: Transaction) => 
+        new Date(b.time).getTime() - new Date(a.time).getTime()
+      );
+      
+      // 添加模拟的余额数据
+      const transactionsWithBalance = data.map((transaction: Transaction, index: number) => ({
+        ...transaction,
+        balance: 1298 // 模拟固定余额
+      }));
+      
+      if (isLoadMore) {
+        // 先计算当前交易数量
+        const currentCount = transactions.length;
+        // 计算要添加的新记录
+        const newTransactions = transactionsWithBalance.slice(currentCount, currentCount + loadMoreSize);
+        // 添加新记录
+        setTransactions(prev => [...prev, ...newTransactions]);
+        // 设置是否还有更多数据
+        setHasMore(transactionsWithBalance.length > currentCount + loadMoreSize);
       } else {
-        showAlert('获取失败', '无法获取交易记录', '❌');
+        setTransactions(transactionsWithBalance.slice(0, initialLoadSize));
+        setHasMore(transactionsWithBalance.length > initialLoadSize);
       }
     } catch (error) {
-      console.error('获取交易记录失败:', error);
-      showAlert('获取失败', '网络错误，请稍后重试', '❌');
+      console.error('Error fetching transactions:', error);
+      setShowAlertModal(true);
+      setAlertConfig({
+        title: '获取交易记录失败',
+        message: '无法获取交易记录，请稍后再试。',
+        icon: '❌'
+      });
     } finally {
-      setLoading(false);
+      if (isInitialLoad) setLoading(false);
+      else setLoadingMore(false);
     }
   };
 
-  // 检查是否已登录并获取交易记录
-  useEffect(() => {
-    const userInfo = getUserInfoFromToken();
-    if (!userInfo && process.env.NODE_ENV !== 'development') {
-      showAlert('提示', '请先登录', '💡');
-    } else {
-      fetchTransactions();
+  // 处理搜索
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+  };
+
+  // 处理日期选择
+  const handleDateSelect = (dateValue: string) => {
+    setSelectedDate(dateValue);
+    setShowCalendar(false);
+  };
+
+  // 刷新数据
+  const handleRefresh = () => {
+    setSearchQuery('');
+    setSelectedDate(null);
+    fetchTransactions();
+  };
+
+  // 获取日期选项
+  const getDateOptions = () => {
+    return [
+      { label: '今天', value: 'today' },
+      { label: '昨天', value: 'yesterday' },
+      { label: '近7天', value: '7days' },
+      { label: '近30天', value: '30days' },
+      { label: '本月', value: 'thisMonth' },
+      { label: '上月', value: 'lastMonth' }
+    ];
+  };
+
+  // 跳转到详情页
+  const handleTransactionClick = (transactionId: string) => {
+    router.push(`/publisher/transactions/${transactionId}`);
+  };
+
+  // 格式化金额
+  const formatAmount = (amount: number) => {
+    const prefix = amount > 0 ? '+' : '';
+    return `${prefix}${amount.toFixed(2)}`;
+  };
+
+  // 格式化余额
+  const formatBalance = (balance: number) => {
+    return `${balance}元`;
+  };
+
+  // 筛选交易记录
+  const filterTransactions = useCallback(() => {
+    let filtered = [...transactions];
+    
+    // 搜索筛选
+    if (searchQuery.trim()) {
+      filtered = filtered.filter(transaction => 
+        transaction.orderId.toLowerCase().includes(searchQuery.toLowerCase())
+      );
     }
+    
+    // 日期筛选
+    if (selectedDate) {
+      const now = new Date();
+      let startDate: Date;
+      
+      switch (selectedDate) {
+        case 'today':
+          startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+          break;
+        case 'yesterday':
+          startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
+          const endDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+          filtered = filtered.filter(transaction => {
+            const transactionDate = new Date(transaction.time);
+            return transactionDate >= startDate && transactionDate < endDate;
+          });
+          return filtered;
+        case '7days':
+          startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+          break;
+        case '30days':
+          startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+          break;
+        case 'thisMonth':
+          startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+          break;
+        case 'lastMonth':
+          startDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+          const lastDayOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0);
+          filtered = filtered.filter(transaction => {
+            const transactionDate = new Date(transaction.time);
+            return transactionDate >= startDate && transactionDate <= lastDayOfLastMonth;
+          });
+          return filtered;
+        default:
+          return filtered;
+      }
+      
+      filtered = filtered.filter(transaction => 
+        new Date(transaction.time) >= startDate
+      );
+    }
+    
+    return filtered;
+  }, [transactions, searchQuery, selectedDate]);
+
+  // 直接获取交易记录，移除登录验证
+  useEffect(() => {
+    fetchTransactions();
   }, []);
 
-  // 计算当前页显示的交易记录
-  const getCurrentTransactions = () => {
-    const indexOfLastRecord = currentPage * recordsPerPage;
-    const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
-    return transactions.slice(indexOfFirstRecord, indexOfLastRecord);
-  };
-
-  // 处理分页变化
-  const handlePageChange = (page: number) => {
-    if (page > 0 && page <= totalPages) {
-      setCurrentPage(page);
-    }
-  };
+  // 当交易数据、搜索条件或日期筛选变化时，更新筛选结果
+  useEffect(() => {
+    const result = filterTransactions();
+    setFilteredTransactions(result);
+  }, [filterTransactions]);
 
   // 返回上一页
   const handleBack = () => {
     router.back();
   };
 
-  // 获取交易类型图标
+  // 获取交易类型图标组件
   const getTransactionIcon = (type: string) => {
     switch (type) {
-      case 'recharge':
-        return '💸';
-      case 'expense':
-        return '💰';
+      case 'payment':
+        return <CreditCardOutlined className="text-xl" />
+      case 'withdrawal':
+        return <WalletOutlined className="text-xl" />
+      case 'refund':
+        return <RollbackOutlined className="text-xl" />
+      case 'reward':
+        return <GiftOutlined className="text-xl" />
       default:
-        return '📝';
+        return <FileTextOutlined className="text-xl" />
     }
   };
 
   // 获取交易类型文本
   const getTransactionTypeText = (type: string) => {
     switch (type) {
-      case 'recharge':
-        return '充值';
-      case 'expense':
-        return '支出';
+      case 'payment':
+        return '任务发布';
+      case 'withdrawal':
+        return '提现';
+      case 'refund':
+        return '退款';
+      case 'reward':
+        return '奖励';
       default:
-        return type;
-    }
-  };
-
-  // 获取状态颜色类
-  const getStatusColorClass = (status: string) => {
-    switch (status) {
-      case 'success':
-        return 'text-green-500';
-      case 'pending':
-        return 'text-yellow-500';
-      case 'failed':
-        return 'text-red-500';
-      default:
-        return 'text-gray-500';
+        return '其他';
     }
   };
 
   // 获取金额颜色类
   const getAmountColorClass = (amount: number) => {
-    return amount > 0 ? 'text-green-500' : 'text-red-500';
+    return amount > 0 ? 'text-red-500' : 'text-green-500';
   };
 
-  // 获取状态文本
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case 'success':
-        return '成功';
-      case 'pending':
-        return '处理中';
-      case 'failed':
-        return '失败';
-      default:
-        return status;
+  // 初始化模拟数据（用于测试）
+  useEffect(() => {
+    // 仅在没有真实数据时使用模拟数据
+    if (transactions.length === 0 && !loading) {
+      const mockTransactions: Transaction[] = [];
+      const now = new Date();
+      const transactionTypes = ['payment', 'withdrawal', 'refund', 'reward'];
+      const amounts = [3.00, 6.00, 9.00, 12.00, 15.00];
+      
+      // 生成30条模拟数据
+      for (let i = 0; i < 30; i++) {
+        const date = new Date(now.getTime() - i * 1000 * 60 * 60); // 每小时一条记录
+        const type = transactionTypes[Math.floor(Math.random() * transactionTypes.length)];
+        const amount = amounts[Math.floor(Math.random() * amounts.length)];
+        
+        mockTransactions.push({
+          id: `mock-${i + 1}`,
+          type: type,
+          amount: type === 'withdrawal' ? -amount : amount,
+          status: 'success',
+          method: '微信支付',
+          time: date.toISOString(),
+          orderId: `ORD${Math.floor(100000 + Math.random() * 900000)}`,
+          description: type === 'payment' ? '任务发布' : type === 'withdrawal' ? '提现' : type === 'refund' ? '退款' : '奖励',
+          balance: 1298
+        });
+      }
+      
+      // 按日期降序排序
+      mockTransactions.sort((a, b) => 
+        new Date(b.time).getTime() - new Date(a.time).getTime()
+      );
+      
+      setTransactions(mockTransactions.slice(0, initialLoadSize));
+      setHasMore(mockTransactions.length > initialLoadSize);
     }
-  };
+  }, [loading, transactions.length]);
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
       {/* 顶部导航和标题 */}
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">
         <div className="flex items-center space-x-4">
           <button 
             onClick={handleBack} 
-            className="py-2 px-5 rounded-full bg-blue-500 hover:bg-blue-700 transition-colors text-white"
+            className="py-2 px-4 rounded-full bg-blue-500 hover:bg-blue-600 transition-colors text-white"
           >
-            ← 返回
+            <ArrowLeftOutlined className="mr-1" /> 返回
           </button>
           <h1 className="text-xl font-bold text-gray-800">交易记录</h1>
         </div>
+        
+        {/* 搜索框 */}
+        <div className="relative">
+          <input
+            type="text"
+            placeholder="输入订单号搜索"
+            value={searchQuery}
+            onChange={handleSearch}
+            className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full md:w-64"
+          />
+          <SearchOutlined className="absolute left-3 top-2.5 text-gray-400" />
+        </div>
+      </div>
+      
+      {/* 日历筛选组件 */}
+      <div className="mb-6 relative">
+        <button
+          onClick={() => setShowCalendar(!showCalendar)}
+          className="px-4 py-2 rounded-lg flex items-center bg-blue-500 hover:bg-blue-600 transition-colors text-white shadow-md"
+        >
+          <CalendarOutlined className="mr-2" />
+          {selectedDate ? 
+            (selectedDate === 'today' ? '今天' : 
+             selectedDate === 'yesterday' ? '昨天' : 
+             selectedDate === '7days' ? '近7天' : 
+             selectedDate === '30days' ? '近30天' : 
+             selectedDate === 'thisMonth' ? '本月' : '上月') : '选择日期'}
+        </button>
+        
+        {showCalendar && (
+          <div className="absolute top-full left-0 mt-2 bg-white rounded-lg shadow-xl border border-gray-200 z-10 w-48 overflow-hidden">
+            <div className="flex justify-between items-center px-4 py-2 bg-gray-50 border-b border-gray-200">
+              <span className="text-sm font-medium text-gray-700">日期筛选</span>
+              <button 
+                onClick={() => setShowCalendar(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                ×
+              </button>
+            </div>
+            {getDateOptions().map(option => (
+              <button
+                key={option.value}
+                onClick={() => handleDateSelect(option.value)}
+                className={`block w-full text-left px-4 py-3 hover:bg-blue-50 transition-colors ${selectedDate === option.value ? 'bg-blue-100 text-blue-600 font-medium' : 'text-gray-700'}`}
+              >
+                {option.label}
+              </button>
+            ))}
+            <div className="border-t border-gray-200">
+              <button 
+                onClick={handleRefresh}
+                className="block w-full text-left px-4 py-3 hover:bg-gray-50 text-gray-600"
+              >
+                <ReloadOutlined className="inline mr-2" /> 全部记录
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* 交易记录列表 */}
-      <div className="bg-white rounded-lg shadow-md overflow-hidden">
-        {/* 表头 */}
-        <div className="grid grid-cols-6 gap-4 p-4 bg-gray-50 font-medium text-sm text-gray-600 border-b">
-          <div className="col-span-1">类型</div>
-          <div className="col-span-2">描述</div>
-          <div className="col-span-1">支付方式</div>
-          <div className="col-span-1">金额</div>
-          <div className="col-span-1">状态</div>
-        </div>
-
+      {/* 交易记录列表 - 取消高度限制，使用containerRef实现无限滚动 */}
+      <div 
+        ref={containerRef} 
+        className="bg-white rounded-lg shadow-md overflow-hidden"
+        style={{ scrollBehavior: 'smooth' }}
+      >
         {/* 交易记录内容 */}
         {loading ? (
           <div className="p-8 text-center">加载中...</div>
-        ) : transactions.length === 0 ? (
+        ) : filteredTransactions.length === 0 ? (
           <div className="p-8 text-center text-gray-500">暂无交易记录</div>
         ) : (
-          <div>
-            {getCurrentTransactions().map((transaction) => (
+          <div className="space-y-4">
+            {filteredTransactions.map((transaction) => (
               <div 
                 key={transaction.id} 
-                className="grid grid-cols-6 gap-4 p-4 border-b hover:bg-gray-50 transition-colors text-sm"
+                className="p-4 border-b hover:bg-gray-50 transition-colors cursor-pointer"
+                onClick={() => handleTransactionClick(transaction.id)}
               >
-                <div className="col-span-1 flex items-center space-x-2">
-                  <span className="text-xl">{getTransactionIcon(transaction.type)}</span>
-                  <span>{getTransactionTypeText(transaction.type)}</span>
-                </div>
-                <div className="col-span-2">
-                  <div className="font-medium">{transaction.description || transaction.orderId}</div>
-                  <div className="text-xs text-gray-400 mt-1">{transaction.time}</div>
-                </div>
-                <div className="col-span-1">{transaction.method}</div>
-                <div className={`col-span-1 font-medium ${getAmountColorClass(transaction.amount)}`}>
-                  {transaction.amount > 0 ? '+' : ''}{transaction.amount.toFixed(2)} 元
-                </div>
-                <div className={`col-span-1 ${getStatusColorClass(transaction.status)}`}>
-                  {getStatusText(transaction.status)}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-4">
+                    <div className="text-2xl">{getTransactionIcon(transaction.type)}</div>
+                    <div>
+                      <div className="font-medium text-lg">{getTransactionTypeText(transaction.type)}</div>
+                      <div className="text-sm text-gray-500">{new Date(transaction.time).toLocaleString('zh-CN')}</div>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className={`font-bold text-lg ${getAmountColorClass(transaction.amount)}`}>
+                      {formatAmount(transaction.amount)}
+                    </div>
+                    <div className="text-sm text-gray-500">余额 {formatBalance(transaction.balance)}</div>
+                  </div>
                 </div>
               </div>
             ))}
-          </div>
-        )}
-
-        {/* 分页控制 */}
-        {transactions.length > 0 && (
-          <div className="flex justify-between items-center p-4 border-t">
-            <div className="text-sm text-gray-500">
-              共 {transactions.length} 条记录，当前第 {currentPage}/{totalPages} 页
-            </div>
-            <div className="flex space-x-2">
-              <button
-                onClick={() => handlePageChange(currentPage - 1)}
-                disabled={currentPage === 1}
-                className={`px-3 py-1 rounded border ${currentPage === 1 ? 'text-gray-300 border-gray-200 cursor-not-allowed' : 'text-blue-500 border-blue-200 hover:bg-blue-50'}`}
-              >
-                上一页
-              </button>
-              <button
-                onClick={() => handlePageChange(currentPage + 1)}
-                disabled={currentPage === totalPages}
-                className={`px-3 py-1 rounded border ${currentPage === totalPages ? 'text-gray-300 border-gray-200 cursor-not-allowed' : 'text-blue-500 border-blue-200 hover:bg-blue-50'}`}
-              >
-                下一页
-              </button>
+            
+            {/* 加载更多指示器 */}
+            <div className="p-4 text-center">
+              {loadingMore && <div className="text-gray-500">加载中...</div>}
+              {!hasMore && !loading && filteredTransactions.length > 0 && (
+                <div className="text-gray-400 text-sm">已显示全部交易记录</div>
+              )}
             </div>
           </div>
         )}
