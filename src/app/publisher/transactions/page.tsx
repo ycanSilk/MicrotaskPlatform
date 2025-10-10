@@ -465,7 +465,7 @@ export default function PublisherTransactionsPage() {
         {showCalendar && (
           <div 
             ref={calendarRef} 
-            className="absolute top-full left-0 mt-2 bg-white rounded-lg shadow-xl border border-gray-200 z-10 w-80 overflow-hidden"
+            className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-lg shadow-xl border border-gray-200 z-10 w-80 overflow-hidden"
           >
             <div className="flex justify-between items-center px-4 py-3 bg-gray-50 border-b border-gray-200">
               <span className="text-sm font-medium text-gray-700">日期筛选</span>

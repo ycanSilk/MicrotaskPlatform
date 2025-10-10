@@ -64,13 +64,13 @@ const CONTENT_CATEGORY_OPTIONS = [
 
 // 粉丝数量选项
 const FOLLOWERS_RANGE_OPTIONS = [
-  { value: '1k-5k', label: '1000-5000' },
-  { value: '5k-10k', label: '5000-10000' },
-  { value: '10k-50k', label: '10000-50000' },
-  { value: '50k-100k', label: '50000-100000' },
-  { value: '100k-500k', label: '100000-500000' },
-  { value: '500k-1m', label: '500000-1000000' },
-  { value: '1m+', label: '1000000+' }
+  { value: '1k-5k', label: '1k-5k' },
+  { value: '5k-10k', label: '5k-10k' },
+  { value: '10k-50k', label: '10k-50k' },
+  { value: '50k-100k', label: '50k-100k' },
+  { value: '100k-500k', label: '100k-500k' },
+  { value: '500k-1m', label: '500k-1m' },
+  { value: '1m+', label: '1m+' }
 ];
 
 // 包含功能选项
@@ -383,13 +383,13 @@ export default function DouyinAccountRentalPage() {
               {/* 粉丝数量 */}
               <div className="space-y-2">
                 <Label required>粉丝数量</Label>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                   {FOLLOWERS_RANGE_OPTIONS.map(option => (
                     <button
                       key={option.value}
                       type="button"
                       onClick={() => handleInputChange('followersRange', option.value)}
-                      className={`py-2 px-3 rounded-lg text-sm border transition-all ${formData.followersRange === option.value ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-gray-200 hover:border-gray-300'}`}
+                      className={`p-2 rounded-lg text-sm border transition-all ${formData.followersRange === option.value ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-gray-200 hover:border-gray-300'}`}
                     >
                       {option.label}
                     </button>
@@ -432,22 +432,7 @@ export default function DouyinAccountRentalPage() {
                 </div>
               </div>
               
-              {/* 地区 */}
-              <div className="space-y-2">
-                <Label required>覆盖地区</Label>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                  {REGION_OPTIONS.map(option => (
-                    <button
-                      key={option.value}
-                      type="button"
-                      onClick={() => handleInputChange('region', option.value)}
-                      className={`py-2 px-3 rounded-lg text-sm border transition-all ${formData.region === option.value ? 'border-green-500 bg-green-50 text-green-700' : 'border-gray-200 hover:border-gray-300'}`}
-                    >
-                      {option.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
+          
               
               {/* 账号年龄 */}
               <div className="space-y-2">

@@ -60,7 +60,7 @@ export default function PublisherProfilePage() {
       title: '订单管理',
       icon: <OrderedListOutlined className="text-xl" />,
       color: 'bg-green-100',
-      path: '/publisher/dashboard'
+      path: '/publisher/orders'
     },
     {
       id: 'data-stats',

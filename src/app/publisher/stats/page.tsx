@@ -32,11 +32,9 @@ export default function PublisherStatsPage() {
 
   // 任务分类统计
   const categoryStats = [
-    { category: '美食', count: 45, spent: 324.50, color: 'bg-orange-50 text-orange-600' },
-    { category: '数码', count: 38, spent: 612.80, color: 'bg-blue-50 text-blue-600' },
-    { category: '美妆', count: 32, spent: 258.70, color: 'bg-pink-50 text-pink-600' },
-    { category: '旅游', count: 28, spent: 445.60, color: 'bg-green-50 text-green-600' },
-    { category: '影视', count: 25, spent: 189.30, color: 'bg-purple-50 text-purple-600' }
+    { category: '评论任务', count: 65, spent: 428.50, color: 'bg-blue-50 text-blue-600' },
+    { category: '账号租赁', count: 48, spent: 735.20, color: 'bg-green-50 text-green-600' },
+    { category: '视频发布', count: 32, spent: 358.90, color: 'bg-orange-50 text-orange-600' }
   ];
 
   // 效果统计
@@ -193,9 +191,9 @@ export default function PublisherStatsPage() {
             <div>
               <h4 className="font-medium text-yellow-800 mb-1">优化建议</h4>
               <div className="text-sm text-yellow-700 space-y-1">
-                <p>• 美食类任务表现最佳，建议增加投入</p>
-                <p>• 复购率有所下降，建议关注用户反馈</p>
-                <p>• 可适当提高单价以吸引更多优质评论员</p>
+                <p>• 评论任务表现稳定，建议保持当前投入</p>
+                <p>• 账号租赁收益较高，可考虑扩大规模</p>
+                <p>• 视频发布单价有提升空间，建议优化内容质量</p>
               </div>
             </div>
           </div>

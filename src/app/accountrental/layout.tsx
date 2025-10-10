@@ -42,12 +42,12 @@ const AccountRentalLayout = memo(({ children }: AccountRentalLayoutProps) => {
       </main>
 
       {/* 底部导航栏 */}
-      <footer className="h-[56px] bg-white flex justify-around items-center">
+      <footer className="h-[56px] bg-white flex justify-around items-center border-t border-gray-300 py-3">
         <button 
           onClick={handleMarketClick}
           className="flex flex-col items-center"
         >
-          <span className={`text-xl w-10 h-10 flex items-center justify-center rounded-full mb-1 ${isMarketActive ? 'bg-blue-500 text-white' : 'text-gray-500'}`}>
+          <span className={`text-xl w-6 h-6 flex items-center justify-center rounded-full  ${isMarketActive ? ' text-blue-500' : 'text-gray-500'}`}>
             <ShopOutlined />
           </span>
           <span className={`text-xs ${isMarketActive ? 'text-blue-500' : 'text-gray-500'}`}>租赁市场</span>
@@ -56,7 +56,7 @@ const AccountRentalLayout = memo(({ children }: AccountRentalLayoutProps) => {
           onClick={handlePublishClick}
           className="flex flex-col items-center"
         >
-          <span className={`text-xl w-10 h-10 flex items-center justify-center rounded-full mb-1 ${isPublishActive ? 'bg-blue-500 text-white' : 'text-gray-500'}`}>
+          <span className={`text-xl w-6 h-6 flex items-center justify-center rounded-full  ${isPublishActive ? ' text-blue-500' : 'text-gray-500'}`}>
             <FileTextOutlined />
           </span>
           <span className={`text-xs ${isPublishActive ? 'text-blue-500' : 'text-gray-500'}`}>发布租赁</span>
@@ -65,7 +65,7 @@ const AccountRentalLayout = memo(({ children }: AccountRentalLayoutProps) => {
           onClick={handleMyClick}
           className="flex flex-col items-center"
         >
-          <span className={`text-xl w-10 h-10 flex items-center justify-center rounded-full mb-1 ${isMyActive ? 'bg-blue-500 text-white' : 'text-gray-500'}`}>
+          <span className={`text-xl w-6 h-6 flex items-center justify-center rounded-full  ${isMyActive ? ' text-blue-500' : 'text-gray-500'}`}>
             <UserOutlined />
           </span>
           <span className={`text-xs ${isMyActive ? 'text-blue-500' : 'text-gray-500'}`}>我的</span>

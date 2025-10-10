@@ -528,7 +528,7 @@ const PublisherOrdersPage: React.FC = () => {
           </div>
 
           {/* 操作栏 */}
-          <div className="bg-white shadow-sm rounded-lg p-4 mb-6">
+          <div className="bg-white shadow-sm rounded-lg px-2 py-3 mb-3">
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
               {/* 搜索框和搜索按钮 - 已分离 */}
               <div className="flex-grow max-w-md flex space-x-2">

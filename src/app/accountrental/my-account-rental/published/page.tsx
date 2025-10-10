@@ -14,11 +14,12 @@ import ExclamationCircleOutlined from '@ant-design/icons/ExclamationCircleOutlin
 import AudioOutlined from '@ant-design/icons/AudioOutlined';
 import BookOutlined from '@ant-design/icons/BookOutlined';
 import ToolOutlined from '@ant-design/icons/ToolOutlined';
+import ArrowLeftOutlined from '@ant-design/icons/ArrowLeftOutlined';
+import CloseOutlined from '@ant-design/icons/CloseOutlined';
 import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/Tabs';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
+import SearchBar from '@/components/button/SearchBar';
 
 // 根据平台获取对应图标
 const getPlatformIcon = (platform: string) => {
@@ -36,7 +37,8 @@ const getPlatformIcon = (platform: string) => {
 
 // 模拟发布的账号数据
 interface PublishedAccount {
-  id: string;
+  userid: string;
+  orderId: string;
   title: string;
   platform: string;
   platformIcon: React.ReactNode;
@@ -55,7 +57,7 @@ const PublishedAccountsPage = () => {
   const [selectedStatus, setSelectedStatus] = useState('all');
   const [selectedPlatform, setSelectedPlatform] = useState('all');
   const [sortBy, setSortBy] = useState('latest');
-  const [isFilterVisible, setIsFilterVisible] = useState(false);
+  const [isFilterModalVisible, setIsFilterModalVisible] = useState(false);
   const [publishedAccounts, setPublishedAccounts] = useState<PublishedAccount[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -70,7 +72,8 @@ const PublishedAccountsPage = () => {
         // 模拟数据
         const mockData: PublishedAccount[] = [
           {
-            id: 'pub001',
+            userid: 'pub001',
+            orderId: 'order001',
             title: '美食探店达人',
             platform: 'douyin',
             platformIcon: getPlatformIcon('douyin'),
@@ -82,56 +85,7 @@ const PublishedAccountsPage = () => {
             price: 120,
             lastRentalTime: '2025-10-04T10:30:00'
           },
-          {
-            id: 'pub001',
-            title: '美食探店达人',
-            platform: 'douyin',
-            platformIcon: '🎵',
-            followers: '120k',
-            status: 'active',
-            publishTime: '2025-10-03T10:30:00',
-            rentalCount: 23,
-            rating: 4.8,
-            price: 120,
-            lastRentalTime: '2025-10-04T10:30:00'
-          },{
-            id: 'pub001',
-            title: '美食探店达人',
-            platform: 'douyin',
-            platformIcon: '🎵',
-            followers: '120k',
-            status: 'active',
-            publishTime: '2025-10-03T10:30:00',
-            rentalCount: 23,
-            rating: 4.8,
-            price: 120,
-            lastRentalTime: '2025-10-04T10:30:00'
-          },{
-            id: 'pub001',
-            title: '美食探店达人',
-            platform: 'douyin',
-            platformIcon: '🎵',
-            followers: '120k',
-            status: 'active',
-            publishTime: '2025-10-03T10:30:00',
-            rentalCount: 23,
-            rating: 4.8,
-            price: 120,
-            lastRentalTime: '2025-10-04T10:30:00'
-          },{
-            id: 'pub001',
-            title: '美食探店达人',
-            platform: 'douyin',
-            platformIcon: '🎵',
-            followers: '120k',
-            status: 'active',
-            publishTime: '2025-10-03T10:30:00',
-            rentalCount: 23,
-            rating: 4.8,
-            price: 120,
-            lastRentalTime: '2025-10-04T10:30:00'
-          },
-        ];
+          {"userid":"pub001","orderId":"order002","title":"美食探店达人","platform":"douyin","platformIcon":"🎵","followers":"120k","status":"active","publishTime":"2025-10-03T10:30:00","rentalCount":23,"rating":4.8,"price":120,"lastRentalTime":"2025-10-04T10:30:00"},{"userid":"pub002","orderId":"order003","title":"生活方式博主","platform":"xiaohongshu","platformIcon":"📕","followers":"85k","status":"active","publishTime":"2025-10-02T10:30:00","rentalCount":18,"rating":4.6,"price":95,"lastRentalTime":"2025-10-03T10:30:00"},{"userid":"pub003","orderId":"order004","title":"旅行摄影师","platform":"kuaishou","platformIcon":"🎬","followers":"65k","status":"inactive","publishTime":"2025-10-01T10:30:00","rentalCount":12,"rating":4.7,"price":80,"lastRentalTime":"2025-10-02T10:30:00"}];
         
         setPublishedAccounts(mockData);
       } catch (error) {
@@ -147,7 +101,8 @@ const PublishedAccountsPage = () => {
   // 筛选和搜索逻辑
   const filteredAccounts = publishedAccounts.filter(account => {
     const matchesSearch = account.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                         account.id.toLowerCase().includes(searchTerm.toLowerCase());
+                         account.userid.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         account.orderId.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = selectedStatus === 'all' || account.status === selectedStatus;
     const matchesPlatform = selectedPlatform === 'all' || account.platform === selectedPlatform;
     
@@ -171,12 +126,12 @@ const PublishedAccountsPage = () => {
   // 获取状态对应的颜色和文本
   const getStatusInfo = (status: string) => {
     const statusMap: Record<string, { color: string; text: string }> = {
-      active: { color: 'bg-green-100 text-green-700', text: '出租中' },
-      pending: { color: 'bg-yellow-100 text-yellow-700', text: '审核中' },
-      inactive: { color: 'bg-gray-100 text-gray-700', text: '已下架' },
-      sold: { color: 'bg-blue-100 text-blue-700', text: '已售出' }
+      active: { color: 'bg-green-300 text-green-800', text: '出租中' },
+      pending: { color: 'bg-yellow-300 text-yellow-800', text: '审核中' },
+      inactive: { color: 'bg-gray-300 text-gray-800', text: '已下架' },
+      sold: { color: 'bg-blue-300 text-blue-800', text: '已售出' }
     };
-    return statusMap[status] || { color: 'bg-gray-100 text-gray-700', text: status };
+    return statusMap[status] || { color: 'bg-blue-200 text-gray-700', text: status };
   };
 
   // 获取平台对应的名称
@@ -189,17 +144,52 @@ const PublishedAccountsPage = () => {
     return platformMap[platform] || platform;
   };
 
+  // 账号租赁相关的搜索模块配置
+  const accountRentalModules = [
+    {
+      keywords: ['账号', '账号租赁', '出租'],
+      urlPath: '/accountrental/account-rental-market',
+      moduleName: '账号租赁市场',
+    },
+    {
+      keywords: ['我的账号', '发布账号'],
+      urlPath: '/accountrental/my-account-rental/published',
+      moduleName: '我发布的账号',
+    },
+    {
+      keywords: ['租赁记录', '租用账号'],
+      urlPath: '/accountrental/my-account-rental/rented',
+      moduleName: '我租用的账号',
+    },
+  ];
+
+  // 处理应用筛选条件
+  const handleApplyFilters = () => {
+    setIsFilterModalVisible(false);
+    // 在实际项目中，这里可以添加应用筛选条件的逻辑
+    console.log('应用筛选条件:', { selectedStatus, selectedPlatform });
+  };
+
   // 账号操作菜单状态管理
   const [dropdownMenuOpen, setDropdownMenuOpen] = useState<string | null>(null);
   const [sortMenuOpen, setSortMenuOpen] = useState(false);
 
   // 处理下拉菜单开关
-  const toggleDropdownMenu = (accountId: string | null) => {
-    setDropdownMenuOpen(dropdownMenuOpen === accountId ? null : accountId);
+  const toggleDropdownMenu = (accountId: string) => {
+    // 先关闭排序菜单
+    setSortMenuOpen(false);
+    // 直接切换下拉菜单状态
+    setDropdownMenuOpen(prev => {
+      console.log(`当前打开的菜单: ${prev}, 点击的菜单: ${accountId}`);
+      return prev === accountId ? null : accountId;
+    });
   };
 
   // 处理排序菜单开关
   const toggleSortMenu = () => {
+    // 先关闭下拉菜单
+    setDropdownMenuOpen(null);
+    // 再切换排序菜单状态
     setSortMenuOpen(!sortMenuOpen);
   };
 
@@ -208,6 +198,36 @@ const PublishedAccountsPage = () => {
     setDropdownMenuOpen(null);
     setSortMenuOpen(false);
   };
+
+  // 点击页面其他地方关闭菜单
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      // 使用特定类名来查找菜单容器
+      const menuContainers = document.querySelectorAll('.account-menu-container');
+      let isClickInsideAnyMenu = false;
+      
+      menuContainers.forEach(container => {
+        if (container.contains(event.target as Node)) {
+          isClickInsideAnyMenu = true;
+        }
+      });
+      
+      // 如果点击不在任何菜单内，则关闭所有菜单
+      if (!isClickInsideAnyMenu) {
+        // 添加调试日志
+        console.log('点击了菜单外部，关闭所有菜单');
+        closeAllMenus();
+      }
+    };
+
+    // 添加点击事件监听器到document
+    document.addEventListener('click', handleClickOutside);
+
+    // 清理函数
+    return () => {
+      document.removeEventListener('click', handleClickOutside);
+    };
+  }, []); // 移除依赖项，只在组件挂载时添加一次事件监听器
 
   // 账号操作菜单
   const handleToggleStatus = (accountId: string, currentStatus: string) => {
@@ -247,48 +267,41 @@ const PublishedAccountsPage = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* 顶部导航栏 */}
-      <header className="sticky top-0 z-10 bg-white shadow-sm">
-        <div className="flex items-center justify-between px-4 py-3">
+    
+
+      {/* 搜索和筛选区域 - 调整为一行显示 */}
+      <div className="px-4 py-3 mt-2">
+        <div className="flex items-center space-x-3">
+          {/* 搜索组件 */}
           <button 
-            onClick={() => router.back()}
-            className="p-1 rounded-full hover:bg-gray-100"
+            className="rounded-full py-1.5 px-6 bg-blue-500 text-white"
+            onClick={() => document.querySelector('.anticon-search')?.closest('button')?.click()}
+            aria-label="搜索"
           >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M15 18l-6-6 6-6" />
-            </svg>
+            <SearchOutlined className="h-6 w-5" />
           </button>
-          <h1 className="text-lg font-bold text-center flex-1">我发布的账号</h1>
-          <div className="w-5" />
-        </div>
-      </header>
-
-      {/* 搜索和筛选区域 */}
-      <div className="px-4 py-3 bg-white mt-2">
-        <div className="relative mb-3">
-          <SearchOutlined className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-          <Input
+          
+          {/* 隐藏原始的SearchBar按钮，保留其功能 */}
+          <SearchBar
             placeholder="搜索账号名称或ID"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10 pr-4 py-2 w-full rounded-lg border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+            className="hidden"
+            customModules={accountRentalModules}
           />
-        </div>
 
-        <div className="flex justify-between items-center">
+          {/* 筛选按钮 */}
           <button 
-            onClick={() => setIsFilterVisible(!isFilterVisible)}
-            className="flex items-center text-gray-600 text-sm px-3 py-1.5 rounded-full border border-gray-200"
+            onClick={() => setIsFilterModalVisible(true)}
+            className="w-auto p-2 flex items-center text-black text-sm px-3 rounded-full border border-gray-200"
           >
             <FilterOutlined className="mr-1 h-4 w-4" />
             筛选
           </button>
-          
+
           {/* 自定义排序下拉菜单 */}
           <div className="relative">
             <button 
-              onClick={toggleSortMenu}
-              className="flex items-center text-gray-600 text-sm px-3 py-1.5 rounded-full border border-gray-200"
+              onClick={() => setSortMenuOpen(!sortMenuOpen)}
+              className="w-auto p-2 flex items-center text-black text-sm px-3 rounded-full border border-gray-200"
             >
               {sortBy === 'latest' && '最新发布'}
               {sortBy === 'rating' && '评分最高'}
@@ -328,72 +341,93 @@ const PublishedAccountsPage = () => {
         </div>
       </div>
 
-      {/* 筛选条件面板 */}
-      {isFilterVisible && (
-        <div className="px-4 py-3 bg-white mt-1">
-          <div className="mb-3">
-            <h3 className="text-sm font-medium text-gray-700 mb-2">账号状态</h3>
-            <div className="flex flex-wrap gap-2">
-              <button
-                onClick={() => setSelectedStatus('all')}
-                className={`px-3 py-1.5 text-xs rounded-full ${selectedStatus === 'all' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700'}`}
+      {/* 筛选模态框 */}
+      {isFilterModalVisible && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl w-full max-w-md max-h-[80vh] overflow-hidden">
+            <div className="p-4 border-b flex justify-between items-center">
+              <h3 className="text-lg ">筛选条件</h3>
+              <button 
+                onClick={() => setIsFilterModalVisible(false)}
+                className="text-gray-500 hover:text-gray-700"
               >
-                全部
-              </button>
-              <button
-                onClick={() => setSelectedStatus('active')}
-                className={`px-3 py-1.5 text-xs rounded-full ${selectedStatus === 'active' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700'}`}
-              >
-                出租中
-              </button>
-              <button
-                onClick={() => setSelectedStatus('pending')}
-                className={`px-3 py-1.5 text-xs rounded-full ${selectedStatus === 'pending' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700'}`}
-              >
-                审核中
-              </button>
-              <button
-                onClick={() => setSelectedStatus('inactive')}
-                className={`px-3 py-1.5 text-xs rounded-full ${selectedStatus === 'inactive' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700'}`}
-              >
-                已下架
-              </button>
-              <button
-                onClick={() => setSelectedStatus('sold')}
-                className={`px-3 py-1.5 text-xs rounded-full ${selectedStatus === 'sold' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700'}`}
-              >
-                已售出
+                <CloseOutlined className="h-5 w-5" />
               </button>
             </div>
-          </div>
-          
-          <div>
-            <h3 className="text-sm font-medium text-gray-700 mb-2">平台类型</h3>
-            <div className="flex flex-wrap gap-2">
-              <button
-                onClick={() => setSelectedPlatform('all')}
-                className={`px-3 py-1.5 text-xs rounded-full ${selectedPlatform === 'all' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700'}`}
+            <div className="p-4 overflow-y-auto max-h-[60vh]">
+              <div className="mb-4">
+                <h4 className="text-sm  text-gray-700 mb-2">账号状态</h4>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    onClick={() => setSelectedStatus('all')}
+                    className={`px-3 py-1  text-xs rounded-full ${selectedStatus === 'all' ? 'bg-blue-200 text-blue-700' : 'bg-blue-200 text-gray-700'}`}
+                  >
+                    全部
+                  </button>
+                  <button
+                    onClick={() => setSelectedStatus('active')}
+                    className={`px-3 py-1  text-xs rounded-full ${selectedStatus === 'active' ? 'bg-blue-200 text-blue-700' : 'bg-blue-200 text-gray-700'}`}
+                  >
+                    出租中
+                  </button>
+                  <button
+                    onClick={() => setSelectedStatus('pending')}
+                    className={`px-3 py-1  text-xs rounded-full ${selectedStatus === 'pending' ? 'bg-blue-200 text-blue-700' : 'bg-blue-200 text-gray-700'}`}
+                  >
+                    审核中
+                  </button>
+                  <button
+                    onClick={() => setSelectedStatus('inactive')}
+                    className={`px-3 py-1  text-xs rounded-full ${selectedStatus === 'inactive' ? 'bg-blue-200 text-blue-700' : 'bg-blue-200 text-gray-700'}`}
+                  >
+                    已下架
+                  </button>
+                  <button
+                    onClick={() => setSelectedStatus('sold')}
+                    className={`px-3 py-1  text-xs rounded-full ${selectedStatus === 'sold' ? 'bg-blue-200 text-blue-700' : 'bg-blue-200 text-gray-700'}`}
+                  >
+                    已售出
+                  </button>
+                </div>
+              </div>
+              
+              <div>
+                <h4 className="text-sm  text-gray-700 mb-2">平台类型</h4>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    onClick={() => setSelectedPlatform('all')}
+                    className={`px-3 py-1  text-xs rounded-full ${selectedPlatform === 'all' ? 'bg-blue-200 text-blue-700' : 'bg-blue-200 text-gray-700'}`}
+                  >
+                    全部
+                  </button>
+                  <button
+                    onClick={() => setSelectedPlatform('douyin')}
+                    className={`px-3 py-1  text-xs rounded-full ${selectedPlatform === 'douyin' ? 'bg-blue-200 text-blue-700' : 'bg-blue-200 text-gray-700'}`}
+                  >
+                    抖音
+                  </button>
+                  <button
+                    onClick={() => setSelectedPlatform('xiaohongshu')}
+                    className={`px-3 py-1  text-xs rounded-full ${selectedPlatform === 'xiaohongshu' ? 'bg-blue-200 text-blue-700' : 'bg-blue-200 text-gray-700'}`}
+                  >
+                    小红书
+                  </button>
+                  <button
+                    onClick={() => setSelectedPlatform('kuaishou')}
+                    className={`px-3 py-1  text-xs rounded-full ${selectedPlatform === 'kuaishou' ? 'bg-blue-200 text-blue-700' : 'bg-blue-200 text-gray-700'}`}
+                  >
+                    快手
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div className="p-4 border-t">
+              <Button 
+                onClick={handleApplyFilters}
+                className="w-full py-2 bg-blue-500 hover:bg-blue-600 text-white"
               >
-                全部
-              </button>
-              <button
-                onClick={() => setSelectedPlatform('douyin')}
-                className={`px-3 py-1.5 text-xs rounded-full ${selectedPlatform === 'douyin' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700'}`}
-              >
-                抖音
-              </button>
-              <button
-                onClick={() => setSelectedPlatform('xiaohongshu')}
-                className={`px-3 py-1.5 text-xs rounded-full ${selectedPlatform === 'xiaohongshu' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700'}`}
-              >
-                小红书
-              </button>
-              <button
-                onClick={() => setSelectedPlatform('kuaishou')}
-                className={`px-3 py-1.5 text-xs rounded-full ${selectedPlatform === 'kuaishou' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700'}`}
-              >
-                快手
-              </button>
+                确定
+              </Button>
             </div>
           </div>
         </div>
@@ -425,7 +459,7 @@ const PublishedAccountsPage = () => {
           // 空状态
           <div className="bg-white rounded-xl p-8 text-center">
             <div className="text-5xl mb-3">📱</div>
-            <h3 className="text-lg font-medium text-gray-800 mb-1">暂无发布账号</h3>
+            <h3 className="text-lg  text-gray-800 mb-1">暂无发布账号</h3>
             <p className="text-gray-500 text-sm mb-4">您还没有发布过任何账号</p>
             <Button
               onClick={() => router.push('/accountrental/account-rental-publish')}
@@ -441,38 +475,38 @@ const PublishedAccountsPage = () => {
               const statusInfo = getStatusInfo(account.status);
               
               return (
-                <Card key={account.id} className="overflow-hidden">
-                  <div className="p-4">
+                <Card key={account.orderId} className="overflow-hidden">
+                  <div className="">
                     <div className="flex justify-between items-start mb-3">
                       <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-xl">
+                        <div className="w-10 h-10 flex items-center justify-center text-xl">
                           {account.platformIcon}
                         </div>
                         <div>
-                          <h3 className="font-medium text-gray-900">{account.title}</h3>
-                          <p className="text-xs text-gray-500">ID: {account.id}</p>
+                          <h3 className=" text-gray-900">{account.title}</h3>
+                          <p className="text-xs text-gray-500">订单编号: {account.orderId}</p>
                         </div>
                       </div>
                       
                       {/* 自定义账号操作下拉菜单 */}
-                      <div className="relative">
+                      <div className="relative account-menu-container">
                         <button 
-                          onClick={() => toggleDropdownMenu(account.id)}
-                          className="p-1 rounded-full hover:bg-gray-100"
+                          onClick={() => toggleDropdownMenu(account.orderId)}
+                          className="text-sm  hover:text-blue-500 account-menu-button"
                         >
-                          <MoreOutlined className="h-5 w-5 text-gray-500" />
+                          更多
                         </button>
-                        {dropdownMenuOpen === account.id && (
+                        {dropdownMenuOpen === account.orderId && (
                           <div className="absolute right-0 mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-100 z-20 overflow-hidden">
                             <button 
-                              onClick={() => handleViewAccount(account.id)}
+                              onClick={() => handleViewAccount(account.userid)}
                               className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 flex items-center"
                             >
                               <EyeOutlined className="mr-2 h-4 w-4" />
                               查看详情
                             </button>
                             <button 
-                              onClick={() => handleEditAccount(account.id)}
+                              onClick={() => handleEditAccount(account.userid)}
                               className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 flex items-center"
                             >
                               <EditOutlined className="mr-2 h-4 w-4" />
@@ -480,7 +514,7 @@ const PublishedAccountsPage = () => {
                             </button>
                             {account.status === 'active' ? (
                               <button 
-                                onClick={() => handleToggleStatus(account.id, account.status)}
+                                onClick={() => handleToggleStatus(account.userid, account.status)}
                                 className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 flex items-center text-red-600"
                               >
                                 <ExclamationCircleOutlined className="mr-2 h-4 w-4 text-red-600" />
@@ -488,7 +522,7 @@ const PublishedAccountsPage = () => {
                               </button>
                             ) : (
                               <button 
-                                onClick={() => handleToggleStatus(account.id, account.status)}
+                                onClick={() => handleToggleStatus(account.userid, account.status)}
                                 className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 flex items-center text-green-600"
                               >
                                 <ArrowUpOutlined className="mr-2 h-4 w-4 text-green-600" />
@@ -501,41 +535,41 @@ const PublishedAccountsPage = () => {
                     </div>
 
                     <div className="grid grid-cols-3 gap-2 mb-3 text-xs">
-                      <div className="text-center py-1.5 bg-gray-50 rounded">
-                        <div className="text-gray-500">平台</div>
-                        <div className="font-medium text-gray-800">{getPlatformName(account.platform)}</div>
+                      <div className="text-center py-1  bg-blue-200 rounded">
+                        <div className="py-1">平台</div>
+                        <div className="py-1">{getPlatformName(account.platform)}</div>
                       </div>
-                      <div className="text-center py-1.5 bg-gray-50 rounded">
-                        <div className="text-gray-500">粉丝数</div>
-                        <div className="font-medium text-gray-800">{account.followers}</div>
+                      <div className="text-center py-1  bg-blue-200 rounded">
+                        <div className="py-1">粉丝数</div>
+                        <div className="py-1">{account.followers}</div>
                       </div>
-                      <div className="text-center py-1.5 bg-gray-50 rounded">
-                        <div className="text-gray-500">租金</div>
-                        <div className="font-medium text-gray-800">¥{account.price}/时</div>
+                      <div className="text-center py-1  bg-blue-200 rounded">
+                        <div className="py-1">租金</div>
+                        <div className="py-1">¥{account.price}/时</div>
                       </div>
                     </div>
 
                     <div className="grid grid-cols-3 gap-2 text-xs">
-                      <div className="text-center py-1.5 bg-gray-50 rounded">
-                        <div className="text-gray-500">出租次数</div>
-                        <div className="font-medium text-gray-800">{account.rentalCount}</div>
+                      <div className="text-center py-1  bg-blue-200 rounded">
+                        <div className="py-1">出租次数</div>
+                        <div className="py-1">{account.rentalCount}</div>
                       </div>
-                      <div className="text-center py-1.5 bg-gray-50 rounded">
-                        <div className="text-gray-500">评分</div>
-                        <div className="font-medium text-gray-800">{account.rating || '-'}</div>
+                      <div className="text-center py-1  bg-blue-200 rounded">
+                        <div className="py-1">评分</div>
+                        <div className="py-1">{account.rating || '-'}</div>
                       </div>
-                      <div className="text-center py-1.5 bg-gray-50 rounded">
-                        <div className="text-gray-500">状态</div>
-                        <span className={`inline-flex items-center px-2 py-1 text-xs font-medium rounded-full ${statusInfo.color}`}>
+                      <div className="text-center py-1  bg-blue-200 rounded">
+                        <div className="py-1">状态</div>
+                        <span className={`inline-flex items-center py-1 px-2  rounded-lg ${statusInfo.color}`}>
                           {statusInfo.text}
                         </span>
                       </div>
                     </div>
 
-                    <div className="mt-3 flex justify-between items-center text-xs text-gray-500">
-                      <span>发布时间: {formatDate(account.publishTime)}</span>
+                    <div className="mt-3 text-xs ">
+                      <div className='py-1'>发布时间: {formatDate(account.publishTime)}</div>
                       {account.lastRentalTime && (
-                        <span>最后租赁: {formatDate(account.lastRentalTime)}</span>
+                        <div className='py-1'>最后租赁: {formatDate(account.lastRentalTime)}</div>
                       )}
                     </div>
                   </div>
