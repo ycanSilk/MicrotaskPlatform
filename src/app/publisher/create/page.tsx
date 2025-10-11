@@ -17,7 +17,7 @@ const TASK_TYPES: TaskType[] = [
     id: 'manual_comment',
     title: '人工评论',
     icon: '💬',
-    description: '在社交媒体平台发布手动评论任务，支持抖音、小红书、快手等平台',
+    description: '在社交媒体平台人工手动发布评论。支持抖音、小红书、快手等平台',
     color: 'from-blue-500 to-purple-600'
   },
   {
@@ -81,7 +81,6 @@ export default function CreateTask() {
     <div className="space-y-6 pb-20">
       {/* 页面头部 */}
       <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-8 ">
-        <h1 className="text-2xl font-bold mb-2 px-4">发布任务</h1>
         <p className="text-blue-100 px-4">选择您想要发布的任务类型</p>
       </div>
 

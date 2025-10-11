@@ -1,5 +1,6 @@
 import React from 'react';
 import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 
 interface SuccessModalProps {
   isOpen: boolean;
@@ -13,6 +14,7 @@ interface SuccessModalProps {
 /**
  * 注册成功提示框组件
  * 用于显示操作成功信息并提供确认按钮进行页面跳转
+ * 添加了3秒自动跳转功能
  */
 export default function SuccessModal({ 
   isOpen, 
@@ -30,6 +32,24 @@ export default function SuccessModal({
       router.push(redirectUrl as any);
     }
   };
+
+  // 登录成功3秒后自动跳转
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    
+    if (isOpen && redirectUrl) {
+      timer = setTimeout(() => {
+        handleConfirm();
+      }, 3000); // 3秒后自动跳转
+    }
+    
+    // 清理函数，防止内存泄漏
+    return () => {
+      if (timer) {
+        clearTimeout(timer);
+      }
+    };
+  }, [isOpen, redirectUrl, handleConfirm]);
 
   if (!isOpen) return null;
 

@@ -123,7 +123,7 @@ export default function PublisherLoginPage() {
         }
         
         // 设置成功消息并显示模态框
-        setLoginSuccessMessage(`发布者登录成功！欢迎 ${result.user.username}`);
+        setLoginSuccessMessage(`登录成功！欢迎 ${result.user.username}`);
         setShowSuccessModal(true);
       } else {
         console.log('Login failed with message:', result?.message);
@@ -144,11 +144,8 @@ export default function PublisherLoginPage() {
       {/* 顶部装饰 */}
       <div className="bg-gradient-to-br from-blue-500 to-blue-600 pt-12 pb-16">
         <div className="max-w-md mx-auto px-4 text-center">
-          <div className="text-white text-4xl font-bold mb-3">
-            📋 发布者登录
-          </div>
-          <div className="text-blue-100 text-sm">
-            抖音派单系统发布者平台
+          <div className="text-white font-bold text-4xl mb-3">
+            微任务系统平台
           </div>
         </div>
       </div>
@@ -159,8 +156,7 @@ export default function PublisherLoginPage() {
           {/* 登录卡片 */}
           <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
             <div className="text-center mb-6">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">发布者登录</h2>
-              <p className="text-sm text-gray-600">请输入发布者账号信息</p>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">登录</h2>
             </div>
 
             {/* 登录表单 */}
@@ -172,7 +168,7 @@ export default function PublisherLoginPage() {
                 </label>
                 <input
                   type="text"
-                  placeholder="请输入发布者用户名"
+                  placeholder="请输入用户名"
                   value={formData.username}
                   onChange={(e) => setFormData({...formData, username: e.target.value})}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -232,25 +228,34 @@ export default function PublisherLoginPage() {
                 disabled={isLoading}
                 className="w-full py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isLoading ? '登录中...' : '发布者登录'}
+                {isLoading ? '登录中...' : '登录'}
               </button>
+           
             </form>
 
             {/* 注册提示 */}
             <div className="mt-6 text-center">
               <p className="text-sm text-gray-600">
-                还没有发布者账户？{' '}
-                <a href="/auth/register/publisher" className="text-blue-500 hover:underline">
+                还没有账户？{' '}
+                <button 
+                  onClick={() => router.push('/auth/register/publisher')}
+                  className="text-blue-500 hover:underline"
+                >
                   立即注册
-                </a>
+                </button>
+                <button 
+                  onClick={() => router.push('/auth/resetpwd')}
+                  className="text-blue-500 hover:underline ml-3"
+                >
+                  忘记密码
+                </button>
               </p>
             </div>
           </div>
 
           {/* 底部信息 */}
-          <div className="text-center text-xs text-gray-500 mb-8">
-            <p>© 2024 抖音派单系统 版本 v2.0.0</p>
-            <p className="mt-1">安全登录 · 数据加密</p>
+          <div className="text-center  mb-8">
+            <p>©2025 微任务系统平台 V1.0</p>
           </div>
         </div>
         

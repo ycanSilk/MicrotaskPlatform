@@ -123,7 +123,7 @@ export default function PublisherRegisterPage() {
       <div className="bg-gradient-to-br from-blue-500 to-blue-600 pt-8 md:pt-12 pb-12 md:pb-16">
         <div className="max-w-md mx-auto px-4 text-center">
           <div className="text-white text-2xl md:text-4xl font-bold mb-2 md:mb-3">
-            注册
+            微任务系统平台
           </div>
         </div>
       </div>
@@ -133,15 +133,15 @@ export default function PublisherRegisterPage() {
         <div className="max-w-md mx-auto px-4">
           {/* 注册卡片 */}
           <div className="bg-white rounded-lg shadow-lg p-4 md:p-6 mb-6">
+            <h2 className="text-xl md:text-2xl font-bold mb-4 text-center">注册</h2>
             {/* 注册表单 */}
             <form onSubmit={handleSubmit} className="space-y-4">
               {/* 账号信息 */}
               <div className="bg-blue-50 rounded-lg p-3 md:p-4">
-                <h3 className="text-sm font-bold text-blue-800 mb-3">账号信息</h3>
-                
+
                 {/* 用户名 */}
                 <div className="mb-3">
-                  <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-xs md:text-sm font-medium  mb-1">
                     用户名 <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -155,7 +155,7 @@ export default function PublisherRegisterPage() {
 
                 {/* 密码 */}
                 <div className="mb-3">
-                  <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-xs md:text-sm font-medium  mb-1">
                     密码 <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -169,7 +169,7 @@ export default function PublisherRegisterPage() {
 
                 {/* 确认密码 */}
                 <div className="mb-3">
-                  <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-xs md:text-sm font-medium  mb-1">
                     确认密码 <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -184,7 +184,7 @@ export default function PublisherRegisterPage() {
                 {/* 手机号和验证码 */}
                 <div className="space-y-3">
                   <div>
-                    <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-xs md:text-sm font-medium  mb-1">
                       手机号
                     </label>
                     <input
@@ -198,7 +198,7 @@ export default function PublisherRegisterPage() {
 
                   {/* 验证码 */}
                   <div>
-                    <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-xs md:text-sm font-medium  mb-1">
                       验证码 <span className="text-red-500">*</span>
                     </label>
                     <div className="flex space-x-2">
@@ -223,11 +223,8 @@ export default function PublisherRegisterPage() {
 
               {/* 邀请码 */}
               <div className="bg-purple-50 rounded-lg p-3 md:p-4">
-                <h3 className="text-sm font-bold text-purple-800 mb-3">🎁 邀请码（可选）</h3>
+                <h3 className="text-sm font-bold text-red-800 mb-3"> 邀请码（可选）</h3>
                 <div>
-                  <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
-                    邀请码
-                  </label>
                   <input
                     type="text"
                     placeholder="填写邀请码可获得新人奖励"
@@ -235,7 +232,7 @@ export default function PublisherRegisterPage() {
                     onChange={(e) => setFormData({...formData, inviteCode: e.target.value})}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                   />
-                  <p className="text-xs text-purple-600 mt-1">💰 使用邀请码注册可获得平台推广奖励</p>
+                  <p className="text-xs text-red-600 mt-2">邀请新用户,指导新用户完成首个100元提现，可获得10元系统奖励</p>
                 </div>
               </div>
 
@@ -279,7 +276,7 @@ export default function PublisherRegisterPage() {
                 disabled={isLoading}
                 className="w-full py-3 px-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed text-sm"
               >
-                {isLoading ? '注册中...' : '立即注册派单员'}
+                {isLoading ? '注册中...' : '立即注册'}
               </button>
             </form>
 
@@ -309,8 +306,8 @@ export default function PublisherRegisterPage() {
 
 
           {/* 底部信息 */}
-          <div className="text-center text-xs text-gray-500 mb-8">
-            <p>© 2024 微任务系统 版本 v2.0.0</p>
+          <div className="text-center  mb-8">
+            <p>©2025 微任务系统 版本V1.0</p>
 
           </div>
         </div>

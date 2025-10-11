@@ -34,8 +34,8 @@ export default function PublishTaskPage() {
       image: null as File | null
     },
     
-    // 下评评论模块 - 默认3条
-    bottomQuantity: 3,
+    // 下评评论模块 - 默认2条
+    bottomQuantity: 2,
     bottomComments: [
       {
         content: '🔺下评评论1，XXXXXXXXX',
@@ -43,10 +43,6 @@ export default function PublishTaskPage() {
       },
       {
         content: '🔺下评评论2，xxxxxxxxx',
-        image: null as File | null
-      },
-      {
-        content: '🔺下评评论3，xxxxxxxx',
         image: null as File | null
       }
     ],
@@ -378,8 +374,8 @@ export default function PublishTaskPage() {
         return;
       }
 
-      // 计算总费用
-      const totalCost = taskPrice * formData.bottomQuantity;
+      // 计算总费用 - 基于评论任务类型：2元(1条中评) + 下评数量×2元
+      const totalCost = 2 + formData.bottomQuantity * 2;
       
       // 余额校验 - 获取当前用户的可用余额
       console.log('[任务发布] 开始余额校验，总费用:', totalCost);
@@ -480,7 +476,8 @@ export default function PublishTaskPage() {
     }
   };
 
-  const totalCost = (taskPrice * formData.bottomQuantity).toFixed(2);
+  // 价格计算：2元(1条中评) + 下评数量×2元
+  const totalCost = (2 + formData.bottomQuantity * 2).toFixed(2);
 
   // 如果没有找到任务类型，返回错误页面
   if (!taskId) {
@@ -794,20 +791,11 @@ export default function PublishTaskPage() {
           </div>
 
         {/* 费用预览 */}
-        <div className="bg-white rounded-2xl p-4 shadow-sm">
-          <h3 className="font-medium text-gray-900 mb-3">费用预览</h3>
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-600">任务费用</span>
-              <span className="font-bold text-lg">¥{(taskPrice * formData.bottomQuantity).toFixed(2)}</span>
-            </div>
-            <div className="border-t border-gray-200 pt-2">
+        <div className="bg-white rounded-2xl p-4 shadow-sm">         
               <div className="flex justify-between">
                 <span className="font-medium text-gray-900">总计费用</span>
                 <span className="font-bold text-lg text-orange-500">¥{totalCost}</span>
               </div>
-            </div>
-          </div>
         </div>
       </div>
 

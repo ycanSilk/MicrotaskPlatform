@@ -86,7 +86,7 @@ export default function CommenterRegisterPage() {
     setIsLoading(true);
     
     try {
-      // 调用评论员注册API
+      // 调用注册API
       const response = await fetch('/api/register/commenter', {
         method: 'POST',
         headers: {
@@ -123,7 +123,7 @@ export default function CommenterRegisterPage() {
       {/* 顶部装饰 */}
       <div className="bg-gradient-to-br from-blue-500 to-blue-600 pt-8 md:pt-12 pb-12 md:pb-16">
         <div className="max-w-md mx-auto px-4 text-center">
-          <h2 className="text-2xl md:text-2xl font-bold text-white mb-2">注册账号</h2>
+          <h2 className="text-2xl md:text-2xl font-bold text-white mb-2">微任务系统平台</h2>
         </div>
       </div>
 
@@ -132,15 +132,13 @@ export default function CommenterRegisterPage() {
         <div className="max-w-md mx-auto px-4">
           {/* 注册卡片 */}
           <div className="bg-white rounded-lg shadow-lg p-4 md:p-6 mb-6">
-            <div className="text-center mb-4 md:mb-6">   
-            </div>
+            <h3 className="text-2xl font-bold mb-3 text-center">注册</h3>
 
             {/* 注册表单 */}
             <form onSubmit={handleSubmit} className="space-y-4">
               {/* 账号信息 */}
               <div className="bg-blue-50 rounded-lg p-3 md:p-4">
-                <h3 className="text-sm font-bold text-blue-800 mb-3">账号信息</h3>
-                
+
                 {/* 用户名 */}
                 <div className="mb-3">
                   <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
@@ -224,16 +222,17 @@ export default function CommenterRegisterPage() {
               </div>
 
               {/* 邀请码 */}
-              <div className="bg-blue-50 rounded-lg p-3 md:p-4">
-                <h3 className="text-sm font-bold text-blue-800 mb-3">邀请码</h3>
+              <div className="bg-purple-50 rounded-lg p-3 md:p-4">
+                <h3 className="text-sm font-bold text-red-800 mb-3"> 邀请码（可选）</h3>
                 <div>
                   <input
                     type="text"
-                    placeholder="填写邀请码（选填）"
+                    placeholder="填写邀请码可获得新人奖励"
                     value={formData.inviteCode}
                     onChange={(e) => setFormData({...formData, inviteCode: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-sm"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                   />
+                  <p className="text-xs text-red-600 mt-2">邀请新用户,指导新用户完成首个100元提现，可获得10元系统奖励</p>
                 </div>
               </div>
 
@@ -277,7 +276,7 @@ export default function CommenterRegisterPage() {
                 disabled={isLoading}
                 className="w-full py-3 px-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed text-sm"
               >
-                {isLoading ? '注册中...' : '立即注册评论员'}
+                {isLoading ? '注册中...' : '立即注册'}
               </button>
             </form>
 
@@ -307,8 +306,8 @@ export default function CommenterRegisterPage() {
           
 
           {/* 底部信息 */}
-          <div className="text-center text-xs text-gray-500 mb-8">
-            <p>© 2024 微任务系统 v2.0.0</p>
+          <div className="text-center mb-8">
+            <p>©2025 微任务系统平台 V1.0</p>
           </div>
         </div>
       </div>

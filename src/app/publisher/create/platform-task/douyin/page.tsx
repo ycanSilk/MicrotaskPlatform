@@ -8,7 +8,7 @@ import { useState } from 'react';
 const TASK_TYPES = [
   {
     id: 'comment_top',
-    title: '上评任务',
+    title: '上评评论',
     icon: '⭐',
     price: 3.0,
     description: '真人账号发布高质量评论',
@@ -18,7 +18,7 @@ const TASK_TYPES = [
   },
   {
     id: 'comment_middle',
-    title: '中评任务',
+    title: '中评评论',
     icon: '💬',
     price: 2.0,
     description: '真人账号发布高质量评论',
@@ -28,20 +28,20 @@ const TASK_TYPES = [
   },
   {
     id: 'task_combination_top_middle',
-    title: '上中评任务',
+    title: '上中评评论',
     icon: '🌟',
-    price: 8.0,
-    description: '组合任务 - 1条上评 + 中评（数量可自定义选择，且支持@功能）',
+    price: 9.0,
+    description: '组合评论 - 1条上评评论 + 中评评论（数量可自定义选择，且支持@功能）',
     requirements: '评论内容真实有效，真人评论，上评完成后需提交链接作为结算条件',
     estimatedTime: '10分钟',
     difficulty: '中等'
   },
   {
     id: 'task_combination_middle_bottom',
-    title: '中下评任务',
+    title: '中下评评论',
     icon: '🌓',
-    price: 7.0,
-    description: '组合任务 - 1条中评 + 2条下评（其中1条带@功能）',
+    price: 6.0,
+    description: '组合评论 - 1条中评评论 + 2条下评评论（其中1条带@功能）',
     requirements: '评论内容真实有效，真人评论，按照顺序完成任务',
     estimatedTime: '8分钟',
     difficulty: '中等'
@@ -93,20 +93,9 @@ const TaskCard = ({ task, onClick }: { task: any, onClick: () => void }) => {
       </div>
 
       {/* 发布按钮 */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-2 text-gray-500 text-sm">
-          <span>💡</span>
-          <span>系统定价，公平公正</span>
-        </div>
-        <div className="flex items-center space-x-2">
-          {task.roleType && (
-            <Badge className="bg-purple-100 text-purple-800 border-purple-200">
-              {task.roleType}
-            </Badge>
-          )}
-          <div className="bg-blue-500 text-white px-4 py-2 rounded-lg text-sm font-medium">
-            立即发布
-          </div>
+      <div className="flex items-center justify-end">
+        <div className="bg-blue-500 text-white px-4 py-2 rounded-lg text-sm font-medium">
+          立即发布
         </div>
       </div>
     </div>
@@ -206,8 +195,8 @@ export default function CreateTask() {
             <span className='text-blue-500'>← 返回选择任务</span>
           </button> 
         </div>
-        <h1 className="text-2xl font-bold ml- px-4">发布抖音任务</h1>
-        <p className="text-blue-100 px-4 mt-3">选择抖音任务类型</p>
+        <h1 className="text-2xl font-bold ml- px-4">发布抖音评论任务</h1>
+        <p className="text-blue-100 px-4 mt-3">选择抖音评论任务类型</p>
       </div>
 
       {/* 任务卡片列表 */}
