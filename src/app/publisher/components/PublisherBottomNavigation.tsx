@@ -35,13 +35,8 @@ export const PublisherBottomNavigation: React.FC = () => {
       path: '/accountrental'
     },
     {
-      icon: <BarChartOutlined />,
-      label: '数据总览',
-      path: '/publisher/stats'
-    },
-    {
       icon: <WalletOutlined />,
-      label: '财务总览',
+      label: '充值',
       path: '/publisher/finance'
     },
     {

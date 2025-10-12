@@ -504,6 +504,12 @@ const PublishedAccountsPage = () => {
           >
             已完成
           </button>
+          <button
+            onClick={() => setSelectedStatus('inactive')}
+            className={`px-4 py-1.5 text-sm font-medium ${selectedStatus === 'inactive' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500'}`}
+          >
+            退款中
+          </button>
         </div>
       </div>
 
