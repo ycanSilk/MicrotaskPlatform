@@ -106,6 +106,9 @@ interface AccountCardProps {
 }
 
 const AccountCard: React.FC<AccountCardProps> = ({ account, onAccountClick, onRentNow }) => {
+  // 获取第一张图片
+  const firstImage = account.images && account.images.length > 0 ? account.images[0] : null;
+  
   return (
     <div 
       key={account.id}
@@ -118,14 +121,22 @@ const AccountCard: React.FC<AccountCardProps> = ({ account, onAccountClick, onRe
         transition: 'all 0.2s ease'
       }}
     >
-      {/* 平台图标和图片区域 - 顶部 */}
+      {/* 图片展示区域 - 只显示第一张图片 */}
       <div className="w-full mb-4">
         <div className="relative">
           <div className="h-48 bg-gray-100">
             {/* 短视频账号封面 */}
-            <div className={`w-full h-full ${utils.getPlatformColor(account.platform)} flex items-center justify-center text-6xl`}>
-              {getPlatformIcon(account.platform)}
-            </div>
+            {firstImage ? (
+              <img 
+                src={firstImage}
+                alt={account.description || '账号图片'}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className={`w-full h-full ${utils.getPlatformColor(account.platform)} flex items-center justify-center text-6xl`}>
+                {getPlatformIcon(account.platform)}
+              </div>
+            )}
           </div>
           <div className="absolute top-3 left-3 bg-black bg-opacity-50 text-white px-2 py-1 rounded text-xs">
             {utils.getPlatformName(account.platform)}
@@ -133,51 +144,33 @@ const AccountCard: React.FC<AccountCardProps> = ({ account, onAccountClick, onRe
         </div>
       </div>
 
-      {/* 标题区域 */}
-      <div className="mb-4">
-        <h3 className="font-bold text-gray-900 text-xl mb-2 line-clamp-1">{account.accountTitle}</h3>
-        
-        {/* 账号详细信息 */}
-        <div className="flex flex-wrap gap-2 mb-4">
-          <span className="px-2 py-1 bg-gray-100 rounded-md text-xs text-gray-700">
-            {utils.getCategoryName(account.contentCategory)}
-          </span>
-          <span className="px-2 py-1 bg-gray-100 rounded-md text-xs text-gray-700">
-            {account.followersRange}
-          </span>
-          <span className="px-2 py-1 bg-green-50 text-green-600 rounded-md text-xs">
-            免押金
-          </span>
-        </div>
+      {/* 标题区域 - 显示账号信息描述，最多显示两行 */}
+      <div className="mb-3">
+        <div className="mb-1 text-sm line-clamp-2">{account.description || account.accountTitle}</div>
 
-        {/* 详细属性信息 - 优化移动端显示 */}
-        <div className="grid grid-cols-3 gap-2 mb-4 text-sm">
-          <div className="text-center">
-            <div className="text-gray-500 mb-1 text-xs">账号评分</div>
-            <div className="font-medium">{account.accountScore}</div>
-          </div>
-          <div className="text-center">
-            <div className="text-gray-500 mb-1 text-xs">账号年龄</div>
-            <div className="font-medium">{utils.getAccountAgeName(account.accountAge)}</div>
-          </div>
-          <div className="text-center">
-            <div className="text-gray-500 mb-1 text-xs">响应时间</div>
-            <div className="font-medium">{account.responseTime}分钟</div>
-          </div>
-        </div>
+        {/* 发布时间显示 */}
+        {account.publishTime && (
+            <div className="text-sm  mb-1">
+              发布时间：{new Date(account.publishTime).toLocaleString('zh-CN')}
+            </div>
+          )}
+          
+          {account.publisherName && (
+            <div className="text-sm text-gray-600 mb-1">
+              发布用户：{account.publisherName}
+            </div>
+          )}
+          
+          {account.rentalDuration && (
+            <div className="text-sm mb-1">
+              出租时长：{account.rentalDuration}天
+            </div>
+          )}
 
         {/* 租金时长展示 */}
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center space-x-2">
-            <div className="px-2 py-1 bg-blue-50 text-blue-600 rounded-full text-xs">
-              2小时起租
-            </div>
-            <div className="px-2 py-1 bg-orange-50 text-orange-600 rounded-full text-xs">
-              租5送1
-            </div>
-          </div>
-          <div className="text-xl font-bold text-red-600">
-            ¥{account.price.toFixed(2)}元/时
+        <div className="flex items-center justify-between mb-1">
+          <div className="text-sm text-red-600">
+            ¥{account.price.toFixed(2)}元/天
           </div>
         </div>
 

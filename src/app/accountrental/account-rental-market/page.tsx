@@ -52,23 +52,19 @@ const FILTER_OPTIONS = {
     { value: 'xiaohongshu', label: '小红书' },
     { value: 'kuaishou', label: '快手' }
   ],
-  category: [
-    { value: 'all', label: '分类' },
-    { value: 'food', label: '美食' },
-    { value: 'travel', label: '旅游' },
-    { value: 'fashion', label: '时尚' },
-    { value: 'beauty', label: '美妆' },
-    { value: 'fitness', label: '健身' },
-    { value: 'technology', label: '科技' },
-    { value: 'finance', label: '财经' },
-    { value: 'education', label: '教育' },
-    { value: 'entertainment', label: '娱乐' },
-    { value: 'sports', label: '体育' }
+  publishTime: [
+    { value: 'all', label: '全部时间' },
+    { value: '12h', label: '12小时内' },
+    { value: '24h', label: '24小时内' },
+    { value: '2d', label: '2天内' },
+    { value: '3d', label: '3天内' }
   ],
-  priceSort: [
+  priceFilter: [
     { value: 'all', label: '价格' },
-    { value: 'price_desc', label: '价格从高到低' },
-    { value: 'price_asc', label: '价格从低到高' }
+    { value: '0-50', label: '0-50元' },
+    { value: '50-100', label: '50-100元' },
+    { value: '100-200', label: '100-200元' },
+    { value: '200+', label: '200元以上' }
   ]
 };
 
@@ -97,7 +93,7 @@ const MOCK_ACCOUNT_DATA: AccountRentalInfo[] = [
     engagementRate: '5.2%',
     contentCategory: 'food',
     price: 120,
-    rentalDuration: 24,
+    rentalDuration: 1,
     minimumRentalHours: 2,
     accountScore: 4.8,
     region: 'national',
@@ -122,7 +118,7 @@ const MOCK_ACCOUNT_DATA: AccountRentalInfo[] = [
     engagementRate: '4.8%',
     contentCategory: 'fashion',
     price: 200,
-    rentalDuration: 24,
+    rentalDuration: 1,
     minimumRentalHours: 4,
     accountScore: 4.9,
     region: 'east',
@@ -147,7 +143,7 @@ const MOCK_ACCOUNT_DATA: AccountRentalInfo[] = [
     engagementRate: '6.5%',
     contentCategory: 'technology',
     price: 80,
-    rentalDuration: 24,
+    rentalDuration: 1,
     minimumRentalHours: 2,
     accountScore: 4.7,
     region: 'north',
@@ -172,7 +168,7 @@ const MOCK_ACCOUNT_DATA: AccountRentalInfo[] = [
     engagementRate: '5.8%',
     contentCategory: 'travel',
     price: 350,
-    rentalDuration: 24,
+    rentalDuration: 1,
     minimumRentalHours: 6,
     accountScore: 4.9,
     region: 'national',
@@ -197,7 +193,7 @@ const MOCK_ACCOUNT_DATA: AccountRentalInfo[] = [
     engagementRate: '7.2%',
     contentCategory: 'beauty',
     price: 150,
-    rentalDuration: 24,
+    rentalDuration: 1,
     minimumRentalHours: 3,
     accountScore: 4.8,
     region: 'south',
@@ -222,7 +218,7 @@ const MOCK_ACCOUNT_DATA: AccountRentalInfo[] = [
     engagementRate: '4.5%',
     contentCategory: 'fitness',
     price: 90,
-    rentalDuration: 24,
+    rentalDuration: 1,
     minimumRentalHours: 2,
     accountScore: 4.6,
     region: 'west',
@@ -261,10 +257,11 @@ export default function AccountRentalMarketPage({ searchParams }: { searchParams
   // 其他状态和逻辑保持不变
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedPlatform, setSelectedPlatform] = useState('all');
-  const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedFollowersRange, setSelectedFollowersRange] = useState('all');
   const [selectedSort, setSelectedSort] = useState('time_desc');
   const [priceSort, setPriceSort] = useState('all');
+  const [publishTime, setPublishTime] = useState('all');
+  const [priceFilter, setPriceFilter] = useState('all');
   const [loading, setLoading] = useState(true);
   
   // 懒加载相关状态
@@ -318,7 +315,7 @@ export default function AccountRentalMarketPage({ searchParams }: { searchParams
   useEffect(() => {
     setPage(1);
     setDisplayedAccounts([]);
-  }, [searchTerm, selectedPlatform, selectedCategory, selectedFollowersRange, selectedSort, priceSort]);
+  }, [searchTerm, selectedPlatform, selectedFollowersRange, selectedSort, publishTime, priceFilter]);
 
   // 获取分类名称 - 用于搜索筛选
   const getCategoryName = (category: string): string => {
@@ -355,36 +352,69 @@ export default function AccountRentalMarketPage({ searchParams }: { searchParams
       result = result.filter(account => account.platform === selectedPlatform);
     }
 
-    // 分类筛选
-    if (selectedCategory !== 'all') {
-      result = result.filter(account => account.contentCategory === selectedCategory);
-    }
-
     // 粉丝数筛选
     if (selectedFollowersRange !== 'all') {
       result = result.filter(account => account.followersRange === selectedFollowersRange);
     }
 
-    // 排序
+    // 发布时间筛选
+    if (publishTime !== 'all') {
+      const now = new Date();
+      let timeThreshold = new Date();
+      
+      switch (publishTime) {
+        case '12h':
+          timeThreshold.setHours(now.getHours() - 12);
+          break;
+        case '24h':
+          timeThreshold.setHours(now.getHours() - 24);
+          break;
+        case '2d':
+          timeThreshold.setDate(now.getDate() - 2);
+          break;
+        case '3d':
+          timeThreshold.setDate(now.getDate() - 3);
+          break;
+        default:
+          break;
+      }
+      
+      result = result.filter(account => {
+        if (!account.publishTime) return false;
+        return new Date(account.publishTime) >= timeThreshold;
+      });
+    }
+
+    // 价格筛选
+    if (priceFilter !== 'all') {
+      switch (priceFilter) {
+        case '0-50':
+          result = result.filter(account => account.price >= 0 && account.price <= 50);
+          break;
+        case '50-100':
+          result = result.filter(account => account.price > 50 && account.price <= 100);
+          break;
+        case '100-200':
+          result = result.filter(account => account.price > 100 && account.price <= 200);
+          break;
+        case '200+':
+          result = result.filter(account => account.price > 200);
+          break;
+        default:
+          break;
+      }
+    }
+
+    // 排序 - 默认按发布时间降序排序
     if (selectedSort === 'time_desc') {
-      // 综合排序
+      // 按发布时间降序排序
       result.sort((a, b) => {
-        // 先按评分排序，评分相同再按发布时间排序
-        if (b.accountScore !== a.accountScore) {
-          return b.accountScore - a.accountScore;
-        }
         return new Date(b.publishTime || '').getTime() - new Date(a.publishTime || '').getTime();
       });
-    } else if (priceSort === 'price_asc') {
-      // 价格从低到高
-      result.sort((a, b) => a.price - b.price);
-    } else if (priceSort === 'price_desc') {
-      // 价格从高到低
-      result.sort((a, b) => b.price - a.price);
     }
 
     return result;
-  }, [accounts, searchTerm, selectedPlatform, selectedCategory, selectedFollowersRange, selectedSort, priceSort]);
+  }, [accounts, searchTerm, selectedPlatform, selectedFollowersRange, selectedSort, publishTime, priceFilter]);
 
   // 当筛选结果变化时，重新设置显示的账号
   useEffect(() => {
@@ -486,7 +516,7 @@ export default function AccountRentalMarketPage({ searchParams }: { searchParams
       </div>
 
       {/* 筛选和搜索区域 - 优化移动端体验 */}
-      <div className="px-4 pt-4">
+      <div className="px-4 pt-4 mb-4">
         <div className="bg-white rounded-xl py-4 px-3 shadow-sm">
           {/* 横向筛选栏 - 3个元素固定一行显示，优化移动端体验 */}
           <div className="bg-white rounded-lg border border-gray-200 shadow-sm mb-6 overflow-hidden">
@@ -494,9 +524,9 @@ export default function AccountRentalMarketPage({ searchParams }: { searchParams
               <div className="flex items-center space-x-0">
                 {/* 筛选选项组件 - 优化移动端选择器 */}
                 {[
-                  { value: priceSort, onChange: setPriceSort, options: FILTER_OPTIONS.priceSort },
+                  { value: publishTime, onChange: setPublishTime, options: FILTER_OPTIONS.publishTime },
                   { value: selectedPlatform, onChange: setSelectedPlatform, options: FILTER_OPTIONS.platform },
-                  { value: selectedCategory, onChange: setSelectedCategory, options: FILTER_OPTIONS.category }
+                  { value: priceFilter, onChange: setPriceFilter, options: FILTER_OPTIONS.priceFilter }
                 ].map((filter, index) => (
                   <div key={index} className="relative flex-1">
                     <select
@@ -528,7 +558,7 @@ export default function AccountRentalMarketPage({ searchParams }: { searchParams
           </div>
           
           {/* 搜索框 - 响应式布局，优化移动端体验 */}
-          <div className="flex gap-2 mb-6 w-full">
+          <div className="flex gap-2  w-full">
             <div className='flex-1'>
               <Input
                 type="text"

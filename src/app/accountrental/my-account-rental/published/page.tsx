@@ -49,6 +49,9 @@ interface PublishedAccount {
   rating: number;
   price: number;
   lastRentalTime?: string;
+  sellerName: string;
+  sellerAvatar: string;
+  hasReturnInsurance?: boolean;
 }
 
 const PublishedAccountsPage = () => {
@@ -83,9 +86,61 @@ const PublishedAccountsPage = () => {
             rentalCount: 23,
             rating: 4.8,
             price: 120,
-            lastRentalTime: '2025-10-04T10:30:00'
+            lastRentalTime: '2025-10-04T10:30:00',
+            sellerName: '真诚对待 诚心交易',
+            sellerAvatar: '👨‍💼',
+            hasReturnInsurance: true
           },
-          {"userid":"pub001","orderId":"order002","title":"美食探店达人","platform":"douyin","platformIcon":"🎵","followers":"120k","status":"active","publishTime":"2025-10-03T10:30:00","rentalCount":23,"rating":4.8,"price":120,"lastRentalTime":"2025-10-04T10:30:00"},{"userid":"pub002","orderId":"order003","title":"生活方式博主","platform":"xiaohongshu","platformIcon":"📕","followers":"85k","status":"active","publishTime":"2025-10-02T10:30:00","rentalCount":18,"rating":4.6,"price":95,"lastRentalTime":"2025-10-03T10:30:00"},{"userid":"pub003","orderId":"order004","title":"旅行摄影师","platform":"kuaishou","platformIcon":"🎬","followers":"65k","status":"inactive","publishTime":"2025-10-01T10:30:00","rentalCount":12,"rating":4.7,"price":80,"lastRentalTime":"2025-10-02T10:30:00"}];
+          {
+            userid: 'pub001',
+            orderId: 'order002',
+            title: '生活方式博主',
+            platform: 'douyin',
+            platformIcon: '🎵',
+            followers: '120k',
+            status: 'inactive',
+            publishTime: '2025-10-03T10:30:00',
+            rentalCount: 23,
+            rating: 4.8,
+            price: 120,
+            lastRentalTime: '2025-10-04T10:30:00',
+            sellerName: '英杰数码科技',
+            sellerAvatar: '👨‍💻'
+          },
+          {
+            userid: 'pub002',
+            orderId: 'order003',
+            title: '旅行摄影师',
+            platform: 'xiaohongshu',
+            platformIcon: '📕',
+            followers: '85k',
+            status: 'active',
+            publishTime: '2025-10-02T10:30:00',
+            rentalCount: 18,
+            rating: 4.6,
+            price: 95,
+            lastRentalTime: '2025-10-03T10:30:00',
+            sellerName: 'wyfd168',
+            sellerAvatar: '📸',
+            hasReturnInsurance: true
+          },
+          {
+            userid: 'pub003',
+            orderId: 'order004',
+            title: '健身达人分享',
+            platform: 'kuaishou',
+            platformIcon: '🎬',
+            followers: '65k',
+            status: 'inactive',
+            publishTime: '2025-10-01T10:30:00',
+            rentalCount: 12,
+            rating: 4.7,
+            price: 80,
+            lastRentalTime: '2025-10-02T10:30:00',
+            sellerName: '大马猴吃香蕉',
+            sellerAvatar: '🐵'
+          }
+        ];
         
         setPublishedAccounts(mockData);
       } catch (error) {
@@ -126,12 +181,12 @@ const PublishedAccountsPage = () => {
   // 获取状态对应的颜色和文本
   const getStatusInfo = (status: string) => {
     const statusMap: Record<string, { color: string; text: string }> = {
-      active: { color: 'bg-green-300 text-green-800', text: '出租中' },
-      pending: { color: 'bg-yellow-300 text-yellow-800', text: '审核中' },
-      inactive: { color: 'bg-gray-300 text-gray-800', text: '已下架' },
-      sold: { color: 'bg-blue-300 text-blue-800', text: '已售出' }
+      active: { color: 'text-green-600', text: '交易成功' },
+      pending: { color: 'text-yellow-600', text: '待发货' },
+      inactive: { color: 'text-orange-600', text: '交易关闭，有退款' },
+      sold: { color: 'text-blue-600', text: '已售出' }
     };
-    return statusMap[status] || { color: 'bg-blue-200 text-gray-700', text: status };
+    return statusMap[status] || { color: 'text-blue-600', text: status };
   };
 
   // 获取平台对应的名称
@@ -180,7 +235,6 @@ const PublishedAccountsPage = () => {
     setSortMenuOpen(false);
     // 直接切换下拉菜单状态
     setDropdownMenuOpen(prev => {
-      console.log(`当前打开的菜单: ${prev}, 点击的菜单: ${accountId}`);
       return prev === accountId ? null : accountId;
     });
   };
@@ -214,8 +268,6 @@ const PublishedAccountsPage = () => {
       
       // 如果点击不在任何菜单内，则关闭所有菜单
       if (!isClickInsideAnyMenu) {
-        // 添加调试日志
-        console.log('点击了菜单外部，关闭所有菜单');
         closeAllMenus();
       }
     };
@@ -227,7 +279,7 @@ const PublishedAccountsPage = () => {
     return () => {
       document.removeEventListener('click', handleClickOutside);
     };
-  }, []); // 移除依赖项，只在组件挂载时添加一次事件监听器
+  }, []);
 
   // 账号操作菜单
   const handleToggleStatus = (accountId: string, currentStatus: string) => {
@@ -267,8 +319,6 @@ const PublishedAccountsPage = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-    
-
       {/* 搜索和筛选区域 - 调整为一行显示 */}
       <div className="px-4 py-3 mt-2">
         <div className="flex items-center space-x-3">
@@ -368,19 +418,19 @@ const PublishedAccountsPage = () => {
                     onClick={() => setSelectedStatus('active')}
                     className={`px-3 py-1  text-xs rounded-full ${selectedStatus === 'active' ? 'bg-blue-200 text-blue-700' : 'bg-blue-200 text-gray-700'}`}
                   >
-                    出租中
+                    交易成功
                   </button>
                   <button
                     onClick={() => setSelectedStatus('pending')}
                     className={`px-3 py-1  text-xs rounded-full ${selectedStatus === 'pending' ? 'bg-blue-200 text-blue-700' : 'bg-blue-200 text-gray-700'}`}
                   >
-                    审核中
+                    待发货
                   </button>
                   <button
                     onClick={() => setSelectedStatus('inactive')}
                     className={`px-3 py-1  text-xs rounded-full ${selectedStatus === 'inactive' ? 'bg-blue-200 text-blue-700' : 'bg-blue-200 text-gray-700'}`}
                   >
-                    已下架
+                    交易关闭
                   </button>
                   <button
                     onClick={() => setSelectedStatus('sold')}
@@ -433,7 +483,31 @@ const PublishedAccountsPage = () => {
         </div>
       )}
 
-      {/* 账号列表 */}
+      {/* 订单状态切换选项卡 */}
+      <div className="px-4 py-2 border-b">
+        <div className="flex space-x-2">
+          <button
+            onClick={() => setSelectedStatus('all')}
+            className={`px-4 py-1.5 text-sm font-medium ${selectedStatus === 'all' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500'}`}
+          >
+            全部
+          </button>
+          <button
+            onClick={() => setSelectedStatus('pending')}
+            className={`px-4 py-1.5 text-sm font-medium ${selectedStatus === 'pending' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500'}`}
+          >
+            待付款
+          </button>
+          <button
+            onClick={() => setSelectedStatus('active')}
+            className={`px-4 py-1.5 text-sm font-medium ${selectedStatus === 'active' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500'}`}
+          >
+            已完成
+          </button>
+        </div>
+      </div>
+
+      {/* 账号列表 - 电商风格布局 */}
       <div className="px-4 py-3">
         {loading ? (
           // 加载状态
@@ -469,109 +543,75 @@ const PublishedAccountsPage = () => {
             </Button>
           </div>
         ) : (
-          // 账号列表
-          <div className="space-y-3">
+          // 账号列表 - 电商风格
+          <div className="space-y-4">
             {sortedAccounts.map((account) => {
               const statusInfo = getStatusInfo(account.status);
               
+              // 模拟商品图片
+              const productImages = {
+                'douyin': 'https://placehold.co/100x100/e5e7eb/1f2937?text=抖音',
+                'xiaohongshu': 'https://placehold.co/100x100/e5e7eb/1f2937?text=小红书',
+                'kuaishou': 'https://placehold.co/100x100/e5e7eb/1f2937?text=快手'
+              };
+              
               return (
-                <Card key={account.orderId} className="overflow-hidden">
-                  <div className="">
-                    <div className="flex justify-between items-start mb-3">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 flex items-center justify-center text-xl">
-                          {account.platformIcon}
-                        </div>
-                        <div>
-                          <h3 className=" text-gray-900">{account.title}</h3>
-                          <p className="text-xs text-gray-500">订单编号: {account.orderId}</p>
-                        </div>
+                <Card key={account.orderId} className="overflow-hidden border-none shadow-sm">
+                  {/* 卖家信息和订单状态 */}
+                  <div className="flex justify-between items-center px-4 py-2 border-b">
+                    <div className="flex items-center space-x-2">
+                      <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-lg">
+                        {account.sellerAvatar}
                       </div>
-                      
-                      {/* 自定义账号操作下拉菜单 */}
-                      <div className="relative account-menu-container">
-                        <button 
-                          onClick={() => toggleDropdownMenu(account.orderId)}
-                          className="text-sm  hover:text-blue-500 account-menu-button"
-                        >
-                          更多
-                        </button>
-                        {dropdownMenuOpen === account.orderId && (
-                          <div className="absolute right-0 mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-100 z-20 overflow-hidden">
-                            <button 
-                              onClick={() => handleViewAccount(account.userid)}
-                              className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 flex items-center"
-                            >
-                              <EyeOutlined className="mr-2 h-4 w-4" />
-                              查看详情
-                            </button>
-                            <button 
-                              onClick={() => handleEditAccount(account.userid)}
-                              className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 flex items-center"
-                            >
-                              <EditOutlined className="mr-2 h-4 w-4" />
-                              编辑账号
-                            </button>
-                            {account.status === 'active' ? (
-                              <button 
-                                onClick={() => handleToggleStatus(account.userid, account.status)}
-                                className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 flex items-center text-red-600"
-                              >
-                                <ExclamationCircleOutlined className="mr-2 h-4 w-4 text-red-600" />
-                                下架账号
-                              </button>
-                            ) : (
-                              <button 
-                                onClick={() => handleToggleStatus(account.userid, account.status)}
-                                className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 flex items-center text-green-600"
-                              >
-                                <ArrowUpOutlined className="mr-2 h-4 w-4 text-green-600" />
-                                上架账号
-                              </button>
-                            )}
-                          </div>
-                        )}
-                      </div>
+                      <span className="text-sm font-medium">{account.sellerName}</span>
                     </div>
-
-                    <div className="grid grid-cols-3 gap-2 mb-3 text-xs">
-                      <div className="text-center py-1  bg-blue-200 rounded">
-                        <div className="py-1">平台</div>
-                        <div className="py-1">{getPlatformName(account.platform)}</div>
-                      </div>
-                      <div className="text-center py-1  bg-blue-200 rounded">
-                        <div className="py-1">粉丝数</div>
-                        <div className="py-1">{account.followers}</div>
-                      </div>
-                      <div className="text-center py-1  bg-blue-200 rounded">
-                        <div className="py-1">租金</div>
-                        <div className="py-1">¥{account.price}/时</div>
-                      </div>
+                    <span className={`text-sm ${statusInfo.color} font-medium`}>
+                      {statusInfo.text}
+                    </span>
+                  </div>
+                  
+                  {/* 商品信息和价格 */}
+                  <div className="flex px-4 py-3 space-x-4">
+                    {/* 商品图片 */}
+                    <div className="w-20 h-20 bg-gray-100 rounded overflow-hidden flex-shrink-0">
+                      <img 
+                        src={productImages[account.platform as keyof typeof productImages] || productImages.douyin}
+                        alt={account.title}
+                        className="w-full h-full object-cover"
+                      />
                     </div>
-
-                    <div className="grid grid-cols-3 gap-2 text-xs">
-                      <div className="text-center py-1  bg-blue-200 rounded">
-                        <div className="py-1">出租次数</div>
-                        <div className="py-1">{account.rentalCount}</div>
-                      </div>
-                      <div className="text-center py-1  bg-blue-200 rounded">
-                        <div className="py-1">评分</div>
-                        <div className="py-1">{account.rating || '-'}</div>
-                      </div>
-                      <div className="text-center py-1  bg-blue-200 rounded">
-                        <div className="py-1">状态</div>
-                        <span className={`inline-flex items-center py-1 px-2  rounded-lg ${statusInfo.color}`}>
-                          {statusInfo.text}
+                    
+                    {/* 商品详情 */}
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-sm font-medium mb-1 line-clamp-2">
+                        {account.title} - {getPlatformName(account.platform)}账号（{account.followers}粉丝）
+                      </h3>
+                      <p className="text-xs text-gray-500 mb-2">
+                        租金：{account.price}元/天 · 已出租{account.rentalCount}次
+                      </p>
+                      {account.hasReturnInsurance && (
+                        <span className="text-xs text-orange-500 border border-orange-200 px-1.5 py-0.5 rounded">
+                          退货包运费
                         </span>
-                      </div>
-                    </div>
-
-                    <div className="mt-3 text-xs ">
-                      <div className='py-1'>发布时间: {formatDate(account.publishTime)}</div>
-                      {account.lastRentalTime && (
-                        <div className='py-1'>最后租赁: {formatDate(account.lastRentalTime)}</div>
                       )}
                     </div>
+                    
+                    {/* 价格 */}
+                    <div className="text-right">
+                      <p className="text-sm font-medium text-gray-900 mb-1">
+                        ¥{account.price.toFixed(2)}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  {/* 操作按钮 */}
+                  <div className="flex justify-end px-4 py-2 border-t space-x-2">
+                    <button className="px-3 py-1 text-xs border border-gray-200 rounded text-gray-600 hover:bg-gray-50">
+                      联系客服
+                    </button>
+                    <button className="px-3 py-1 text-xs bg-yellow-500 hover:bg-yellow-600 text-white rounded">
+                      查看详情
+                    </button>
                   </div>
                 </Card>
               );

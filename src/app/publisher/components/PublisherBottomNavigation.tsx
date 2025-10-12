@@ -26,8 +26,8 @@ export const PublisherBottomNavigation: React.FC = () => {
     },
     {
       icon: <PlusCircleOutlined />,
-      label: '发布',
-      path: '/publisher/create'
+      label: '发布评论',
+      path: '/publisher/create/platformtype'
     },
     {
       icon: <TeamOutlined />,
