@@ -9,19 +9,6 @@
     <script src="/static/cdn/element-ui-2.15.1-index.js"></script>
     <script src="/static/cdn/3.6.0-jquery.min.js"></script>
     <link rel="stylesheet" href="/static/css/common.css?v=0.3.8">
-    <link rel="stylesheet" href="/static/cdn/cssgg/style.css">
-    <link rel="stylesheet" href="/static/cdn/cssgg/user.css">
-    <link rel="stylesheet" href="/static/cdn/cssgg/search.css">
-    <link rel="stylesheet" href="/static/cdn/cssgg/setting.css">
-    <link rel="stylesheet" href="/static/cdn/cssgg/message.css">
-    <link rel="stylesheet" href="/static/cdn/cssgg/edit.css">
-    <link rel="stylesheet" href="/static/cdn/cssgg/menu.css">
-    <link rel="stylesheet" href="/static/cdn/cssgg/calendar.css">
-    <link rel="stylesheet" href="/static/cdn/cssgg/time.css">
-    <link rel="stylesheet" href="/static/cdn/cssgg/external.css">
-    <link rel="stylesheet" href="/static/cdn/cssgg/info.css">
-    <link rel="stylesheet" href="/static/cdn/cssgg/globe.css">
-    <link rel="stylesheet" href="/static/cdn/cssgg/globe-alt.css">
     <script src="/assets/js/functions.js"></script>
     <script src="/assets/js/reconnecting-websocket.min.js"></script>
     <style>
@@ -140,32 +127,26 @@
                                 <el-menu class="visitorInfo" v-show="visitor.visitor_id">
                                     <el-tooltip content="点击加入黑名单" placement="left">
                                         <el-menu-item v-on:click="addIpblack(visitor.source_ip)" title="点击加入黑名单" style="padding-left:2px;color: #666;">
-                                            <i class="gg-globe"></i>
-                                        <span slot="title">IP地址：<{visitor.source_ip}></span>
+                                        <span slot="title" style="padding-left: 5px;">IP地址：<{visitor.source_ip}></span>
                                         </el-menu-item>
                                     </el-tooltip>
                                     <el-menu-item v-on:click="openUrl('https://www.baidu.com/s?wd='+visitor.client_ip)" style="padding-left:2px;color: #666;">
-                                        <i class="gg-globe-alt">1</i>
-                                        <span slot="title">城市：<{visitor.city}></span>
+                                        <span slot="title" style="padding-left: 5px;">城市：<{visitor.city}></span>
                                     </el-menu-item>
                                     <el-menu-item style="padding-left:2px;color: #666;">
-                                        <i class="gg-calendar">1</i>
-                                        <span slot="title">首次访问：<{visitor.created_at}></span>
+                                        <span slot="title" style="padding-left: 5px;">首次访问：<{visitor.created_at}></span>
                                     </el-menu-item>
                                     <el-menu-item style="padding-left:2px;color: #666;">
-                                        <i class="gg-time">1</i>
-                                        <span slot="title">最后访问：<{visitor.updated_at}></span>
+                                        <span slot="title" style="padding-left: 5px;">最后访问：<{visitor.updated_at}></span>
                                     </el-menu-item>
                                     <el-tooltip :content="visitor.refer" placement="left">
                                         <el-menu-item  style="padding-left:2px;color: #666;">
-                                            <i class="gg-external">1</i>
-                                            <span slot="title" >来源标题：<{visitor.refer}></span>
+                                            <span slot="title" style="padding-left: 5px;">来源标题：<{visitor.refer}></span>
                                         </el-menu-item>
                                     </el-tooltip>
                                     <el-tooltip  v-for="v in visitorExtra" :content="v.val" placement="left">
                                         <el-menu-item  style="padding-left:2px;color: #666;">
-                                            <i class="gg-info"></i>
-                                            <span slot="title"><{v.key}>：<{v.val}></span>
+                                            <span slot="title" style="padding-left: 5px;"><{v.key}>：<{v.val}></span>
                                         </el-menu-item>
                                     </el-tooltip>
                                 </el-menu>

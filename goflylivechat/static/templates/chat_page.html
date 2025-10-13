@@ -22,12 +22,19 @@
         <!--客服代码-->
         <div class="chatContext chatVisitorPage">
             <div class="chatBox">
-                <el-alert
-                        style="margin:10px 0px;width: 100%"
-                        :title="chatTitle"
-                        :closable="false"
-                        type="success">
-                </el-alert>
+                    <div style="position: relative;">
+                        <el-alert
+                                style="margin:10px 0px;width: 100%"
+                                :title="chatTitle"
+                                :closable="false"
+                                type="success">
+                        </el-alert>
+                        <!-- 客服状态显示在连接状态同一行的右边 -->
+                        <div class="kefu-status" style="position: absolute; top: 8; right: 20px; z-index: 10; font-size: 12px; font-weight: bold;">
+                            <span style="color: #006b29;" v-if="showKfonline">客服在线</span>
+                            <span style="color: #6d6d6d;" v-else>客服离线</span>
+                        </div>
+                    </div>
                 <el-row :gutter="2" v-show="replys.length>0">
                     <el-col :span="3"><el-avatar shape="square" :size="36" :src="noticeAvatar"></el-avatar></el-col>
                     <el-col :span="21">
@@ -58,7 +65,11 @@
                 <div class="icono-smile visitorFaceBtn"></div>
                 <div class="icono-image visitorImageBtn" id="uploadImg" v-on:click="uploadImg('/uploadimg')"></div>
                 <div class="icono-folder visitorFolderBtn" id="uploadFile" v-on:click="uploadFile('/uploadfile')"></div>
+
+                <!--注释历史记录按钮
                 <div class="icono-comment visitorHistoryBtn"  v-on:click="getMesssagesByVisitorId(true)"></div>
+                -->
+            
                 <div class="clear"></div>
             </div>
             <el-input  @focus="textareaFocus" @blur="textareaBlur" v-model="messageContent"  @keyup.native="inputNextText" v-on:keyup.enter.native="chatToUser" :placeholder="flyLang.textarea">

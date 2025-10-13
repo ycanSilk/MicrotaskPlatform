@@ -1,4 +1,4 @@
-KEFU_ID=KEFU_ID!=""? KEFU_ID:"kefu2";
+KEFU_ID=KEFU_ID!=""? KEFU_ID:"admin";
 new Vue({
     el: '#app',
     delimiters:["<{","}>"],
@@ -338,6 +338,12 @@ new Vue({
                 //debugger;
                 _this.noticeName=res.result.username;
                 _this.noticeAvatar=res.result.avatar;
+                // 根据客服状态设置showKfonline
+                if(res.result.status=='online'){
+                    _this.showKfonline=true;
+                }else{
+                    _this.showKfonline=false;
+                }
                 if (res.result.welcome != null) {
                     let msg = res.result.welcome;
                     var len=msg.length;
@@ -404,7 +410,7 @@ new Vue({
         //心跳
         ping:function(){
             let _this=this;
-            let mes = {}
+            let mes = {};
             mes.type = "ping";
             mes.data = "visitor:"+_this.visitor.visitor_id;
             setInterval(function () {
@@ -412,6 +418,18 @@ new Vue({
                     _this.socket.send(JSON.stringify(mes));
                 }
             },10000);
+        },
+        //定时检测客服状态
+        checkKefuStatus:function(){
+            let _this=this;
+            $.get("/notice?kefu_id="+KEFU_ID,function(res) {
+                // 根据客服状态更新showKfonline
+                if(res.result.status=='online'){
+                    _this.showKfonline=true;
+                }else{
+                    _this.showKfonline=false;
+                }
+            });
         },
         //初始化
         init:function(){
@@ -630,14 +648,16 @@ new Vue({
         document.addEventListener('scroll',this.textareaBlur)
     },
     created: function () {
-        this.init();
-        this.getUserInfo();
-        //加载历史记录
-        //this.msgList=this.getHistory();
-        //滚动底部
-        //this.scrollBottom();
-        //获取欢迎
-        this.getNotice();
-        this.getAutoReply();
+            this.init();
+            this.getUserInfo();
+            //加载历史记录
+            //this.msgList=this.getHistory();
+            //滚动底部
+            //this.scrollBottom();
+            //获取欢迎
+            this.getNotice();
+            this.getAutoReply();
+            //设置定时检测客服状态，每3分钟检测一次
+            setInterval(this.checkKefuStatus.bind(this), 3 * 60 * 1000);
     }
 })

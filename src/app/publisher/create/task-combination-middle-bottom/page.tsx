@@ -564,16 +564,6 @@ export default function PublishTaskPage() {
               中评评论
             </label>
             
-            {/* AI优化评论功能按钮 */}
-            <div className="mb-4">
-              <Button 
-                onClick={handleAIMiddleCommentOptimize}
-                className="w-full py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
-              >
-                AI优化评论
-              </Button>
-            </div>
-            
             {/* 中评评论输入框 - 固定一条 */}
             <div className="mb-1 py-2 border-b border-gray-900">
               <textarea
@@ -631,23 +621,23 @@ export default function PublishTaskPage() {
                 />
               </div>
             </div>
-          </div>
-
-          {/* 下评评论模块 - 修改自原评论区域 */}
-          <div className="bg-white rounded-2xl p-4 shadow-sm overflow-y-auto">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              下评评论
-            </label>
             
-            {/* AI优化评论功能按钮 */}
-            <div className="mb-4">
+            {/* AI优化评论功能按钮 - 移动到评论容器下方 */}
+            <div className="mt-4">
               <Button 
-                onClick={handleAIBottomCommentsOptimize}
+                onClick={handleAIMiddleCommentOptimize}
                 className="w-full py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
               >
                 AI优化评论
               </Button>
             </div>
+          </div>
+
+          {/* 下评评论模块 - 修改自原评论区域 */}
+          <div className="bg-white rounded-2xl p-4 shadow-sm overflow-y-auto h-[600px]">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              下评评论
+            </label>
             
             {/* 动态生成下评评论输入框 */}
             {formData.bottomComments.map((comment, index) => {
@@ -672,7 +662,7 @@ export default function PublishTaskPage() {
                   <div className="mt-1">
                     <div className="flex items-end space-x-3">
                       <div 
-                        className={`w-20 h-20 border-2 border-dashed rounded-lg flex flex-col items-center justify-center cursor-pointer transition-all ${comment.image ? 'border-green-500' : 'border-gray-300 hover:border-blue-500'}`}
+                          className={`w-20 h-20 border-2 border-dashed rounded-lg flex flex-col items-center justify-center cursor-pointer transition-all ${comment.image ? 'border-green-500' : 'border-gray-300 hover:border-blue-500'}`}
                         onClick={() => document.getElementById(`bottom-image-upload-${index}`)?.click()}
                       >
                         {comment.image ? (
@@ -715,6 +705,16 @@ export default function PublishTaskPage() {
                 </div>
               );
             })}
+            
+            {/* AI优化评论功能按钮 - 移动到评论容器下方 */}
+            <div className="mt-4">
+              <Button 
+                onClick={handleAIBottomCommentsOptimize}
+                className="w-full py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
+              >
+                AI优化评论
+              </Button>
+            </div>
           </div>
 
         {/* @用户标记 */}
@@ -772,9 +772,8 @@ export default function PublishTaskPage() {
               <div className="flex-1">
                 <Input
                   type="number"
-                  min="1"
                   value={formData.bottomQuantity.toString()}
-                  onChange={(e) => handleBottomQuantityChange(parseInt(e.target.value) || 1)}
+                  onChange={(e) => handleBottomQuantityChange(parseInt(e.target.value) || 0)}
                   className="w-full text-2xl font-bold text-gray-900 text-center py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>

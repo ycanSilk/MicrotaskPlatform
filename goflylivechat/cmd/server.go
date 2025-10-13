@@ -17,6 +17,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 )
 
 var (
@@ -70,7 +71,27 @@ func run() {
 	if common.IsCompireTemplate {
 		templ := template.Must(template.New("").ParseFS(static.TemplatesEmbed, "templates/*.html"))
 		engine.SetHTMLTemplate(templ)
-		engine.StaticFS("/static", http.FS(static.JsEmbed))
+		
+		// 统一处理所有静态文件请求
+		engine.GET("/static/*filepath", func(c *gin.Context) {
+			// 获取文件路径
+			path := c.Param("filepath")
+			if len(path) > 0 && path[0] == '/' {
+				path = path[1:]
+			}
+			
+			// 检查是否是upload目录的请求
+			if strings.HasPrefix(path, "upload/") {
+				// 对于upload目录，使用物理文件系统
+				physicalPath := "./static/upload/" + strings.TrimPrefix(path, "upload/")
+				c.File(physicalPath)
+			} else {
+				// 对于其他静态文件，使用嵌入文件系统
+				c.FileFromFS(path, http.FS(static.JsEmbed))
+			}
+		})
+		
+		// 为assets路径使用嵌入文件系统
 		engine.StaticFS("/assets", http.FS(static.JsEmbed))
 	} else {
 		engine.LoadHTMLGlob("static/templates/*")

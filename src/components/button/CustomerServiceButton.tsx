@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { CustomerServiceOutlined } from '@ant-design/icons';
 
 
@@ -17,9 +17,10 @@ export const CustomerServiceButton: React.FC<CustomerServiceButtonProps> = ({
   buttonText = '客服',
   modalTitle = '联系客服',
   userId = 'admin',
-  chatUrl = 'http://localhost:8081/livechat'
+  chatUrl = 'http://localhost:8081/chatIndex?kefu_id=admin'
 }) => {
   const [isChatModalOpen, setIsChatModalOpen] = useState(false);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
 
   // 打开客服聊天模态框
   const openChatModal = () => {
@@ -32,7 +33,7 @@ export const CustomerServiceButton: React.FC<CustomerServiceButtonProps> = ({
   };
 
   // 构建完整的聊天URL
-  const fullChatUrl = `${chatUrl}?user_id=${userId}`;
+  const fullChatUrl = `http://localhost:8081/chatIndex?kefu_id=${userId}`;
 
   return (
     <>
@@ -62,10 +63,13 @@ export const CustomerServiceButton: React.FC<CustomerServiceButtonProps> = ({
               </button>
             </div>
             <div className="flex-1 overflow-hidden">
-              <iframe 
+              {/* 使用iframe直接加载聊天页面 */}
+              <iframe
+                ref={iframeRef}
                 src={fullChatUrl}
                 className="w-full h-full border-0"
                 title="客服聊天窗口"
+                allowFullScreen
               />
             </div>
           </div>
@@ -73,4 +77,6 @@ export const CustomerServiceButton: React.FC<CustomerServiceButtonProps> = ({
       )}
     </>
   );
+
+  // 使用iframe直接加载聊天页面，不再需要useEffect动态加载脚本
 };

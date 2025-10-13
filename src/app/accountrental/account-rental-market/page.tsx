@@ -14,35 +14,7 @@ import { Label } from '@/components/ui/Label';
 import { useInfiniteScroll } from '@/hooks/useInfiniteScroll';
 import AccountCard from '../components/AccountCard';
 import AccountRentalLayout from '../layout';
-// 账号租赁信息接口定义
-interface AccountRentalInfo {
-  id: string;
-  platform: string;
-  platformIcon: React.ReactNode;
-  accountTitle: string;
-  followersRange: string;
-  engagementRate: string;
-  contentCategory: string;
-  region: string;
-  accountAge: string;
-  accountScore: number;
-  price: number;
-  rentalDuration: number;
-  minimumRentalHours: number;
-  deliveryTime: number;
-  maxConcurrentUsers: number;
-  responseTime: number;
-  includedFeatures: string[];
-  description: string;
-  advantages: string[];
-  restrictions: string[];
-  isVerified?: boolean;
-  rating?: number;
-  rentalCount?: number;
-  availableCount?: number;
-  publishTime?: string;
-  status: 'active' | 'inactive' | 'pending';
-}
+import { AccountRentalInfo } from '../types';
 
 // 筛选选项常量集合
 const FILTER_OPTIONS = {
@@ -65,6 +37,15 @@ const FILTER_OPTIONS = {
     { value: '50-100', label: '50-100元' },
     { value: '100-200', label: '100-200元' },
     { value: '200+', label: '200元以上' }
+  ],
+  category: [
+    { value: 'all', label: '分类' },
+    { value: 'food', label: '美食' },
+    { value: 'travel', label: '旅游' },
+    { value: 'fashion', label: '时尚' },
+    { value: 'beauty', label: '美妆' },
+    { value: 'fitness', label: '健身' },
+    { value: 'technology', label: '科技' }
   ]
 };
 
@@ -107,7 +88,9 @@ const MOCK_ACCOUNT_DATA: AccountRentalInfo[] = [
     description: '专注于美食探店内容，有稳定的粉丝群体和良好的互动率',
     advantages: ['粉丝活跃度高', '内容质量优', '响应速度快'],
     restrictions: ['禁止发布违法内容', '禁止更改账号设置'],
-    status: 'active'
+    status: 'active',
+    images: ['https://example.com/food1.jpg', 'https://example.com/food2.jpg'],
+    publisherName: '美食达人'
   },
   {
     id: 'acc-002',
@@ -132,7 +115,9 @@ const MOCK_ACCOUNT_DATA: AccountRentalInfo[] = [
     description: '专注于时尚搭配内容，拥有专业的搭配团队和丰富的时尚资源',
     advantages: ['内容多样化', '粉丝粘性强', '账号信用好'],
     restrictions: ['禁止发布违法内容', '禁止批量删除内容'],
-    status: 'active'
+    status: 'active',
+    images: ['https://example.com/fashion1.jpg'],
+    publisherName: '时尚工作室'
   },
   {
     id: 'acc-003',
@@ -157,7 +142,9 @@ const MOCK_ACCOUNT_DATA: AccountRentalInfo[] = [
     description: '专注于科技产品评测，提供专业的产品使用体验和评价',
     advantages: ['专业性强', '粉丝精准度高', '更新频率稳定'],
     restrictions: ['禁止发布虚假评测', '禁止更改账号设置'],
-    status: 'active'
+    status: 'active',
+    images: ['https://example.com/tech1.jpg', 'https://example.com/tech2.jpg'],
+    publisherName: '科技评测室'
   },
   {
     id: 'acc-004',
@@ -182,7 +169,9 @@ const MOCK_ACCOUNT_DATA: AccountRentalInfo[] = [
     description: '专注于旅行攻略分享，覆盖国内外热门旅游目的地',
     advantages: ['粉丝基数大', '内容质量高', '品牌合作经验丰富'],
     restrictions: ['禁止发布虚假攻略', '禁止更改账号设置', '禁止删除历史内容'],
-    status: 'active'
+    status: 'active',
+    images: ['https://example.com/travel1.jpg'],
+    publisherName: '旅行家'
   },
   {
     id: 'acc-005',
@@ -207,7 +196,9 @@ const MOCK_ACCOUNT_DATA: AccountRentalInfo[] = [
     description: '专注于美妆教程，提供详细的妆容教程和产品推荐',
     advantages: ['互动率高', '粉丝粘性强', '内容实用性强'],
     restrictions: ['禁止发布虚假推荐', '禁止更改账号设置'],
-    status: 'active'
+    status: 'active',
+    images: ['https://example.com/beauty1.jpg', 'https://example.com/beauty2.jpg'],
+    publisherName: '美妆博主'
   },
   {
     id: 'acc-006',
@@ -232,7 +223,9 @@ const MOCK_ACCOUNT_DATA: AccountRentalInfo[] = [
     description: '专注于健身指导，提供专业的健身计划和营养建议',
     advantages: ['专业性强', '粉丝忠诚度高', '内容实用'],
     restrictions: ['禁止发布虚假指导', '禁止更改账号设置'],
-    status: 'active'
+    status: 'active',
+    images: ['https://example.com/fitness1.jpg'],
+    publisherName: '健身教练'
   }
 ];
 
@@ -257,6 +250,7 @@ export default function AccountRentalMarketPage({ searchParams }: { searchParams
   // 其他状态和逻辑保持不变
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedPlatform, setSelectedPlatform] = useState('all');
+  const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedFollowersRange, setSelectedFollowersRange] = useState('all');
   const [selectedSort, setSelectedSort] = useState('time_desc');
   const [priceSort, setPriceSort] = useState('all');
@@ -315,7 +309,7 @@ export default function AccountRentalMarketPage({ searchParams }: { searchParams
   useEffect(() => {
     setPage(1);
     setDisplayedAccounts([]);
-  }, [searchTerm, selectedPlatform, selectedFollowersRange, selectedSort, publishTime, priceFilter]);
+  }, [searchTerm, selectedPlatform, selectedCategory, selectedFollowersRange, selectedSort, publishTime, priceFilter]);
 
   // 获取分类名称 - 用于搜索筛选
   const getCategoryName = (category: string): string => {
@@ -350,6 +344,11 @@ export default function AccountRentalMarketPage({ searchParams }: { searchParams
     // 平台筛选
     if (selectedPlatform !== 'all') {
       result = result.filter(account => account.platform === selectedPlatform);
+    }
+
+    // 分类筛选
+    if (selectedCategory !== 'all') {
+      result = result.filter(account => account.contentCategory === selectedCategory);
     }
 
     // 粉丝数筛选
@@ -523,11 +522,12 @@ export default function AccountRentalMarketPage({ searchParams }: { searchParams
             <div className="py-2">
               <div className="flex items-center space-x-0">
                 {/* 筛选选项组件 - 优化移动端选择器 */}
-                {[
-                  { value: publishTime, onChange: setPublishTime, options: FILTER_OPTIONS.publishTime },
-                  { value: selectedPlatform, onChange: setSelectedPlatform, options: FILTER_OPTIONS.platform },
-                  { value: priceFilter, onChange: setPriceFilter, options: FILTER_OPTIONS.priceFilter }
-                ].map((filter, index) => (
+                {
+                  [
+                    { value: publishTime, onChange: setPublishTime, options: FILTER_OPTIONS.publishTime },
+                    { value: selectedPlatform, onChange: setSelectedPlatform, options: FILTER_OPTIONS.platform },
+                    { value: selectedCategory, onChange: setSelectedCategory, options: FILTER_OPTIONS.category }
+                  ].map((filter, index) => (
                   <div key={index} className="relative flex-1">
                     <select
                       value={filter.value}

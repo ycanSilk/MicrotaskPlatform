@@ -73,34 +73,7 @@ const utils = {
 
 // 定义账号卡片属性接口
 interface AccountCardProps {
-  account: {
-    id: string;
-    platform: string;
-    platformIcon: React.ReactNode;
-    accountTitle: string;
-    followersRange: string;
-    engagementRate: string;
-    contentCategory: string;
-    region: string;
-    accountAge: string;
-    accountScore: number;
-    price: number;
-    rentalDuration: number;
-    minimumRentalHours: number;
-    deliveryTime: number;
-    maxConcurrentUsers?: number;
-    responseTime: number;
-    includedFeatures: string[];
-    description: string;
-    advantages: string[];
-    restrictions: string[];
-    isVerified?: boolean;
-    rating?: number;
-    rentalCount?: number;
-    availableCount?: number;
-    publishTime?: string;
-    status: 'active' | 'inactive' | 'pending';
-  };
+  account: AccountRentalInfo;
   onAccountClick: (accountId: string) => void;
   onRentNow: (accountId: string) => void;
 }
