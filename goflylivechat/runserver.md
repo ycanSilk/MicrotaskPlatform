@@ -86,24 +86,30 @@ go build -o go-fly.exe
 
 
 Ubuntu系统安装依赖构建项目并启动：
-设置go代理：
+
+1. 下载发行版本，和windows的操作一样
+
+2. 设置go代理：
+```shell
 go env -w GO111MODULE=on
    
 go env -w GOPROXY=https://goproxy.cn,direct
+```
 
-安装依赖：go mod tidy
+3. 安装依赖：go mod tidy
 
-构建：go build go-fly.go
+4. 构建二进制文件运行：go build go-fly.go
 
-启动：go run go-fly.go server
+5. 调试启动：go run go-fly.go server
 
-5. 二进制文件运行
- 
-   linux:   ./go-fly server [可选 -p 8082 -d]
-
-6. 关闭程序
-   ./go-fly stop  
-
+6. 二进制文件运行
+```shell
+./go-fly server [可选 -p 8082 -d]
+```
+7. 关闭程序
+```shell
+./go-fly stop  
+```
    linux下使用ps命令结合kill命令杀掉进程
    
    ps -ef|grep go-fly 看到父子进程id
