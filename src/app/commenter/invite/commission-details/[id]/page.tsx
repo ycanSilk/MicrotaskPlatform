@@ -248,7 +248,7 @@ const CommissionDetailsPage = () => {
             <ul className="list-disc pl-5 space-y-2 text-sm text-gray-700">
               <li>所有佣金将在任务完成并审核通过后自动发放</li>
               <li>不同类型的任务可能有不同的佣金比例</li>
-              <li>邀请新用户注册可获得固定注册奖励</li>
+              <li>邀请新用户,指导新用户完成首个100元提现，可获得10元系统奖励</li>
               <li>邀请的用户完成任务，您将获得相应比例的佣金</li>
               <li>团队奖励根据您团队的整体业绩计算</li>
             </ul>

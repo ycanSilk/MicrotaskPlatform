@@ -556,9 +556,9 @@ const PublishedAccountsPage = () => {
               
               // 模拟商品图片
               const productImages = {
-                'douyin': 'https://placehold.co/100x100/e5e7eb/1f2937?text=抖音',
-                'xiaohongshu': 'https://placehold.co/100x100/e5e7eb/1f2937?text=小红书',
-                'kuaishou': 'https://placehold.co/100x100/e5e7eb/1f2937?text=快手'
+                'douyin': '/images/douyin-logo.png',
+                'xiaohongshu': '/images/xiaohongshu-logo.png',
+                'kuaishou': '/images/kuaishou-logo.png'
               };
               
               return (

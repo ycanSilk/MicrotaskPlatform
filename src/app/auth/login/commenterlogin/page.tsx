@@ -172,96 +172,56 @@ export default function CommenterLoginPage() {
     // 重置错误信息
     setErrorMessage('');
     
-    // 全面验证表单
-    if (!validateForm()) {
-      setErrorMessage('请检查输入的信息');
-      return;
-    }
-    
+    // 临时登录逻辑：跳过验证，直接模拟成功
     setIsLoading(true);
-    setErrorMessage('');
-    setResponseTime(null);
     
-    const startTime = Date.now();
-    // 前端只调用本地后端API
-    const apiUrl = '/api/auth/login';
-    const requestData = {
-        method: 'POST',
-        headers: {
-          'accept': '*/*',
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          username: formData.username,
-          password: formData.password
-        })
+    try {
+      // 模拟网络延迟
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // 先清除所有其他角色的认证信息
+      clearAllAuth();
+      
+      // 模拟生成认证信息
+      const mockToken = 'mock_token_' + Date.now();
+      const mockUserInfo = {
+        username: formData.username || 'testkf1',
+        id: '1',
+        role: 'commenter' as const,
+        balance: 0,
+        status: 'active' as const, // 使用常量断言确保类型匹配联合类型
+        createdAt: new Date().toISOString()
       };
       
-      // 记录请求信息
-      setRequestInfo({
-        url: apiUrl,
-        method: 'POST',
-        params: formData,
-        timestamp: new Date().toLocaleString('zh-CN')
+      // 保存认证信息到本地存储
+      CommenterAuthStorage.saveAuth({
+        token: mockToken,
+        user: mockUserInfo,
+        expiresAt: Date.now() + 24 * 60 * 60 * 1000 // 默认24小时后过期
       });
       
-      try {
-        // 调用本地后端API
-        const result = await fetch(apiUrl, requestData);
-        const endTime = Date.now();
-        setResponseTime(endTime - startTime);
-
-        const apiResponse = await result.json();
-        
-        // 根据后端LoginResponse格式处理响应
-        if (apiResponse.code !== 200 || !result.ok) {
-          setErrorMessage(apiResponse.message || '登录失败');
-          refreshCaptcha();
-          return;
-        } else if (apiResponse.data && apiResponse.data.token) {
-          const responseData = apiResponse.data;
-          
-          // 先清除所有其他角色的认证信息，确保只有评论员角色有效
-          clearAllAuth();
-          
-          // 保存认证信息到本地存储
-          CommenterAuthStorage.saveAuth({
-            token: responseData.token,
-            user: responseData.userInfo,
-            expiresAt: Date.now() + (responseData.expiresIn || 24 * 60 * 60 * 1000) // 默认24小时后过期
-          });
-          
-          // 保存token到本地缓存
-          if (responseData.token) {
-            const tokenData = {
-              token: responseData.token,
-              tokenType: responseData.tokenType || 'Bearer',
-              expiresIn: responseData.expiresIn || 3600,
-              timestamp: Date.now(),
-              expiresAt: Date.now() + (responseData.expiresIn || 3600) * 1000
-            };
-            
-            // 使用localStorage缓存token
-            if (typeof window !== 'undefined') {
-            localStorage.setItem('commenterAuthToken', JSON.stringify(tokenData));
-          }
-        }
-        
-        // 设置成功消息并显示模态框
-        setLoginSuccessMessage(`登录成功！欢迎 ${responseData.userInfo.username}`);
-        setShowSuccessModal(true);
-        } else {
-          setErrorMessage('登录失败：未获取到有效的用户信息');
-          refreshCaptcha();
-        }
+      // 保存token到本地缓存
+      if (typeof window !== 'undefined') {
+        const tokenData = {
+          token: mockToken,
+          tokenType: 'Bearer',
+          expiresIn: 3600,
+          timestamp: Date.now(),
+          expiresAt: Date.now() + 3600 * 1000
+        };
+        localStorage.setItem('commenterAuthToken', JSON.stringify(tokenData));
+      }
+      
+      // 设置成功消息并显示模态框
+      setLoginSuccessMessage(`登录成功！欢迎 ${mockUserInfo.username}`);
+      setShowSuccessModal(true);
     } catch (error) {
-      // 提供更具体的错误信息
+      // 提供错误信息
       if (error instanceof Error) {
         setErrorMessage(error.message);
       } else {
         setErrorMessage('登录过程中出现错误，请稍后再试');
       }
-      refreshCaptcha();
     } finally {
       setIsLoading(false);
     }

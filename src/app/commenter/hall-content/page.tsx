@@ -9,7 +9,19 @@ export default function CommenterHallContentPage() {
   const [sortBy, setSortBy] = useState('time'); // 'time' | 'price'
   const [sortOrder, setSortOrder] = useState('desc'); // 'asc' | 'desc'
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [tasks, setTasks] = useState([]);
+  // 任务接口定义
+  interface Task {
+    id: string;
+    title: string;
+    price: number;
+    requirements: string;
+    publishTime: string;
+    progress: number;
+    badge?: string | null;
+    badgeColor?: string;
+  }
+
+  const [tasks, setTasks] = useState<Task[]>([]);
   const [grabbingTasks, setGrabbingTasks] = useState(new Set()); // 正在抢单的任务ID
   const [lastUpdated, setLastUpdated] = useState(new Date());
   
@@ -65,79 +77,70 @@ export default function CommenterHallContentPage() {
     return sorted;
   };
   
-  // 从API获取待领取订单
+  // 静态任务数据
+  const staticTasks = [
+    {
+      id: '1',
+      title: '小红书产品评论任务',
+      price: 5.50,
+      requirements: '评论需包含产品使用体验，字数不少于50字，配图1张',
+      publishTime: new Date(Date.now() - 1000 * 60 * 5).toISOString(),
+      progress: 25
+    },
+    {
+      id: '2',
+      title: '抖音短视频点赞评论',
+      price: 3.00,
+      requirements: '点赞并评论视频，评论需正面积极，不少于20字',
+      publishTime: new Date(Date.now() - 1000 * 60 * 15).toISOString(),
+      progress: 40
+    },
+    {
+      id: '3',
+      title: '快手内容分享任务',
+      price: 4.20,
+      requirements: '分享内容到个人主页并评论，评论需原创，不少于30字',
+      publishTime: new Date(Date.now() - 1000 * 60 * 2).toISOString(),
+      progress: 10
+    },
+    {
+      id: '4',
+      title: '小红书种草笔记评论',
+      price: 6.00,
+      requirements: '针对种草笔记撰写真实体验评论，字数不少于100字',
+      publishTime: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
+      progress: 60
+    },
+    {
+      id: '5',
+      title: '抖音直播点赞互动',
+      price: 2.50,
+      requirements: '观看直播5分钟并进行点赞和评论互动',
+      publishTime: new Date(Date.now() - 1000 * 60 * 8).toISOString(),
+      progress: 35
+    }
+  ];
+
+  // 从API获取待领取订单 - 暂停登录验证，直接使用静态数据
   const fetchAvailableTasks = async () => {
     try {
-      const user = CommenterAuthStorage.getCurrentUser();
-      if (!user) {
-        // 如果未登录，显示空列表并提示登录
-        console.log('未登录，无法获取订单');
-        setTasks([]);
-        setLastUpdated(new Date());
-        if (!window.sessionStorage.getItem('loginHintShown')) {
-          alert('请先登录以获取待领取订单');
-          window.sessionStorage.setItem('loginHintShown', 'true');
-        }
-        return;
-      }
-
-      // 检查用户角色是否为评论员
-      if (user.role !== 'commenter') {
-        // 如果不是评论员角色，显示空列表并提示
-        console.log('非评论员角色，无法获取订单');
-        setTasks([]);
-        setLastUpdated(new Date());
-        // 仅提示一次，避免重复弹窗
-        if (!window.sessionStorage.getItem('roleHintShown')) {
-          alert('您不是评论员角色，无法获取待领取订单');
-          window.sessionStorage.setItem('roleHintShown', 'true');
-        }
-        return;
-      }
-
-      // 获取认证信息以获取token
-      const auth = CommenterAuthStorage.getAuth();
-      if (!auth || !auth.token) {
-        console.error('无法获取认证token');
-        alert('认证信息无效，请重新登录');
-        return;
-      }
-
-      console.log('调用API获取订单，使用token:', auth.token.substring(0, 20) + '...');
+      console.log('使用静态数据展示任务列表');
       
-      const response = await fetch('/api/commenter/available-orders', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${auth.token}`
-        }
-      });
-
-      console.log('API响应状态:', response.status);
+      // 模拟网络延迟
+      await new Promise(resolve => setTimeout(resolve, 300));
       
-      const data = await response.json();
-      console.log('API响应数据:', data);
+      // 为每个静态任务添加显示信息
+      const formattedTasks = staticTasks.map((task: any) => ({
+        ...task,
+        badge: typeof task.price === 'number' && task.price >= 5 ? '高价' : typeof task.progress === 'number' && task.progress < 30 ? '新' : null,
+        badgeColor: typeof task.price === 'number' && task.price >= 5 ? 'bg-green-500' : typeof task.progress === 'number' && task.progress < 30 ? 'bg-orange-500' : ''
+      }));
       
-      if (data.success) {
-        // 为每个任务添加一些额外的显示信息
-        const formattedTasks = data.data.map((task: any) => ({
-          ...task,
-          badge: typeof task.price === 'number' && task.price >= 5 ? '高价' : typeof task.progress === 'number' && task.progress < 30 ? '新' : null,
-          badgeColor: typeof task.price === 'number' && task.price >= 5 ? 'bg-green-500' : typeof task.progress === 'number' && task.progress < 30 ? 'bg-orange-500' : ''
-        }));
-        setTasks(formattedTasks);
-        setLastUpdated(new Date());
-      } else {
-        let errorMessage = data.message || '获取订单失败';
-        // 根据不同的错误状态码提供更具体的提示
-        if (response.status === 401) {
-          errorMessage = '您没有权限访问此功能，请以评论员身份登录';
-        }
-        showAlert('获取订单失败', errorMessage, 'error');
-      }
+      setTasks(formattedTasks);
+      setLastUpdated(new Date());
     } catch (error) {
-      console.error('获取订单错误:', error);
-      showAlert('网络错误', '获取订单时发生错误，请检查网络连接或稍后再试', 'error');
+      console.error('展示静态数据时出错:', error);
+      showAlert('错误', '加载任务列表时发生错误', 'error');
     }
   };
 
@@ -148,7 +151,7 @@ export default function CommenterHallContentPage() {
     setIsRefreshing(false);
   };
 
-  // 抢单功能
+  // 抢单功能 - 暂停API调用，仅显示模拟成功消息
   const handleGrabTask = async (taskId: string) => {
     // 检查是否处于冷却状态
     if (coolingDown) {
@@ -171,55 +174,28 @@ export default function CommenterHallContentPage() {
         return;
       }
 
-      // 获取认证信息以获取token
-      const auth = CommenterAuthStorage.getAuth();
-      if (!auth || !auth.token) {
-        console.error('无法获取认证token');
-        showAlert('认证错误', '认证信息无效，请重新登录', 'error');
-        return;
-      }
-
       setGrabbingTasks(prev => new Set(prev).add(taskId));
 
-      console.log('调用抢单API，使用token:', auth.token.substring(0, 20) + '...');
+      // 模拟网络延迟
+      await new Promise(resolve => setTimeout(resolve, 500));
       
-      const response = await fetch('/api/commenter/available-orders', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${auth.token}`
-        },
-        body: JSON.stringify({ taskId, userId: user.id })
-      });
-
-      console.log('抢单API响应状态:', response.status);
+      console.log('模拟抢单成功');
       
-      const data = await response.json();
-      console.log('抢单API响应数据:', data);
+      // 模拟成功响应
+      showAlert('抢单成功', '您已成功抢到该任务，可以在我的任务中查看', 'success');
       
-      if (data.success) {
-        showAlert('抢单成功', data.message, 'success');
-        
-        // 设置10分钟冷却时间
-        const tenMinutesInMs = 10 * 60 * 1000;
-        const endTime = Date.now() + tenMinutesInMs;
-        setCoolingDown(true);
-        setCoolingEndTime(endTime);
-        
-        // 抢单成功后立即刷新列表
-        await fetchAvailableTasks();
-        
-      } else {
-        let errorMessage = data.message || '抢单失败';
-        // 根据不同的错误状态码提供更具体的提示
-        if (response.status === 401) {
-          errorMessage = '您没有权限抢单，请以评论员身份登录';
-        }
-        showAlert('抢单失败', errorMessage, 'error');
-      }
+      // 设置10分钟冷却时间
+      const tenMinutesInMs = 10 * 60 * 1000;
+      const endTime = Date.now() + tenMinutesInMs;
+      setCoolingDown(true);
+      setCoolingEndTime(endTime);
+      
+      // 抢单成功后立即刷新列表
+      await fetchAvailableTasks();
+      
     } catch (error) {
-      console.error('抢单错误:', error);
-      showAlert('网络错误', '抢单时发生错误，请检查网络连接或稍后再试', 'error');
+      console.error('模拟抢单错误:', error);
+      showAlert('错误', '模拟抢单时发生错误', 'error');
     } finally {
       setGrabbingTasks(prev => {
         const newSet = new Set(prev);

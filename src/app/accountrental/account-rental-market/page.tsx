@@ -89,7 +89,7 @@ const MOCK_ACCOUNT_DATA: AccountRentalInfo[] = [
     advantages: ['粉丝活跃度高', '内容质量优', '响应速度快'],
     restrictions: ['禁止发布违法内容', '禁止更改账号设置'],
     status: 'active',
-    images: ['https://example.com/food1.jpg', 'https://example.com/food2.jpg'],
+    images: ['/images/1758380776810_96.jpg', '/images/1758380782226_96.jpg'],
     publisherName: '美食达人'
   },
   {
@@ -116,7 +116,7 @@ const MOCK_ACCOUNT_DATA: AccountRentalInfo[] = [
     advantages: ['内容多样化', '粉丝粘性强', '账号信用好'],
     restrictions: ['禁止发布违法内容', '禁止批量删除内容'],
     status: 'active',
-    images: ['https://example.com/fashion1.jpg'],
+    images: ['/images/1758380804222_96.jpg'],
     publisherName: '时尚工作室'
   },
   {
@@ -143,7 +143,7 @@ const MOCK_ACCOUNT_DATA: AccountRentalInfo[] = [
     advantages: ['专业性强', '粉丝精准度高', '更新频率稳定'],
     restrictions: ['禁止发布虚假评测', '禁止更改账号设置'],
     status: 'active',
-    images: ['https://example.com/tech1.jpg', 'https://example.com/tech2.jpg'],
+    images: ['/images/1758380820444_96.jpg', '/images/1758380826850_96.jpg'],
     publisherName: '科技评测室'
   },
   {
@@ -170,7 +170,7 @@ const MOCK_ACCOUNT_DATA: AccountRentalInfo[] = [
     advantages: ['粉丝基数大', '内容质量高', '品牌合作经验丰富'],
     restrictions: ['禁止发布虚假攻略', '禁止更改账号设置', '禁止删除历史内容'],
     status: 'active',
-    images: ['https://example.com/travel1.jpg'],
+    images: ['/images/1758380844666_96.jpg'],
     publisherName: '旅行家'
   },
   {
@@ -197,7 +197,7 @@ const MOCK_ACCOUNT_DATA: AccountRentalInfo[] = [
     advantages: ['互动率高', '粉丝粘性强', '内容实用性强'],
     restrictions: ['禁止发布虚假推荐', '禁止更改账号设置'],
     status: 'active',
-    images: ['https://example.com/beauty1.jpg', 'https://example.com/beauty2.jpg'],
+    images: ['/images/1758380864888_96.jpg', '/images/1758380870294_96.jpg'],
     publisherName: '美妆博主'
   },
   {
@@ -224,7 +224,7 @@ const MOCK_ACCOUNT_DATA: AccountRentalInfo[] = [
     advantages: ['专业性强', '粉丝忠诚度高', '内容实用'],
     restrictions: ['禁止发布虚假指导', '禁止更改账号设置'],
     status: 'active',
-    images: ['https://example.com/fitness1.jpg'],
+    images: ['/images/1758380884000_96.jpg'],
     publisherName: '健身教练'
   }
 ];

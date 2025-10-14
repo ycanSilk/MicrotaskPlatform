@@ -310,8 +310,8 @@ const InvitePage = () => {
           <div className="bg-white rounded-lg shadow-sm p-4">
             <h3 className="font-bold text-gray-800 mb-3">邀请奖励规则</h3>
             <div className="text-sm text-gray-600 space-y-2">
-              <div>1. 邀请新用户注册并完成首次任务，奖励20元现金</div>
-              <div>2. 被邀请用户每完成一个任务，邀请者获得该任务收益10%的佣金</div>
+              <div>1. 邀请新用户,指导新用户完成首个100元提现，可获得10元系统奖励</div>
+              <div>2. 被邀请用户每完成一个任务，邀请者获得该任务收益5%的佣金</div>
               <div>3. 邀请者可获得被邀请用户长期的任务佣金，无时间限制</div>
               <div>4. 邀请人数达到一定规模，可额外获得团队奖励</div>
               <div>5. 所有奖励实时到账，可随时提现</div>

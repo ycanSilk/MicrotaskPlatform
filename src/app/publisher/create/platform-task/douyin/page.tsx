@@ -12,7 +12,7 @@ const TASK_TYPES = [
     icon: '⭐',
     price: 3.0,
     description: '真人账号发布高质量评论',
-    requirements: '评论内容真实有效，真人评论，包含表情符号',
+    requirements: '真人评论，评论内容真实有效。',
     estimatedTime: '5分钟',
     difficulty: '中等'
   },
@@ -22,7 +22,7 @@ const TASK_TYPES = [
     icon: '💬',
     price: 2.0,
     description: '真人账号发布高质量评论',
-    requirements: '评论内容真实有效，真人评论，包含表情符号',
+    requirements: '真人评论，评论内容真实有效。',
     estimatedTime: '3分钟',
     difficulty: '简单'
   },
@@ -31,8 +31,8 @@ const TASK_TYPES = [
     title: '上中评评论',
     icon: '🌟',
     price: 9.0,
-    description: '组合评论 - 1条上评评论 + 中评评论（数量可自定义选择，且支持@功能）',
-    requirements: '评论内容真实有效，真人评论，上评完成后需提交链接作为结算条件',
+    description: '组合评论 - 1条上评评论 + 3条中评评论（数量可自定义选择，支持@功能）',
+    requirements: '真人评论，评论内容真实有效。上评完成后需提交链接作为结算条件。',
     estimatedTime: '10分钟',
     difficulty: '中等'
   },
@@ -41,8 +41,8 @@ const TASK_TYPES = [
     title: '中下评评论',
     icon: '🌓',
     price: 6.0,
-    description: '组合评论 - 1条中评评论 + 2条下评评论（其中1条带@功能）',
-    requirements: '评论内容真实有效，真人评论，按照顺序完成任务',
+    description: '组合评论 - 1条中评评论 + 2条下评评论（支持@功能）',
+    requirements: '真人评论，评论内容真实有效。下评完成后需提交链接作为结算条件。',
     estimatedTime: '8分钟',
     difficulty: '中等'
   },
@@ -51,11 +51,10 @@ const TASK_TYPES = [
     title: '放大镜搜索词',
     icon: '🔍',
     price: 5.0,
-    description: '在指定视频页面的搜索框中搜索指定关键词，100次搜索',
+    description: '抖音平台规则原因，本产品属于概率出放大镜，搜索词搜索次数越多，出现概率越大',
     requirements: '在视频页面右上角搜索框中搜索指定内容，重复执行100次搜索操作',
     estimatedTime: '15分钟',
     difficulty: '特殊',
-    roleType: '客服/管理员专享'
   }
 ];
 

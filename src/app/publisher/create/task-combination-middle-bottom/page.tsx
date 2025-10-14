@@ -722,7 +722,7 @@ export default function PublishTaskPage() {
           <label className="block text-sm font-medium text-gray-700 mb-2">
             @用户标记
           </label>
-          <span className="text-sm text-red-500">*@用户昵称请使用抖音唯一名字，如有相同名字请截图发送给评论员识别，否则会造成不便和结算纠纷</span>
+          <span className="text-sm text-red-500">@用户昵称 请使用抖音唯一名字，如有相同名字请截图发送给评论员识别，否则会造成不便和结算纠纷</span>
           <div className="space-y-3">
             <Input
               placeholder="输入用户ID或昵称（仅支持字母、数字、下划线和中文）"

@@ -257,7 +257,7 @@ export default function PublishSearchKeywordTaskPage() {
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
       {/* 页面头部 */}
-      <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-4 py-6">
+      <div className="bg-blue-500 text-white px-4 py-6">
         <div className="flex mb-4 items-center justify-center p-3 bg-white rounded-xl shadow-sm border border-gray-100 w-20 hover:shadow-md transition-all">
           <button 
             onClick={() => router.back()}
@@ -281,11 +281,8 @@ export default function PublishSearchKeywordTaskPage() {
               <p className="text-blue-100 text-sm">单价: ¥{taskPrice}/100次搜索</p>
             </div>
           </div>
-          <p className="text-blue-100 text-sm">{taskDescription}</p>
-          <p className="text-blue-100 text-sm mt-2">
-            任务要求：在指定的视频链接所对应的视频页面中，通过右上角的搜索框搜索订单指定的搜索内容，并重复执行搜索操作100次。
-          </p>
-          <p className="text-red-500 text-sm mt-2">*提示：该项功能为概率出放大镜，不退单，若用户未在规定时间内完成任务，系统将自动取消任务。</p>
+          <p className="text-red-700 text-sm mt-2">*提示：该项功能为概率出放大镜，不退单，若用户未在规定时间内完成任务，系统将自动取消任务。</p>
+          <p className="text-red-700 text-sm mt-2">*提示：抖音平台规则原因，本产品属于概率出放大镜，搜索词搜索次数越多，出现概率越大。</p>
         </div>
       </div>
 
