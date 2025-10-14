@@ -83,3 +83,29 @@ go build -o go-fly.exe
 密码：123
 ```
 5. 登录成功后，即可进入到客服端管理界面。
+
+
+Ubuntu系统安装依赖构建项目并启动：
+设置go代理：
+go env -w GO111MODULE=on
+   
+go env -w GOPROXY=https://goproxy.cn,direct
+
+安装依赖：go mod tidy
+
+构建：go build go-fly.go
+
+启动：go run go-fly.go server
+
+5. 二进制文件运行
+ 
+   linux:   ./go-fly server [可选 -p 8082 -d]
+
+6. 关闭程序
+   ./go-fly stop  
+
+   linux下使用ps命令结合kill命令杀掉进程
+   
+   ps -ef|grep go-fly 看到父子进程id
+   
+   kill 进程父进程id ； kill 进程子进程id
