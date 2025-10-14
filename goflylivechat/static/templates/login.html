@@ -4,13 +4,13 @@
     <meta name="renderer" content="webkit">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
     <meta name="author" content="">
-    <title>微任务发布平台客服管理系统</title>
-    <meta name="keywords" content="微任务发布平台客服管理系统" />
-    <meta name="description" content="微任务发布平台客服管理系统" />
-	<link rel="stylesheet" href="/static/cdn/element-ui2.13.1-lib-theme-chalk-index.css">
-    <script src="/static/cdn/dist-vue.js"></script>
-	<script src="/static/cdn/element-ui2.13.1-lib-index.js"></script>
-	<script src="/static/cdn/dist-jquery.min.js"></script>
+    <title>微任务平台客服管理系统</title>
+    <meta name="keywords" content="微任务平台客服管理系统" />
+    <meta name="description" content="微任务平台客服管理系统" />
+	<link rel="stylesheet" href="https://cdn.staticfile.org/element-ui/2.15.1/theme-chalk/index.min.css">
+    <script src="/static/js/cdn-vue.js"></script>
+	<script src="/static/js/cdn-index.js"></script>
+	<script src="/static/js/cdn-jquery.min.js"></script>
     <style>
         body {
             background-color: #f5f5f5;
@@ -62,7 +62,7 @@
 <div id="app" class="signin">
     <template>
         <div class="loginHtml">
-            <h1 class="loginTitle">欢迎登陆客服系统</h1>
+            <h1 class="loginTitle">欢迎使用<a href="https://gofly.sopans.com">GOFLY</a></h1>
             <el-form :model="kefuForm"  :rules="rules" ref="kefuForm">
                 <el-form-item  prop="username">
                     <el-input v-model="kefuForm.username" placeholder="用户名"></el-input>
@@ -169,13 +169,5 @@
 	})
 
 </script>
-<script>
-    var _hmt = _hmt || [];
-    (function() {
-        var hm = document.createElement("script");
-        hm.src = "https://hm.baidu.com/hm.js?82938760e00806c6c57adee91f39aa5e";
-        var s = document.getElementsByTagName("script")[0];
-        s.parentNode.insertBefore(hm, s);
-    })();
-</script>
+
 </html>

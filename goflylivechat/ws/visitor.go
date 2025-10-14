@@ -44,13 +44,14 @@ func NewVisitorServer(c *gin.Context) {
 		var receive []byte
 		messageType, receive, err := conn.ReadMessage()
 		if err != nil {
-			// 直接使用user.Id删除，避免遍历整个ClientList
-			if _, exists := ClientList[user.Id]; exists {
-				// log.Println("删除用户", user.Id)
-				delete(ClientList, user.Id)
-				VisitorOffline(user.To_id, user.Id, user.Name)
+			for _, visitor := range ClientList {
+				if visitor.Conn == conn {
+					log.Println("删除用户", visitor.Id)
+					delete(ClientList, visitor.Id)
+					VisitorOffline(visitor.To_id, visitor.Id, visitor.Name)
+				}
 			}
-			// log.Println(err)
+			log.Println(err)
 			return
 		}
 
@@ -160,46 +161,44 @@ func VisitorMessage(visitorId, content string, kefuInfo models.User) {
 	visitor.Conn.WriteMessage(websocket.TextMessage, str)
 }
 func VisitorAutoReply(vistorInfo models.Visitor, kefuInfo models.User, content string) {
-	go func() {
-		kefus, ok := KefuList[kefuInfo.Name]
-		reply := models.FindReplyItemByUserIdTitle(kefuInfo.Name, content)
-		if reply.Content != "" {
-			time.Sleep(100 * time.Millisecond) // 减少延迟，使用毫秒
-			VisitorMessage(vistorInfo.VisitorId, reply.Content, kefuInfo)
-			KefuMessage(vistorInfo.VisitorId, reply.Content, kefuInfo)
-			models.CreateMessage(kefuInfo.Name, vistorInfo.VisitorId, reply.Content, "kefu")
+	kefus, ok := KefuList[kefuInfo.Name]
+	reply := models.FindReplyItemByUserIdTitle(kefuInfo.Name, content)
+	if reply.Content != "" {
+		time.Sleep(1 * time.Second)
+		VisitorMessage(vistorInfo.VisitorId, reply.Content, kefuInfo)
+		KefuMessage(vistorInfo.VisitorId, reply.Content, kefuInfo)
+		models.CreateMessage(kefuInfo.Name, vistorInfo.VisitorId, reply.Content, "kefu")
+	}
+	if !ok || len(kefus) == 0 {
+		time.Sleep(1 * time.Second)
+		welcome := models.FindWelcomeByUserIdKey(kefuInfo.Name, "offline")
+		if welcome.Content == "" || reply.Content != "" {
+			return
 		}
-		if !ok || len(kefus) == 0 {
-			time.Sleep(100 * time.Millisecond) // 减少延迟，使用毫秒
-			welcome := models.FindWelcomeByUserIdKey(kefuInfo.Name, "offline")
-			if welcome.Content == "" || reply.Content != "" {
-				return
-			}
-			VisitorMessage(vistorInfo.VisitorId, welcome.Content, kefuInfo)
-			models.CreateMessage(kefuInfo.Name, vistorInfo.VisitorId, welcome.Content, "kefu")
-		}
-	}()
+		VisitorMessage(vistorInfo.VisitorId, welcome.Content, kefuInfo)
+		models.CreateMessage(kefuInfo.Name, vistorInfo.VisitorId, welcome.Content, "kefu")
+	}
 }
 func CleanVisitorExpire() {
 	go func() {
-		// log.Println("cleanVisitorExpire start...")
+		log.Println("cleanVisitorExpire start...")
 		for {
-			for id, user := range ClientList {
+			for _, user := range ClientList {
 				diff := time.Now().Sub(user.UpdateTime).Seconds()
 				if diff >= common.VisitorExpire {
 					msg := TypeMessage{
 						Type: "auto_close",
-						Data: id,
+						Data: user.Id,
 					}
 					str, _ := json.Marshal(msg)
 					if err := user.Conn.WriteMessage(websocket.TextMessage, str); err != nil {
 						user.Conn.Close()
-						delete(ClientList, id)
+						delete(ClientList, user.Id)
 					}
-					// log.Println(user.Name + ":cleanVisitorExpire finshed")
+					log.Println(user.Name + ":cleanVisitorExpire finshed")
 				}
 			}
-			t := time.NewTimer(time.Second * 30) // 增加检查间隔，减少CPU占用
+			t := time.NewTimer(time.Second * 5)
 			<-t.C
 		}
 	}()

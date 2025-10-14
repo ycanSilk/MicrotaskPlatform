@@ -5,6 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 	"github.com/taoshihan1991/imaptool/models"
+	"github.com/taoshihan1991/imaptool/tools"
 	"log"
 	"time"
 )
@@ -68,7 +69,7 @@ func AddKefuToList(kefu *User) {
 			}
 		}
 	}
-	// log.Println("xxxxxxxxxxxxxxxxxxxxxxxx", newKefuConns)
+	log.Println("xxxxxxxxxxxxxxxxxxxxxxxx", newKefuConns)
 	KefuList[kefu.Id] = newKefuConns
 }
 
@@ -91,12 +92,12 @@ func OneKefuMessage(toId string, str []byte) {
 	mKefuConns, ok := KefuList[toId]
 	if ok && len(mKefuConns) > 0 {
 		for _, kefu := range mKefuConns {
-			// log.Println("OneKefuMessage lock")
+			log.Println("OneKefuMessage lock")
 			kefu.Mux.Lock()
 			defer kefu.Mux.Unlock()
-			// log.Println("OneKefuMessage unlock")
-			kefu.Conn.WriteMessage(websocket.TextMessage, str)
-			// tools.Logger().Println("send_kefu_message", error, string(str))
+			log.Println("OneKefuMessage unlock")
+			error := kefu.Conn.WriteMessage(websocket.TextMessage, str)
+			tools.Logger().Println("send_kefu_message", error, string(str))
 		}
 	}
 
@@ -132,8 +133,8 @@ func SendPingToKefuClient() {
 				continue
 			}
 			kefuConn.Mux.Lock()
+			defer kefuConn.Mux.Unlock()
 			err := kefuConn.Conn.WriteMessage(websocket.TextMessage, str)
-			kefuConn.Mux.Unlock() // 直接在这里解锁，避免defer延迟
 			if err == nil {
 				newKefuConns = append(newKefuConns, kefuConn)
 			}

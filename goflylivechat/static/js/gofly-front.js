@@ -1,7 +1,7 @@
 var GOFLY={
-    GOFLY_URL:"http://localhost:8081",
-    GOFLY_KEFU_ID:"",
-    GOFLY_BTN_TEXT:"Chat with me",
+    GOFLY_URL:"https://localhost:8081",
+    GOFLY_KEFU_ID:"admin",
+    GOFLY_BTN_TEXT:"在线客服",
     GOFLY_LANG:"cn",
     GOFLY_EXTRA: {},
     GOFLY_AUTO_OPEN:true,
@@ -75,8 +75,6 @@ GOFLY.jsCallBack=function(){
     this.showKefuBtn();
     this.addClickEvent();
     this.getNotice();
-    //设置定时检测客服状态，每3分钟检测一次
-    setInterval(this.checkKefuStatus.bind(this), 3 * 60 * 1000);
 }
 GOFLY.showKefuBtn=function(){
     var _this=this;
@@ -164,28 +162,6 @@ GOFLY.dynamicLoadJs=function(url, callback){
     }
     head.appendChild(script);
 }
-
-//定时检测客服状态
-GOFLY.checkKefuStatus=function(){
-    var _this=this;
-    $.get(this.GOFLY_URL+"/notice?kefu_id="+this.GOFLY_KEFU_ID,function(res) {
-        // 更新客服状态显示
-        if(res.result.status=='offline'){
-            _this.chatPageTitle="<div class='launchPointer offline'></div>";
-        }else{
-            _this.chatPageTitle="<div class='launchPointer'></div>";
-        }
-        // 更新标题显示
-        _this.chatPageTitle+="<img src='"+_this.GOFLY_URL+res.result.avatar+"' class='flyAvatar'>"+res.result.username;
-        // 如果正在聊天窗口打开状态，更新layer的标题
-        if(_this.launchButtonFlag){
-            var layBox=$('#layui-layer19911116');
-            if(layBox.length>0){
-                layer.title(_this.chatPageTitle, 19911115);
-            }
-        }
-    });
-};
 
 GOFLY.getNotice=function(){
     var _this=this;

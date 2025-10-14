@@ -2,11 +2,14 @@ package ws
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 	"github.com/taoshihan1991/imaptool/models"
 	"github.com/taoshihan1991/imaptool/tools"
+	"log"
 	"net/http"
+	"strconv"
 	"sync"
 	"time"
 )
@@ -49,7 +52,7 @@ type ClientMessage struct {
 
 var ClientList = make(map[string]*User)
 var KefuList = make(map[string][]*User)
-var message = make(chan *Message, 1000)
+var message = make(chan *Message, 10)
 var upgrader = websocket.Upgrader{}
 var Mux sync.RWMutex
 
@@ -57,17 +60,30 @@ func init() {
 	upgrader = websocket.Upgrader{
 		ReadBufferSize:  1024,
 		WriteBufferSize: 1024,
-		// 安全的跨域配置
+		// 解决跨域问题
 		CheckOrigin: func(r *http.Request) bool {
-			// 获取请求源
-		origin := r.Header.Get("Origin")
-		// 只允许本地和指定域名访问
-		return origin == "" || origin == "http://localhost:8081" || origin == "http://127.0.0.1:8081"
+			return true
 		},
 	}
 	go UpdateVisitorStatusCron()
 }
-
+func SendServerJiang(title string, content string, domain string) string {
+	noticeServerJiang, err := strconv.ParseBool(models.FindConfig("NoticeServerJiang"))
+	serverJiangAPI := models.FindConfig("ServerJiangAPI")
+	if err != nil || !noticeServerJiang || serverJiangAPI == "" {
+		log.Println("do not notice serverjiang:", serverJiangAPI, noticeServerJiang)
+		return ""
+	}
+	sendStr := fmt.Sprintf("%s%s", title, content)
+	desp := title + ":" + content + "[登录](http://" + domain + "/main)"
+	url := serverJiangAPI + "?text=" + sendStr + "&desp=" + desp
+	//log.Println(url)
+	res := tools.Get(url)
+	return res
+}
+func SendFlyServerJiang(title string, content string, domain string) string {
+	return ""
+}
 
 //定时给更新数据库状态
 func UpdateVisitorStatusCron() {
@@ -98,7 +114,7 @@ func WsServerBackend() {
 			continue
 		}
 		msgType := typeMsg.Type.(string)
-		// log.Println("客户端:", string(message.content))
+		log.Println("客户端:", string(message.content))
 
 		switch msgType {
 		//心跳

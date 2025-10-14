@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-//md5加密（已弃用，仅用于向后兼容）
+//md5加密
 func Md5(src string) string {
 	m := md5.New()
 	m.Write([]byte(src))
@@ -23,19 +23,6 @@ func Sha256(src string) string {
 	res := hex.EncodeToString(m.Sum(nil))
 	return res
 }
-
-// 使用MD5生成密码哈希
-func HashPassword(password string) (string, error) {
-	// 直接使用MD5加密密码
-	return Md5(password), nil
-}
-
-// 验证MD5密码哈希
-func CheckPassword(password, hash string) bool {
-	// 直接使用MD5验证
-	return Md5(password) == hash
-}
-
 func Base64Decode(str string) string {
 	reader := strings.NewReader(str)
 	decoder := base64.NewDecoder(base64.RawStdEncoding, reader)

@@ -92,7 +92,7 @@ CREATE TABLE `welcome` (
 INSERT INTO `welcome` (`id`, `user_id`, `content`, `is_default`, `ctime`, `keyword`) VALUES
 (NULL, 'kefu2', '我暂时离线，留言已转发到我的邮箱，稍后回复~', 1, '2020-08-24 02:57:49','offline')|
 INSERT INTO `welcome` (`id`, `user_id`, `content`, `is_default`, `ctime`, `keyword`) VALUES
-(NULL, 'kefu2', '本客服系统已部署在本地环境', 0, '2020-08-24 02:57:49','welcome')|
+(NULL, 'kefu2', '本客服代码开源,欢迎star,开源地址:https://github.com/taoshihan1991/go-fly', 0, '2020-08-24 02:57:49','welcome')|
 
 DROP TABLE IF EXISTS `ipblack`|
 CREATE TABLE `ipblack` (
@@ -158,7 +158,7 @@ INSERT INTO `about` (`id`, `title_cn`, `title_en`, `keywords_cn`, `keywords_en`,
         GOFLY_LANG:"cn",
     })
 </script>
- <h1>:)</h1><h2>你好 GOFLY0.4.1 在线客服系统 !</h2><h3><a href="/login">Administrator</a>&nbsp;<a href="/index_en">English</a>&nbsp;<a href="/index_cn">中文</a></h3>',
+ <h1>:)</h1><h2>你好 <a href="https://gofly.sopans.com">GOFLY0.4.1</a> 在线客服系统 !</h2><h3><a href="/login">Administrator</a>&nbsp;<a href="/index_en">English</a>&nbsp;<a href="/index_cn">中文</a></h3>',
 '<script src="/assets/js/gofly-front.js?v=1"></script><script>
     GOFLY.init({
         GOFLY_URL:"",
@@ -167,7 +167,7 @@ INSERT INTO `about` (`id`, `title_cn`, `title_en`, `keywords_cn`, `keywords_en`,
         GOFLY_LANG:"en",
     })
 </script>
- <h1>:)</h1><h2>HELLO GOFLY0.4.1 LIVE CHAT !</h2><h3><a href="/login">Administrator</a>&nbsp;<a href="/index_en">English</a>&nbsp;<a href="/index_cn">中文</a></h3>',
+ <h1>:)</h1><h2>HELLO <a href="https://gofly.sopans.com">GOFLY0.4.1</a> LIVE CHAT !</h2><h3><a href="/login">Administrator</a>&nbsp;<a href="/index_en">English</a>&nbsp;<a href="/index_cn">中文</a></h3>',
  'index')|
 DROP TABLE IF EXISTS `reply_group`|
 CREATE TABLE `reply_group` (
@@ -189,7 +189,7 @@ CREATE TABLE `reply_item` (
  KEY `user_id` (`user_id`),
  KEY `group_id` (`group_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8|
-INSERT INTO `reply_item` (`id`, `content`, `group_id`, `user_id`, `item_name`) VALUES (NULL, '本系统已部署在本地环境','1','kefu2', '官方地址在哪?')|
+INSERT INTO `reply_item` (`id`, `content`, `group_id`, `user_id`, `item_name`) VALUES (NULL, '在这里[官网]link[https://gofly.sopans.com]!','1','kefu2', '官方地址在哪?')|
 DROP TABLE IF EXISTS `land_page`|
 CREATE TABLE `land_page` (
   `id` int(11) NOT NULL,

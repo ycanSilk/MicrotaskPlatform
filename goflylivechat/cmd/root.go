@@ -3,15 +3,14 @@ package cmd
 import (
 	"errors"
 	"fmt"
-	"os"
-
 	"github.com/spf13/cobra"
+	"os"
 )
 
 var rootCmd = &cobra.Command{
 	Use:   "go-fly",
 	Short: "go-fly",
-	Long:  `客服管理系统`,
+	Long:  `简洁快速的GO语言WEB在线客服 https://gofly.sopans.com`,
 	Args:  args,
 	Run: func(cmd *cobra.Command, args []string) {
 

@@ -1,8 +1,4 @@
 {{template "header" }}
-    <link rel="stylesheet" href="/static/cdn/cssgg/style.css">
-    <link rel="stylesheet" href="/static/cdn/cssgg/menu.css">
-    <link rel="stylesheet" href="/static/cdn/cssgg/file.css">
-    <link rel="stylesheet" href="/static/cdn/cssgg/folder.css">
 <div id="app" style="width:100%">
     <template>
         <el-container  v-loading.fullscreen.lock="fullscreenLoading">
@@ -10,11 +6,11 @@
                     <el-menu
                     :default-active="fid">
                         <el-menu-item  v-on:click="openUrl('/write')">
-                            <i class="gg-file"></i>
+                            <i class="el-icon-edit"></i>
                             <span slot="title">写信</span>
                         </el-menu-item>
                         <el-menu-item :index="v" v-for="(f,v) in folders" v-bind:key="v"  v-on:click="getFolders(1,v,true)">
-                            <i class="gg-folder"></i>
+                            <i class="el-icon-message"></i>
                             <span slot="title"><{v}></span>
                         </el-menu-item>
                     </el-menu>

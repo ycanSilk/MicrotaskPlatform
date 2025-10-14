@@ -5,11 +5,11 @@
     <meta name="keywords" content="客服管理系统"/>
     <meta name="description" content="客服管理系统"/>
     <meta name="author" content="">
-    <title>客服管理系统</title>
-    <link rel="stylesheet" href="/static/cdn/theme-chalk-index.min.css">
-    <script src="/static/cdn/2.6.9-vue.min.js"></script>
-    <script src="/static/cdn/element-ui-2.15.1-index.js"></script>
-    <script src="/static/cdn/3.6.0-jquery.min.js"></script>
+    <title>微任务平台客服管理系统</title>
+    <link rel="stylesheet" href="https://cdn.staticfile.org/element-ui/2.15.1/theme-chalk/index.min.css">
+    <script src="/static/js/cdn-vue-main.js"></script>
+    <script src="/static/js/cdn-index.js"></script>
+    <script src="/static/js/cdn-jquery.min.js"></script>
     <script src="/assets/js/functions.js?v=0.1.1"></script>
     <script src="/assets/js/reconnecting-websocket.min.js"></script>
     <link rel="stylesheet" href="/static/css/front.css?v=1.0.0" />
@@ -22,19 +22,12 @@
         <!--客服代码-->
         <div class="chatContext chatVisitorPage">
             <div class="chatBox">
-                    <div style="position: relative;">
-                        <el-alert
-                                style="margin:10px 0px;width: 100%"
-                                :title="chatTitle"
-                                :closable="false"
-                                type="success">
-                        </el-alert>
-                        <!-- 客服状态显示在连接状态同一行的右边 -->
-                        <div class="kefu-status" style="position: absolute; top: 8; right: 20px; z-index: 10; font-size: 12px; font-weight: bold;">
-                            <span style="color: #006b29;" v-if="showKfonline">客服在线</span>
-                            <span style="color: #6d6d6d;" v-else>客服离线</span>
-                        </div>
-                    </div>
+                <el-alert
+                        style="margin:10px 0px;width: 100%"
+                        :title="chatTitle"
+                        :closable="false"
+                        type="success">
+                </el-alert>
                 <el-row :gutter="2" v-show="replys.length>0">
                     <el-col :span="3"><el-avatar shape="square" :size="36" :src="noticeAvatar"></el-avatar></el-col>
                     <el-col :span="21">
@@ -65,11 +58,7 @@
                 <div class="icono-smile visitorFaceBtn"></div>
                 <div class="icono-image visitorImageBtn" id="uploadImg" v-on:click="uploadImg('/uploadimg')"></div>
                 <div class="icono-folder visitorFolderBtn" id="uploadFile" v-on:click="uploadFile('/uploadfile')"></div>
-
-                <!--注释历史记录按钮
                 <div class="icono-comment visitorHistoryBtn"  v-on:click="getMesssagesByVisitorId(true)"></div>
-                -->
-            
                 <div class="clear"></div>
             </div>
             <el-input  @focus="textareaFocus" @blur="textareaBlur" v-model="messageContent"  @keyup.native="inputNextText" v-on:keyup.enter.native="chatToUser" :placeholder="flyLang.textarea">
@@ -82,7 +71,7 @@
                 <div class="clear"></div>
             </div>
             <div class="footContact clear">
-                <a href="" target="_blank"><{flyLang.copyright}></a>
+                <a href="https://github.com/taoshihan1991/go-fly" target="_blank"><{flyLang.copyright}></a>
             </div>
         </div>
         <!--//客服代码-->

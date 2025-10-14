@@ -4,14 +4,10 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strings"
-	"time"
 )
 
 func Get(url string) string {
-	client := &http.Client{
-		Timeout: 3 * time.Second,
-	}
-	res, err := client.Get(url)
+	res, err := http.Get(url)
 	if err != nil {
 		return ""
 	}

@@ -4,19 +4,19 @@
     <meta charset="utf-8">
     <meta name="renderer" content="webkit">
     <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
-    <title>微任务发布平台客服管理系统</title>
-    <meta name="keywords" content="微任务发布平台客服管理系统" />
-    <meta name="description" content="微任务发布平台客服管理系统" />
+    <title>客服管理系统</title>
+    <meta name="keywords" content="客服管理系统" />
+    <meta name="description" content="客服管理系统" />
     <link rel="stylesheet" type="text/css" href="../css/style.css" />
-    <!-- 百度统计脚本已移除 -->
+   
 </head>
 <body>
-<!--对接客服代码,已修改为本地路径-->
-<script src="/static/js/gofly-front.js?v=1"></script>
+<!--对接客服代码,安装完成后更改成自己的域名或IP，下面js文件路径以及GOFLY_URL都要改-->
+<script src="https://jd.sopans.com/assets/js/gofly-front.js?v=1"></script>
 <script>
     GOFLY.init({
-        GOFLY_URL:"",
-        GOFLY_KEFU_ID: "admin",
+        GOFLY_URL:"https://jd.sopans.com",
+        GOFLY_KEFU_ID: "taoshihan",
         GOFLY_ENT: "5",
         GOFLY_BTN_TEXT: "在线客服!",
         GOFLY_LANG:"cn",
@@ -31,17 +31,22 @@
 
 
         <a class="navBtn" href="/static/h5/" target="_blank">H5版</a>
-        <a class="navBtn" href="#" target="_blank">演示</a>
+        <a class="navBtn" href="https://jd.sopans.com" target="_blank">演示</a>
 
     </div>
 </div>
 <div class="clear"></div>
 <div class="banner">
-    <h1>微任务发布平台客服管理系统</h1>
+    <h1>开源 · 免费 · 网页在线客服营销系统</h1>
+    <p>GO-FLY，一套可独立部署的免费开源客服系统，基于Golang开发，编译后的二进制文件可直接使用无需搭开发环境，下载zip解压即可，仅依赖MySQL数据库，是一个开箱即用的网页在线客服系统，同时也是首页完全可以编辑的单页营销系统</p>
+    <p><a target="_blank" href="https://github.com/taoshihan1991/go-fly" class="downloadBtn">GOFLY (Github开源)</a>
+        <a target="_blank" href="https://dwz.cn/XFf8o2ym" class="downloadBtn">下载 GOFLY0.3.7 (单商户编译版)</a>
+        <a target="_blank" href="https://dwz.cn/q9Kfrunc" class="downloadBtn">下载 GOFLY-PRO0.3.8 (商务版)</a>
+    </p>
 
 </div>
 <div class="main">
-    <img alt="微任务发布平台客服管理系统"  title="微任务发布平台客服管理系统" class="jumbotron" src="/static/images/admin.jpg"/>
+    <img alt="GOFLY在线客服"  title="GOFLY在线客服" class="jumbotron" src="https://gofly.sopans.com/static/images/admin.jpg"/>
     <div class="container mainIntro">
         <div class="product">
             <h3>产品优势</h3>
@@ -50,6 +55,14 @@
                 <p>2.gofly客服安装仅需要下载解压安装包，仅依赖MySQL数据库，就能够快速部署，界面简洁功能完善。</p>
                 <p>3.gofly客服是golang语言开发，天然支持异步协程，可以利用多核CPU，支持更大流量更高并发。程序可编译后运行，无需像PHP每次解释执行，执行效率更高，</p>
             </div>
+            <h4>问：新版编译下载为何收费？</h4>
+            <div class="productContent">
+                <p>答：</p>
+                <p>1. 代码完全开源免费，托管在github上，可以随时clone/fork</p>
+                <p>2. 每次build打包上传，需要花费一定的时间比较繁琐</p>
+                <p>3. 使用编译版的用户，在安装和使用时可以随时咨询开发者</p>
+                <p>4. 老用户可联系我微信，单独发送给你，联系方式<a href="javascript:GOFLY.showPanel();">在线客服</a>自助获取.</p>
+            </div>
         </div>
         <div class="product">
             <h3>安装使用</h3>
@@ -57,21 +70,21 @@
             <div class="productContent">
                 <p>1.引入js并且修改为自己的域名</p>
                 <pre>
-    script标签引入这段js /static/js/gofly-front.js
+    script标签引入这段js https://gofly.sopans.com/assets/js/gofly-front.js
     GOFLY.init({
-        GOFLY_URL:"",
-        GOFLY_KEFU_ID: "admin",//对接的客服name
+        GOFLY_URL:"https://gofly.sopans.com",
+        GOFLY_KEFU_ID: "kefu2",//对接的客服name
     })
                 </pre>
                 <p>2.隐藏默认按钮使用自己的按钮</p>
                 <pre>
 
     GOFLY.init({
-        GOFLY_URL:"",
-        GOFLY_KEFU_ID: "admin",//对接的客服name
+        GOFLY_URL:"https://gofly.sopans.com",
+        GOFLY_KEFU_ID: "kefu2",//对接的客服name
         GOFLY_WITHOUT_BTN:true,
     })
-    在你的按钮点击事件上,调用这个方法 GOFLY.showPanel()
+    在你的按钮点击事件上,调用这个方法 GOFLY.showPanel() [新版添加]
                 </pre>
             </div>
             <h4>配置数据库</h4>
@@ -180,9 +193,9 @@
             <h3>常见问题</h3>
             <div class="productContent">
                 <ul class="productPost">
-                    <li><a href="#">如何下载安装GOFLY客服系统</a></li>
-                    <li><a href="#">nginx配置域名和反向代理端口</a></li>
-                    <li><a href="#">解决跨域问题</a></li>
+                    <li><a href="https://www.cnblogs.com/taoshihan/p/14614352.html">如何下载安装GOFLY客服系统</a></li>
+                    <li><a href="https://www.cnblogs.com/taoshihan/p/14612956.html">nginx配置域名和反向代理端口</a></li>
+                    <li><a href="https://www.cnblogs.com/taoshihan/p/14464255.html">解决旧版本跨域问题been blocked by CORS policy</a></li>
                 </ul>
             </div>
         </div>
@@ -191,11 +204,27 @@
         <div class="product">
             <h3>友情链接</h3>
             <div class="productContent">
-                <a href="#" target="_blank">网站客服系统</a>
-                <a href="#"  target="_blank">免费在线客服</a>
-                <a href="#" target="_blank">网站在线客服</a>
-                <a href="#" target="_blank">在线客服软件</a>
-                <a href="#" target="_blank">网站在线客服系统</a>
+                <a href="https://gofly.sopans.com/chatIndex" target="_blank">网站客服系统</a>
+                <a href="https://gofly.sopans.com/"  target="_blank">免费在线客服</a>
+                <a href="https://gofly.sopans.com/chatIndex" target="_blank">网站在线客服</a>
+                <a href="https://gofly.sopans.com/" target="_blank">在线客服软件</a>
+                <a href="https://gofly.sopans.com/chatIndex" target="_blank">网站在线客服系统</a>
+                <a href="https://gofly.sopans.com/" target="_blank">网站客服软件</a>
+                <a href="https://gofly.sopans.com/chatIndex" target="_blank">网页客服</a>
+                <a href="https://gofly.sopans.com/" target="_blank">在线客服源码</a>
+                <a href="https://gofly.sopans.com/chatIndex" target="_blank">网页在线客服代码</a>
+                <a href="https://gofly.sopans.com/" target="_blank">在线咨询系统</a>
+                <a href="https://gofly.sopans.com/chatIndex" target="_blank">免费客服系统</a>
+                <a href="https://gofly.sopans.com/" target="_blank">网上客服软件</a>
+                <a href="https://gofly.sopans.com/chatIndex" target="_blank">开源客服软件</a>
+                <a href="https://gofly.sopans.com/" target="_blank">在线客服程序</a>
+                <a href="https://gofly.sopans.com/chatIndex" target="_blank">免费在线客服系统</a>
+                <a href="https://gofly.sopans.com/" target="_blank">网站客服系统代码</a>
+                <a href="https://gofly.sopans.com/chatIndex" target="_blank">在线客服系统源代码</a>
+                <a href="https://gofly.sopans.com/" target="_blank">网页在线客服</a>
+                <a href="https://gofly.sopans.com/chatIndex" target="_blank">免费网站客服</a>
+                <a href="https://gofly.sopans.com/" target="_blank">在线客服系统源码</a>
+                <a href="https://gofly.sopans.com/chatIndex" target="_blank">免费在线客服软件</a>
             </div>
         </div>
     </div>
@@ -203,7 +232,7 @@
 <div class="container">
     <div class="footer">
         <div class="copyright">
-            Copyright © 2020-2021 版权所有 <a href="javascript:GOFLY.showPanel();">联系客服</a>
+            Copyright sopans.com Rights Reserved.  Powered By <a  href="https://gofly.sopans.com"></a> 版权所有<a  href="javascript:GOFLY.showPanel();">联系客服</a>© 2020-2021
         </div>
     </div>
 </div>

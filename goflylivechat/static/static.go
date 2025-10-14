@@ -5,5 +5,5 @@ import "embed"
 //go:embed templates/*
 var TemplatesEmbed embed.FS
 
-//go:embed js/* cdn/* css/* images/* upload/*
+//go:embed js/*
 var JsEmbed embed.FS

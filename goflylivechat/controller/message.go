@@ -110,8 +110,7 @@ func SendMessageV2(c *gin.Context) {
 		str, _ := json.Marshal(msg)
 		ws.OneKefuMessage(kefuInfo.Name, str)
 		//ws.KefuMessage(vistorInfo.VisitorId, content, kefuInfo)
-		// 移除Server酱通知功能
-		//go ws.SendServerJiang(vistorInfo.Name+"说", content, c.Request.Host)
+		go ws.SendServerJiang(vistorInfo.Name+"说", content, c.Request.Host)
 		go SendAppGetuiPush(kefuInfo.Name, vistorInfo.Name, content)
 		kefus, ok := ws.KefuList[kefuInfo.Name]
 		if !ok || len(kefus) == 0 {
