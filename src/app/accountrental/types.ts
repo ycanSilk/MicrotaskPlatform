@@ -12,6 +12,7 @@ export interface AccountRentalInfo {
   region: string;
   accountAge: string;
   accountScore: number;
+  orderPrice: number;
   price: number;
   rentalDuration: number;
   minimumRentalHours: number;

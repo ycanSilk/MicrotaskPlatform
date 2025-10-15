@@ -125,9 +125,7 @@ export default function CommenterLayout({
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="text-2xl mb-2 animate-spin">
-            <ReloadOutlined />
-          </div>
+
           <div>加载中...</div>
         </div>
       </div>

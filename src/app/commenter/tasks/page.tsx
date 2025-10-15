@@ -17,10 +17,10 @@ interface Task {
   title?: string;
   price?: number;
   unitPrice?: number;
-  status: TaskStatus;
+  status: string;
   statusText?: string;
   statusColor?: string;
-  description?: string;
+  requiringVideoUrl?: string;
   deadline?: string;
   progress?: number;
   submitTime?: string;
@@ -36,6 +36,9 @@ interface Task {
   subOrderNumber?: string;
   orderNumber?: string;
   taskType?: string;
+  submitdvideoUrl?: string;
+  submitScreenshotUrl?: string;
+  requiringCommentUrl?: string;
 }
 
 export default function CommenterTasksPage() {
@@ -51,52 +54,59 @@ export default function CommenterTasksPage() {
       id: 'static-task-1',
       subOrderNumber: 'COM20240612001',
       orderNumber: 'PUB20240612001',
-      title: '产品评价任务',
-      unitPrice: 12.50,
+      title: '组合任务：中下评评论',
+      unitPrice: 6.00,
       status: 'sub_progress',
       statusText: '进行中',
       statusColor: 'bg-blue-100 text-blue-600',
-      description: '请对该产品进行评价，内容需真实客观',
-      requirements: '评价内容不少于20字，需包含产品使用体验和优缺点分析',
+      requiringVideoUrl: 'https://www.douyin.com/root/search/%E8%B6%85%E5%93%A5%E8%B6%85%E8%BD%A6?aid=5a719aba-452c-49c8-b8bb-548b1e4bc313&modal_id=7561069119617994024&type=general',    //派单视频链接
+      requirements: '组合任务：中下评评论',
       publishTime: '2024-06-12 10:30:00',
       deadline: '2024-06-15 23:59:59',
       taskType: 'comment_middle',
-      recommendedComment: '这款产品使用体验非常好，功能强大且操作简单，性价比很高。产品材质也很不错，做工精细，值得购买。唯一的小缺点是包装可以再改进一下。总体来说是一款很满意的产品，推荐给有需要的朋友。'
+      recommendedComment: '看看这条信息上是什么信息字段',    //推荐评论
+      submitdvideoUrl: 'https://www.douyin.com/root/search/%E8%B6%85%E5%93%A5%E8%B6%85%E8%BD%A6?aid=5a719aba-452c-49c8-b8bb-548b1e4bc313&modal_id=7561069119617994024&type=general',     //接待提交上传的视频评论连接
+      submitScreenshotUrl: '/images/1758380776810_96.jpg',   //接单上传提交的截图
+      requiringCommentUrl:'https://www.douyin.com/root/search/%E8%B6%85%E5%93%A5%E8%B6%85%E8%BD%A6?aid=5a719aba-452c-49c8-b8bb-548b1e4bc313&modal_id=7560656965447830784&type=general'  //派单的评论链接
     },
     {
       id: 'static-task-2',
       subOrderNumber: 'COM20240610002',
       orderNumber: 'PUB20240610002',
-      title: '账号出租任务',
-      unitPrice: 8.00,
+      title: '组合任务：中下评评论',
+      unitPrice: 6.00,
       status: 'sub_pending_review',
       statusText: '待审核',
       statusColor: 'bg-orange-100 text-orange-600',
-      description: '请使用您的账号登录并完成指定操作',
-      requirements: '按照任务要求完成所有操作步骤，并上传操作截图',
+      requiringVideoUrl: 'https://www.douyin.com/root/search/%E8%B6%85%E5%93%A5%E8%B6%85%E8%BD%A6?aid=5a719aba-452c-49c8-b8bb-548b1e4bc313&modal_id=7561069119617994024&type=general',    //派单视频链接
+      requirements: '组合任务：中下评评论',
       publishTime: '2024-06-10 14:20:00',
       submitTime: '2024-06-11 09:45:00',
-      taskType: 'account_rental',
-      recommendedComment: '',
-      screenshotUrl: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="300" height="200"%3E%3Crect width="300" height="200" fill="%23f0f0f0"/%3E%3Crect x="50" y="50" width="200" height="100" fill="%23e0e0e0"/%3E%3Ctext x="150" y="100" text-anchor="middle" font-family="Arial" font-size="14" fill="%23666"%3E示例截图 - 账号出租任务%3C/text%3E%3C/svg%3E'
+      taskType: 'comment_middle',
+      recommendedComment: '看看这条信息上是什么信息字段',    //推荐评论
+      submitdvideoUrl: 'https://www.douyin.com/root/search/%E8%B6%85%E5%93%A5%E8%B6%85%E8%BD%A6?aid=5a719aba-452c-49c8-b8bb-548b1e4bc313&modal_id=7561069119617994024&type=general',     //接待提交上传的视频评论连接
+      submitScreenshotUrl: '/images/1758380776810_96.jpg',   //接单上传提交的截图
+      requiringCommentUrl:'https://www.douyin.com/root/search/%E8%B6%85%E5%93%A5%E8%B6%85%E8%BD%A6?aid=5a719aba-452c-49c8-b8bb-548b1e4bc313&modal_id=7560656965447830784&type=general'  //派单的评论链接
     },
     {
       id: 'static-task-3',
       subOrderNumber: 'COM20240605003',
       orderNumber: 'PUB20240605003',
-      title: '视频分享任务',
-      unitPrice: 15.00,
+      title: '组合任务：中下评评论',
+      unitPrice: 6.00,
       status: 'sub_completed',
       statusText: '已完成',
       statusColor: 'bg-green-100 text-green-600',
-      description: '请分享指定视频到您的社交平台账号',
-      requirements: '分享后请保留截图作为凭证，分享内容需保留至少24小时',
+      requiringVideoUrl: 'https://www.douyin.com/root/search/%E8%B6%85%E5%93%A5%E8%B6%85%E8%BD%A6?aid=5a719aba-452c-49c8-b8bb-548b1e4bc313&modal_id=7561069119617994024&type=general',    //派单视频链接
+      requirements: '组合任务：中下评评论',
       publishTime: '2024-06-05 08:15:00',
       submitTime: '2024-06-06 11:30:00',
       completedTime: '2024-06-07 16:45:00',
-      taskType: 'video_send',
-      recommendedComment: '这个视频很有意思，分享给大家看看！内容非常实用，对我很有帮助，希望也能帮到你们。',
-      videoUrl: 'https://example.com/videos/sample.mp4'
+      taskType: 'comment_middle',
+      recommendedComment: '看看这条信息上是什么信息字段',    //推荐评论
+      submitdvideoUrl: 'https://www.douyin.com/root/search/%E8%B6%85%E5%93%A5%E8%B6%85%E8%BD%A6?aid=5a719aba-452c-49c8-b8bb-548b1e4bc313&modal_id=7561069119617994024&type=general',     //接待提交上传的视频评论连接
+      submitScreenshotUrl: '/images/1758380776810_96.jpg',   //接单上传提交的截图
+      requiringCommentUrl:'https://www.douyin.com/root/search/%E8%B6%85%E5%93%A5%E8%B6%85%E8%BD%A6?aid=5a719aba-452c-49c8-b8bb-548b1e4bc313&modal_id=7560656965447830784&type=general'  //派单的评论链接
     }
   ]);
   const [isLoading, setIsLoading] = useState(false);
@@ -107,6 +117,8 @@ export default function CommenterTasksPage() {
   const [commentContent, setCommentContent] = useState<Record<string, string>>({}); // 存储每个任务的评论内容
   const [tempScreenshotFiles, setTempScreenshotFiles] = useState<Record<string, File>>({}); // 临时存储截图文件
   const [linkUploadStatus, setLinkUploadStatus] = useState<Record<string, string>>({}); // 链接上传状态
+  const [showModal, setShowModal] = useState(false); // 控制模态框显示
+  const [modalMessage, setModalMessage] = useState(''); // 模态框消息内容
   
   // 获取用户订单数据
   const fetchUserTasks = async () => {
@@ -148,7 +160,7 @@ export default function CommenterTasksPage() {
   // 任务类型映射函数 - 将英文taskType转换为中文名称
   const getTaskTypeName = (taskType?: string): string => {
     const taskTypeMap: Record<string, string> = {
-      'comment_middle': '中评任务',
+      'comment_middle': '中下评评论',
       'account_rental': '账号出租',
       'video_send': '视频分享'
     };
@@ -176,17 +188,20 @@ export default function CommenterTasksPage() {
   // 复制推荐评论功能
   const handleCopyComment = (taskId: string, comment?: string) => {
     if (!comment) {
-      alert('暂无推荐评论');
+      setModalMessage('暂无推荐评论');
+      setShowModal(true);
       return;
     }
     
     navigator.clipboard.writeText(comment).then(() => {
       // 保存到commentContent状态
       setCommentContent(prev => ({ ...prev, [taskId]: comment }));
-      alert('评论已复制到剪贴板');
+          setModalMessage('评论已复制到剪贴板');
+          setShowModal(true);
     }).catch(err => {
       console.error('复制失败:', err);
-      alert('复制失败，请手动复制');
+      setModalMessage('复制失败，请手动复制');
+      setShowModal(true);
     });
   };
 
@@ -220,11 +235,13 @@ export default function CommenterTasksPage() {
         );
         
         setUploadStatus(prev => ({ ...prev, [taskId]: 'success' }));
-        alert('截图已选择成功，提交订单时将自动上传');
+        setModalMessage('截图已选择成功，提交订单时将自动上传');
+        setShowModal(true);
       } catch (error) {
         console.error('处理截图错误:', error);
         setUploadStatus(prev => ({ ...prev, [taskId]: 'error' }));
-        alert('处理截图失败，请稍后重试');
+        setModalMessage('处理截图失败，请稍后重试');
+        setShowModal(true);
       } finally {
         // 3秒后清除上传状态
         setTimeout(() => {
@@ -695,6 +712,23 @@ export default function CommenterTasksPage() {
           </div>
         </div>
       </div>
+
+      {/* 模态框组件 */}
+      {showModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4 shadow-lg">
+            <div className="text-center">
+              <p className="text-gray-700 mb-4">{modalMessage}</p>
+              <button 
+                className="bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 transition-colors"
+                onClick={() => setShowModal(false)}
+              >
+                确定
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
     </>
   );

@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { UserOutlined, LockOutlined, BarChartOutlined, TrophyOutlined, CreditCardOutlined, FileTextOutlined, SettingOutlined, CheckCircleOutlined, QuestionCircleOutlined, MessageOutlined, PhoneOutlined } from '@ant-design/icons';
+import { UserOutlined, LockOutlined, BarChartOutlined, CreditCardOutlined, FileTextOutlined, CheckCircleOutlined, QuestionCircleOutlined, MessageOutlined, PhoneOutlined } from '@ant-design/icons';
 
 export default function CommenterProfilePage() {
   const [activeSection, setActiveSection] = useState('profile');
@@ -108,16 +108,7 @@ export default function CommenterProfilePage() {
             <span className="text-gray-400">›</span>
           </button>
 
-          <button 
-            onClick={() => setActiveSection('privileges')}
-            className="w-full flex items-center justify-between p-4 border-b"
-          >
-            <div className="flex items-center space-x-3">
-                <TrophyOutlined className="text-xl" />
-                <span className="font-medium">等级特权</span>
-              </div>
-            <span className="text-gray-400">›</span>
-          </button>
+
           
           <button 
             onClick={() => router.push('/commenter/bank-cards')}
@@ -141,16 +132,7 @@ export default function CommenterProfilePage() {
             <span className="text-gray-400">›</span>
           </button>
 
-          <button 
-            onClick={() => setActiveSection('settings')}
-            className="w-full flex items-center justify-between p-4"
-          >
-            <div className="flex items-center space-x-3">
-                <SettingOutlined className="text-xl" />
-                <span className="font-medium">设置</span>
-              </div>
-            <span className="text-gray-400">›</span>
-          </button>
+
         </div>
       </div>
 
@@ -223,50 +205,7 @@ export default function CommenterProfilePage() {
         </div>
       )}
 
-      {activeSection === 'privileges' && (
-        <div className="mx-4 mt-6">
-          <div className="bg-white rounded-lg p-4 shadow-sm">
-            <h3 className="font-bold text-gray-800 mb-4">Lv.3 评论员特权</h3>
-            <div className="space-y-3">
-              <div className="flex items-center space-x-3 p-3 bg-green-50 rounded">
-                <CheckCircleOutlined className="text-green-500" />
-                <div>
-                  <div className="font-medium text-green-700">优先接单权</div>
-                  <div className="text-xs text-green-600">可优先抢到高价值任务</div>
-                </div>
-              </div>
-              <div className="flex items-center space-x-3 p-3 bg-green-50 rounded">
-                <CheckCircleOutlined className="text-green-500" />
-                <div>
-                  <div className="font-medium text-green-700">任务奖励加成</div>
-                  <div className="text-xs text-green-600">所有任务奖励增加10%</div>
-                </div>
-              </div>
-              <div className="flex items-center space-x-3 p-3 bg-green-50 rounded">
-                <CheckCircleOutlined className="text-green-500" />
-                <div>
-                  <div className="font-medium text-green-700">专属客服</div>
-                  <div className="text-xs text-green-600">享受VIP客服通道</div>
-                </div>
-              </div>
-              <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded">
-                <LockOutlined className="text-gray-400" />
-                <div>
-                  <div className="font-medium text-gray-600">免费提现</div>
-                  <div className="text-xs text-gray-500">升级到Lv.4解锁</div>
-                </div>
-              </div>
-              <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded">
-                <LockOutlined className="text-gray-400" />
-                <div>
-                  <div className="font-medium text-gray-600">月度奖金</div>
-                  <div className="text-xs text-gray-500">升级到Lv.4解锁</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+
 
       {/* 帮助与客服 */}
       <div className="mx-4 mt-6">
@@ -285,14 +224,6 @@ export default function CommenterProfilePage() {
                 <span className="font-medium">联系客服</span>
               </div>
             <span className="bg-red-500 text-white text-xs px-2 py-1 rounded mr-2">在线</span>
-          </button>
-
-          <button className="w-full flex items-center justify-between p-4">
-            <div className="flex items-center space-x-3">
-                <PhoneOutlined className="text-xl" />
-                <span className="font-medium">意见反馈</span>
-              </div>
-            <span className="text-gray-400">›</span>
           </button>
         </div>
       </div>

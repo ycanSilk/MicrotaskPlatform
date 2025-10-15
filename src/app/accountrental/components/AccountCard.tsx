@@ -32,22 +32,7 @@ const utils = {
     return platformColors[platform] || 'bg-gradient-to-r from-gray-500 to-gray-600';
   },
   
-  // 获取分类名称
-  getCategoryName: (category: string): string => {
-    const categoryMap: Record<string, string> = {
-      food: '美食',
-      travel: '旅游',
-      fashion: '时尚',
-      beauty: '美妆',
-      fitness: '健身',
-      technology: '科技',
-      finance: '财经',
-      education: '教育',
-      entertainment: '娱乐',
-      sports: '体育'
-    };
-    return categoryMap[category] || category;
-  },
+
   
   // 获取账号年龄名称
   getAccountAgeName: (age: string): string => {
@@ -111,7 +96,7 @@ const AccountCard: React.FC<AccountCardProps> = ({ account, onAccountClick, onRe
               </div>
             )}
           </div>
-          <div className="absolute top-3 left-3 bg-black bg-opacity-50 text-white px-2 py-1 rounded text-xs">
+          <div className="absolute top-3 left-3 bg-black bg-green-500 text-white px-2 py-1 rounded text-xs">
             {utils.getPlatformName(account.platform)}
           </div>
         </div>

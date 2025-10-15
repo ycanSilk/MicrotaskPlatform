@@ -25,7 +25,7 @@ const FILTER_OPTIONS = {
     { value: 'kuaishou', label: '快手' }
   ],
   publishTime: [
-    { value: 'all', label: '全部时间' },
+    { value: 'all', label: '发布时间' },
     { value: '12h', label: '12小时内' },
     { value: '24h', label: '24小时内' },
     { value: '2d', label: '2天内' },
@@ -37,16 +37,8 @@ const FILTER_OPTIONS = {
     { value: '50-100', label: '50-100元' },
     { value: '100-200', label: '100-200元' },
     { value: '200+', label: '200元以上' }
-  ],
-  category: [
-    { value: 'all', label: '分类' },
-    { value: 'food', label: '美食' },
-    { value: 'travel', label: '旅游' },
-    { value: 'fashion', label: '时尚' },
-    { value: 'beauty', label: '美妆' },
-    { value: 'fitness', label: '健身' },
-    { value: 'technology', label: '科技' }
   ]
+
 };
 
 // 根据平台获取对应图标
@@ -73,7 +65,8 @@ const MOCK_ACCOUNT_DATA: AccountRentalInfo[] = [
     followersRange: '50k-100k',
     engagementRate: '5.2%',
     contentCategory: 'food',
-    price: 120,
+    orderPrice: 120,
+    price: 120*0.77, // 订单单价 = 派单单价 * 77%
     rentalDuration: 1,
     minimumRentalHours: 2,
     accountScore: 4.8,
@@ -82,7 +75,7 @@ const MOCK_ACCOUNT_DATA: AccountRentalInfo[] = [
     deliveryTime: 60,
     maxConcurrentUsers: 1,
     responseTime: 30,
-    availableCount: 5,
+    availableCount: 1,
     publishTime: '2023-06-15T09:30:00Z',
     includedFeatures: ['基础发布', '数据分析'],
     description: '专注于美食探店内容，有稳定的粉丝群体和良好的互动率',
@@ -91,142 +84,8 @@ const MOCK_ACCOUNT_DATA: AccountRentalInfo[] = [
     status: 'active',
     images: ['/images/1758380776810_96.jpg', '/images/1758380782226_96.jpg'],
     publisherName: '美食达人'
-  },
-  {
-    id: 'acc-002',
-    platform: 'xiaohongshu',
-    platformIcon: getPlatformIcon('xiaohongshu'),
-    accountTitle: '时尚搭配指南',
-    followersRange: '100k-500k',
-    engagementRate: '4.8%',
-    contentCategory: 'fashion',
-    price: 200,
-    rentalDuration: 1,
-    minimumRentalHours: 4,
-    accountScore: 4.9,
-    region: 'east',
-    accountAge: '6-12',
-    deliveryTime: 120,
-    maxConcurrentUsers: 2,
-    responseTime: 45,
-    availableCount: 3,
-    publishTime: '2023-06-14T14:20:00Z',
-    includedFeatures: ['基础发布', '数据分析', '粉丝互动'],
-    description: '专注于时尚搭配内容，拥有专业的搭配团队和丰富的时尚资源',
-    advantages: ['内容多样化', '粉丝粘性强', '账号信用好'],
-    restrictions: ['禁止发布违法内容', '禁止批量删除内容'],
-    status: 'active',
-    images: ['/images/1758380804222_96.jpg'],
-    publisherName: '时尚工作室'
-  },
-  {
-    id: 'acc-003',
-    platform: 'kuaishou',
-    platformIcon: getPlatformIcon('kuaishou'),
-    accountTitle: '科技产品评测',
-    followersRange: '10k-50k',
-    engagementRate: '6.5%',
-    contentCategory: 'technology',
-    price: 80,
-    rentalDuration: 1,
-    minimumRentalHours: 2,
-    accountScore: 4.7,
-    region: 'north',
-    accountAge: '3-6',
-    deliveryTime: 45,
-    maxConcurrentUsers: 1,
-    responseTime: 20,
-    availableCount: 10,
-    publishTime: '2023-06-13T11:15:00Z',
-    includedFeatures: ['基础发布', '数据分析'],
-    description: '专注于科技产品评测，提供专业的产品使用体验和评价',
-    advantages: ['专业性强', '粉丝精准度高', '更新频率稳定'],
-    restrictions: ['禁止发布虚假评测', '禁止更改账号设置'],
-    status: 'active',
-    images: ['/images/1758380820444_96.jpg', '/images/1758380826850_96.jpg'],
-    publisherName: '科技评测室'
-  },
-  {
-    id: 'acc-004',
-    platform: 'douyin',
-    platformIcon: getPlatformIcon('douyin'),
-    accountTitle: '旅行攻略分享',
-    followersRange: '500k-1m',
-    engagementRate: '5.8%',
-    contentCategory: 'travel',
-    price: 350,
-    rentalDuration: 1,
-    minimumRentalHours: 6,
-    accountScore: 4.9,
-    region: 'national',
-    accountAge: '12+',
-    deliveryTime: 180,
-    maxConcurrentUsers: 3,
-    responseTime: 60,
-    availableCount: 2,
-    publishTime: '2023-06-12T16:45:00Z',
-    includedFeatures: ['基础发布', '数据分析', '粉丝互动', '品牌合作'],
-    description: '专注于旅行攻略分享，覆盖国内外热门旅游目的地',
-    advantages: ['粉丝基数大', '内容质量高', '品牌合作经验丰富'],
-    restrictions: ['禁止发布虚假攻略', '禁止更改账号设置', '禁止删除历史内容'],
-    status: 'active',
-    images: ['/images/1758380844666_96.jpg'],
-    publisherName: '旅行家'
-  },
-  {
-    id: 'acc-005',
-    platform: 'xiaohongshu',
-    platformIcon: getPlatformIcon('xiaohongshu'),
-    accountTitle: '美妆教程',
-    followersRange: '50k-100k',
-    engagementRate: '7.2%',
-    contentCategory: 'beauty',
-    price: 150,
-    rentalDuration: 1,
-    minimumRentalHours: 3,
-    accountScore: 4.8,
-    region: 'south',
-    accountAge: '6-12',
-    deliveryTime: 90,
-    maxConcurrentUsers: 2,
-    responseTime: 30,
-    availableCount: 6,
-    publishTime: '2023-06-11T08:30:00Z',
-    includedFeatures: ['基础发布', '数据分析', '粉丝互动'],
-    description: '专注于美妆教程，提供详细的妆容教程和产品推荐',
-    advantages: ['互动率高', '粉丝粘性强', '内容实用性强'],
-    restrictions: ['禁止发布虚假推荐', '禁止更改账号设置'],
-    status: 'active',
-    images: ['/images/1758380864888_96.jpg', '/images/1758380870294_96.jpg'],
-    publisherName: '美妆博主'
-  },
-  {
-    id: 'acc-006',
-    platform: 'douyin',
-    platformIcon: getPlatformIcon('douyin'),
-    accountTitle: '健身教练',
-    followersRange: '10k-50k',
-    engagementRate: '4.5%',
-    contentCategory: 'fitness',
-    price: 90,
-    rentalDuration: 1,
-    minimumRentalHours: 2,
-    accountScore: 4.6,
-    region: 'west',
-    accountAge: '3-6',
-    deliveryTime: 60,
-    maxConcurrentUsers: 1,
-    responseTime: 45,
-    availableCount: 8,
-    publishTime: '2023-06-10T15:20:00Z',
-    includedFeatures: ['基础发布', '数据分析'],
-    description: '专注于健身指导，提供专业的健身计划和营养建议',
-    advantages: ['专业性强', '粉丝忠诚度高', '内容实用'],
-    restrictions: ['禁止发布虚假指导', '禁止更改账号设置'],
-    status: 'active',
-    images: ['/images/1758380884000_96.jpg'],
-    publisherName: '健身教练'
   }
+
 ];
 
 
@@ -250,7 +109,6 @@ export default function AccountRentalMarketPage({ searchParams }: { searchParams
   // 其他状态和逻辑保持不变
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedPlatform, setSelectedPlatform] = useState('all');
-  const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedFollowersRange, setSelectedFollowersRange] = useState('all');
   const [selectedSort, setSelectedSort] = useState('time_desc');
   const [priceSort, setPriceSort] = useState('all');
@@ -309,24 +167,9 @@ export default function AccountRentalMarketPage({ searchParams }: { searchParams
   useEffect(() => {
     setPage(1);
     setDisplayedAccounts([]);
-  }, [searchTerm, selectedPlatform, selectedCategory, selectedFollowersRange, selectedSort, publishTime, priceFilter]);
+  }, [searchTerm, selectedPlatform, selectedFollowersRange, selectedSort, publishTime, priceFilter]);
 
-  // 获取分类名称 - 用于搜索筛选
-  const getCategoryName = (category: string): string => {
-    const categoryMap: Record<string, string> = {
-      food: '美食',
-      travel: '旅游',
-      fashion: '时尚',
-      beauty: '美妆',
-      fitness: '健身',
-      technology: '科技',
-      finance: '财经',
-      education: '教育',
-      entertainment: '娱乐',
-      sports: '体育'
-    };
-    return categoryMap[category] || category;
-  };
+  // 获取分类名称 - 保留用于搜索筛选兼容性
 
   // 使用useMemo优化筛选和排序操作，避免不必要的重复计算
   const filteredAccounts = useMemo(() => {
@@ -336,19 +179,13 @@ export default function AccountRentalMarketPage({ searchParams }: { searchParams
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
       result = result.filter(account => 
-        account.accountTitle.toLowerCase().includes(term) ||
-        getCategoryName(account.contentCategory).toLowerCase().includes(term)
+        account.accountTitle.toLowerCase().includes(term)
       );
     }
 
     // 平台筛选
     if (selectedPlatform !== 'all') {
       result = result.filter(account => account.platform === selectedPlatform);
-    }
-
-    // 分类筛选
-    if (selectedCategory !== 'all') {
-      result = result.filter(account => account.contentCategory === selectedCategory);
     }
 
     // 粉丝数筛选
@@ -517,7 +354,7 @@ export default function AccountRentalMarketPage({ searchParams }: { searchParams
       {/* 筛选和搜索区域 - 优化移动端体验 */}
       <div className="px-4 pt-4 mb-4">
         <div className="bg-white rounded-xl py-4 px-3 shadow-sm">
-          {/* 横向筛选栏 - 3个元素固定一行显示，优化移动端体验 */}
+          {/* 横向筛选栏 - 2个元素固定一行显示，优化移动端体验 */}
           <div className="bg-white rounded-lg border border-gray-200 shadow-sm mb-6 overflow-hidden">
             <div className="py-2">
               <div className="flex items-center space-x-0">
@@ -525,8 +362,7 @@ export default function AccountRentalMarketPage({ searchParams }: { searchParams
                 {
                   [
                     { value: publishTime, onChange: setPublishTime, options: FILTER_OPTIONS.publishTime },
-                    { value: selectedPlatform, onChange: setSelectedPlatform, options: FILTER_OPTIONS.platform },
-                    { value: selectedCategory, onChange: setSelectedCategory, options: FILTER_OPTIONS.category }
+                    { value: selectedPlatform, onChange: setSelectedPlatform, options: FILTER_OPTIONS.platform }
                   ].map((filter, index) => (
                   <div key={index} className="relative flex-1">
                     <select
@@ -550,9 +386,10 @@ export default function AccountRentalMarketPage({ searchParams }: { searchParams
                     </select>
               
                     {/* 分隔线 */}
-                    {index < 2 && <div className="absolute right-0 top-1/2 transform -translate-y-1/2 h-6 w-px bg-gray-200"></div>}
+                    {index < 1 && <div className="absolute right-0 top-1/2 transform -translate-y-1/2 h-6 w-px bg-gray-200"></div>}
                   </div>
-                ))}
+                ))
+                }
               </div>
             </div>
           </div>
@@ -602,7 +439,6 @@ export default function AccountRentalMarketPage({ searchParams }: { searchParams
                       onClick={() => {
                         setSearchTerm('');
                         setSelectedPlatform('all');
-                        setSelectedCategory('all');
                         setSelectedFollowersRange('all');
                         setSelectedSort('time_desc');
                       }}

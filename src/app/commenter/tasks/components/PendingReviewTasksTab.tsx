@@ -27,6 +27,10 @@ export interface Task {
   subOrderNumber?: string;
   orderNumber?: string;
   taskType?: string;
+  requiringVideoUrl?: string;
+  submitdvideoUrl?: string;
+  submitScreenshotUrl?: string;
+  requiringCommentUrl?: string;
 }
 
 interface PendingReviewTasksTabProps {
@@ -49,7 +53,7 @@ const PendingReviewTasksTab: React.FC<PendingReviewTasksTabProps> = ({
   const router = useRouter();
 
   return (
-    <div className="mx-4 mt-6">
+    <div className="mt-6">
       {tasks.map((task) => (
         <div key={task.id || 'unknown'} className="rounded-lg p-4 mb-4 shadow-sm transition-all hover:shadow-md bg-white">
           <div className="flex justify-between items-start mb-3">
@@ -60,11 +64,11 @@ const PendingReviewTasksTab: React.FC<PendingReviewTasksTabProps> = ({
           <div className="mb-3">
             <div className="text-lg font-bold text-orange-500 mb-2">订单单价：¥{(task.unitPrice || task.price || 0).toFixed(2)}</div>
             <div className="flex flex-col space-y-1">
-              <span className={`text-xs px-2 py-0.5 rounded whitespace-nowrap inline-block w-32 ${task.statusColor || 'bg-yellow-100 text-yellow-600'}`}>
+              <span className={`text-xs px-2 py-0.5 rounded whitespace-nowrap inline-block ${task.statusColor || 'bg-yellow-100 text-yellow-600'}`}>
                   状态：{task.statusText || '待审核'}
                 </span>
 
-                 <span className="text-xs px-2 py-0.5 rounded bg-blue-100 text-blue-600 whitespace-nowrap inline-block w-32">
+                <span className="text-xs px-2 py-0.5 rounded bg-blue-100 text-blue-600 whitespace-nowrap inline-block">
                   任务类型：{getTaskTypeName(task.taskType) || '评论'}
                 </span>
 
@@ -81,20 +85,21 @@ const PendingReviewTasksTab: React.FC<PendingReviewTasksTabProps> = ({
               </div>
           </div>
           
-          <div className="text-sm text-gray-600 mb-3">
+          <div className="text-sm text-gray-600 mb-3 overflow-hidden text-ellipsis whitespace-normal max-h-[72px] line-clamp-3">
             要求：{task.requirements || '无特殊要求'}
           </div>
           
-          <div className="text-sm text-gray-600 mb-4">
-            {task.description || '无描述'}
-          </div>
+
+          
+
           
           {/* 打开视频按钮 */}
-          {task.videoUrl && (
+          {task.submitdvideoUrl && (
             <div className="mb-4">
+              <span className="text-sm mr-2">接单员提交的视频连接：</span>
               <button 
                 className="bg-purple-600 text-white py-2 px-4 rounded-lg text-sm font-medium hover:bg-purple-700 transition-colors flex items-center"
-                onClick={() => window.open(task.videoUrl, '_blank')}
+                onClick={() => window.open(task.submitdvideoUrl, '_blank')}
               >
                 <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
@@ -107,14 +112,15 @@ const PendingReviewTasksTab: React.FC<PendingReviewTasksTabProps> = ({
           
           {/* 截图显示区域 - 自适应高度，居中显示 */}
           <div className="mb-4">
+            <span className="text-sm mb-2 inline-block">接单员提交的截图：</span>
             <div 
               className={`w-1/3 relative cursor-pointer overflow-hidden rounded-lg border border-gray-300 bg-gray-50 transition-colors hover:border-blue-400 hover:shadow-md flex items-center justify-center min-h-[7.5rem]`}
-              onClick={() => task.screenshotUrl && handleViewImage(task.screenshotUrl)}
+              onClick={() => task.submitScreenshotUrl && handleViewImage(task.submitScreenshotUrl)}
             >
-              {task.screenshotUrl ? (
+              {task.submitScreenshotUrl ? (
                 <>
                   <img 
-                    src={task.screenshotUrl} 
+                    src={task.submitScreenshotUrl} 
                     alt="任务截图" 
                     className="w-full h-auto max-h-[20rem] object-contain mx-auto"
                   />

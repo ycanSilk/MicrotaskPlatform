@@ -14,11 +14,11 @@ export default function CommenterHallContentPage() {
     id: string;
     title: string;
     price: number;
+    taskLevel: string; // 任务等级
+    fixedPrice: number; // 固定单价
     requirements: string;
     publishTime: string;
     progress: number;
-    badge?: string | null;
-    badgeColor?: string;
   }
 
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -81,41 +81,51 @@ export default function CommenterHallContentPage() {
   const staticTasks = [
     {
       id: '1',
-      title: '小红书产品评论任务',
-      price: 5.50,
-      requirements: '评论需包含产品使用体验，字数不少于50字，配图1张',
+      title: '上评评论任务',
+      taskLevel: '上评评论',
+      fixedPrice: 3,
+      price: 3 * 0.57, // 按公式计算显示单价
+      requirements: '按照要求进行评论',
       publishTime: new Date(Date.now() - 1000 * 60 * 5).toISOString(),
       progress: 25
     },
     {
       id: '2',
-      title: '抖音短视频点赞评论',
-      price: 3.00,
-      requirements: '点赞并评论视频，评论需正面积极，不少于20字',
+      title: '中评评论任务',
+      taskLevel: '中评评论',
+      fixedPrice: 2,
+      price: 2 * 0.57, // 按公式计算显示单价
+      requirements: '按照要求进行评论',
       publishTime: new Date(Date.now() - 1000 * 60 * 15).toISOString(),
       progress: 40
     },
     {
       id: '3',
-      title: '快手内容分享任务',
-      price: 4.20,
-      requirements: '分享内容到个人主页并评论，评论需原创，不少于30字',
+      title: '上中评评论任务',
+      taskLevel: '上中评评论',
+      fixedPrice: 9,
+      price: 9 * 0.57, // 按公式计算显示单价
+      requirements: '按照要求进行评论',
       publishTime: new Date(Date.now() - 1000 * 60 * 2).toISOString(),
       progress: 10
     },
     {
       id: '4',
-      title: '小红书种草笔记评论',
-      price: 6.00,
-      requirements: '针对种草笔记撰写真实体验评论，字数不少于100字',
+      title: '中下评评论任务',
+      taskLevel: '中下评评论',
+      fixedPrice: 6,
+      price: 6 * 0.57, // 按公式计算显示单价
+      requirements: '按照要求进行评论',
       publishTime: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
       progress: 60
     },
     {
       id: '5',
-      title: '抖音直播点赞互动',
-      price: 2.50,
-      requirements: '观看直播5分钟并进行点赞和评论互动',
+      title: '中评评论任务',
+      taskLevel: '中评评论',
+      fixedPrice: 2,
+      price: 2 * 0.57, // 按公式计算显示单价
+      requirements: '按照要求进行评论',
       publishTime: new Date(Date.now() - 1000 * 60 * 8).toISOString(),
       progress: 35
     }
@@ -131,9 +141,7 @@ export default function CommenterHallContentPage() {
       
       // 为每个静态任务添加显示信息
       const formattedTasks = staticTasks.map((task: any) => ({
-        ...task,
-        badge: typeof task.price === 'number' && task.price >= 5 ? '高价' : typeof task.progress === 'number' && task.progress < 30 ? '新' : null,
-        badgeColor: typeof task.price === 'number' && task.price >= 5 ? 'bg-green-500' : typeof task.progress === 'number' && task.progress < 30 ? 'bg-orange-500' : ''
+        ...task
       }));
       
       setTasks(formattedTasks);
@@ -353,13 +361,11 @@ export default function CommenterHallContentPage() {
           sortedTasks.map((task) => (
             <div key={task.id} className="bg-white rounded-lg p-4 mb-4 shadow-sm">
             <div className="flex justify-between items-start mb-3">
-              <h3 className="font-bold text-gray-800">{task.title}</h3>
-              <div className="flex items-center space-x-1">
-                {task.badge && (
-                  <span className={`${task.badgeColor} text-white text-xs px-2 py-1 rounded`}>
-                    {task.badge}
-                  </span>
-                )}
+              <div>
+                <h3 className="font-bold text-gray-800">{task.title}</h3>
+                <span className="text-xs bg-blue-100 text-blue-600 px-2 py-0.5 rounded mt-1 inline-block">
+                  {task.taskLevel}
+                </span>
               </div>
             </div>
             
@@ -403,17 +409,17 @@ export default function CommenterHallContentPage() {
       </div>
       
       {/* 固定在底部的刷新按钮 */}
-      <div className="fixed bottom-20 left-0 right-0 bg-white border-t px-4 py-3 shadow-lg">
+      <div className="fixed bottom-12 left-0 right-0 px-4 py-3 bg-white">
         <button
           onClick={handleRefresh}
           disabled={isRefreshing}
-          className={`w-full py-3 rounded-lg font-medium transition-all duration-200 ${isRefreshing ? 'bg-gray-400 text-gray-200 cursor-not-allowed' : 'bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:from-blue-600 hover:to-blue-700 active:scale-95'}`}
+          className={`w-full py-3 rounded-lg font-medium transition-all ${isRefreshing ? ' text-gray-200 cursor-not-allowed' : 'bg-blue-500 text-white hover:bg-blue-600'}`}
         >
           <div className="flex items-center justify-center space-x-2">
             <span className={isRefreshing ? 'animate-spin' : ''}>
               <ReloadOutlined />
             </span>
-            <span>{isRefreshing ? '刷新中...' : '刷新代抢订单'}</span>
+            <span>{isRefreshing ? '刷新中...' : '刷新订单'}</span>
           </div>
         </button>
       </div>
