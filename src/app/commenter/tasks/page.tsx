@@ -367,6 +367,35 @@ export default function CommenterTasksPage() {
     setSelectedImage(null);
   };
   
+  // 删除图片功能
+  const handleRemoveImage = (taskId: string) => {
+    // 更新任务列表，移除对应任务的截图URL
+    setTasks(prevTasks => 
+      prevTasks.map(task => 
+        task.id === taskId 
+          ? { ...task, screenshotUrl: undefined, submitScreenshotUrl: undefined }
+          : task
+      )
+    );
+    
+    // 清除临时截图文件
+    setTempScreenshotFiles(prev => {
+      const newFiles = { ...prev };
+      delete newFiles[taskId];
+      return newFiles;
+    });
+    
+    // 清除上传状态
+    setUploadStatus(prev => {
+      const newStatus = { ...prev };
+      delete newStatus[taskId];
+      return newStatus;
+    });
+    
+    setModalMessage('图片已删除，可以重新上传');
+    setShowModal(true);
+  };
+  
   // 辅助函数：将图片压缩至200KB以下
   const compressImage = async (file: File): Promise<File> => {
     return new Promise((resolve) => {
@@ -672,6 +701,7 @@ export default function CommenterTasksPage() {
             handleViewDetails={handleViewDetails} 
             handleViewImage={handleViewImage} 
             handleCopyComment={handleCopyComment} 
+            handleRemoveImage={handleRemoveImage} 
             fetchUserTasks={fetchUserTasks} 
             getTaskTypeName={getTaskTypeName}
           />

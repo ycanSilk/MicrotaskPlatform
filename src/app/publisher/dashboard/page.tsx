@@ -9,6 +9,8 @@ import ActiveTasksTab from './components/ActiveTasksTab';
 import CompletedTasksTab from './components/CompletedTasksTab';
 import ReorderButton from '../../commenter/components/ReorderButton';
 import { ZoomInOutlined, ZoomOutOutlined, RedoOutlined, CloseOutlined } from '@ant-design/icons';
+import CompletedOrderCard from '@/components/task/Completed-Order/Completed-Order';
+import OrderHeaderTemplate from './components/OrderHeaderTemplate';
 
 // 定义数据类型
 interface Task {
@@ -476,19 +478,76 @@ export default function PublisherDashboardPage() {
       )}
 
       {activeTab === 'completed' && (
-        <CompletedTasksTab
-          tasks={completedTasks}
-          searchTerm={searchTerm}
-          setSearchTerm={setSearchTerm}
-          handleSearch={handleSearch}
-          sortBy={sortBy}
-          setSortBy={setSortBy}
-          handleTaskAction={handleTaskAction}
-          filterRecentOrders={filterRecentOrders}
-          searchOrders={searchOrders}
-          sortTasks={sortTasks}
-          onViewAllClick={() => router.push('/publisher/orders')}
-        />
+        <div className="mx-4 mt-6 space-y-4">
+          {/* 使用标准模板组件添加搜索和排序功能 */}
+          <OrderHeaderTemplate
+            title="已完成任务"
+            totalCount={searchOrders(sortTasks(completedTasks)).length}
+            searchTerm={searchTerm}
+            setSearchTerm={setSearchTerm}
+            handleSearch={handleSearch}
+            sortBy={sortBy}
+            setSortBy={setSortBy}
+            sortOptions={[
+              { value: 'time', label: '按时间排序' },
+              { value: 'price', label: '按价格排序' },
+              { value: 'status', label: '按状态排序' }
+            ]}
+            viewAllUrl="/publisher/orders/completed"
+            onViewAllClick={() => router.push('/publisher/orders')}
+          />
+          
+          {/* 已完成订单列表 */}
+          <div>
+            {searchOrders(sortTasks(completedTasks)).length > 0 ? (
+              searchOrders(sortTasks(completedTasks)).map((task) => {
+                // 转换任务数据为CompletedOrderCard需要的格式
+                const orderData = {
+                  id: task.id,
+                  orderNumber: task.id,
+                  title: task.title,
+                  description: task.description,
+                  status: 'completed' as 'pending' | 'processing' | 'reviewing' | 'completed' | 'rejected' | 'cancelled',
+                  createdAt: task.publishTime,
+                  updatedAt: task.publishTime,
+                  budget: task.price * task.maxParticipants,
+                  type: task.category === '账号租赁' ? ('other' as const) : ('comment' as const),
+                  subOrders: Array.from({ length: task.completed }, (_, i) => ({
+                    id: `${i + 1}`,
+                    orderId: task.id,
+                    userId: '',
+                    userName: '',
+                    status: 'completed' as 'pending' | 'processing' | 'reviewing' | 'completed' | 'rejected' | 'cancelled',
+                    reward: task.price
+                  }))
+                };
+                return (
+                  <CompletedOrderCard
+                    key={task.id}
+                    order={orderData}
+                    onCopyOrderNumber={(orderNumber) => {
+                      navigator.clipboard.writeText(orderNumber).then(() => {
+                        const tooltip = document.createElement('div');
+                        tooltip.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded shadow-lg z-50';
+                        tooltip.innerText = '订单号已复制';
+                        document.body.appendChild(tooltip);
+                        setTimeout(() => {
+                          document.body.removeChild(tooltip);
+                        }, 2000);
+                      });
+                    }}
+                    onViewDetails={(orderId) => handleTaskAction(orderId, '查看详情')}
+                    onReorder={(orderId) => handleTaskAction(orderId, 'reorder')}
+                  />
+                );
+              })
+            ) : (
+              <div className="text-center py-8 bg-white rounded-lg shadow-sm">
+                <p className="text-gray-500">暂无相关任务</p>
+              </div>
+            )}
+          </div>
+        </div>
       )}
 
       {/* 图片查看器模态框 - 支持放大查看 */}

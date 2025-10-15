@@ -48,6 +48,7 @@ interface ProgressTasksTabProps {
   handleSubmitOrder: (taskId: string) => void;
   handleViewDetails: (taskId: string) => void;
   handleViewImage: (imageUrl: string) => void;
+  handleRemoveImage: (taskId: string) => void;
   getTaskTypeName: (taskType?: string) => string;
   fetchUserTasks: () => void;
 }
@@ -64,6 +65,7 @@ const ProgressTasksTab: React.FC<ProgressTasksTabProps> = ({
   handleSubmitOrder,
   handleViewDetails,
   handleViewImage,
+  handleRemoveImage,
   getTaskTypeName,
   fetchUserTasks
 }) => {
@@ -127,7 +129,28 @@ const ProgressTasksTab: React.FC<ProgressTasksTabProps> = ({
       {tasks.map((task) => (
         <div key={task.id || 'unknown'} className="rounded-lg p-4 mb-4 shadow-sm transition-all hover:shadow-md bg-white">
           <div className="flex justify-between items-start mb-2">
-            <h3 className="text-sm text-black inline-block">订单号：{task.subOrderNumber || task.orderNumber || '未命名任务'}</h3>
+            <h3 className="text-sm text-black inline-block flex items-center">
+              订单号：{task.subOrderNumber || task.orderNumber || '未命名任务'}
+              <button 
+                className="ml-2 text-blue-500 hover:text-blue-700 transition-colors"
+                onClick={() => {
+                  const orderNumber = task.subOrderNumber || task.orderNumber;
+                  if (orderNumber) {
+                    navigator.clipboard.writeText(orderNumber).then(() => {
+                      // 显示复制成功提示
+                      alert('订单号已复制到剪贴板');
+                    }).catch(err => {
+                      console.error('复制失败:', err);
+                    });
+                  }
+                }}
+              >
+                <svg className="w-4 h-4 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                </svg>
+                <span className="text-xs inline-block">复制</span>
+              </button>
+            </h3>
           </div>
            
           {/* 价格和任务信息区域 - 显示单价、任务状态和发布时间 */}
@@ -221,7 +244,8 @@ const ProgressTasksTab: React.FC<ProgressTasksTabProps> = ({
       </div>
 
           {/* 截图显示区域 - 自适应高度，居中显示 */}
-          <div className="mb-4">
+          <div className="mb-4 border border-blue-200 rounded-lg p-3 bg-blue-50">
+            <div className='text-sm text-blue-500 pl-2 py-2'>完成任务截图上传：</div>
             <div 
               className={`w-[130px] h-[130px] relative cursor-pointer overflow-hidden rounded-lg border border-gray-300 bg-gray-50 transition-colors hover:border-blue-400 ${task.screenshotUrl ? 'hover:shadow-md' : ''} flex items-center justify-center`}
               onClick={() => task.screenshotUrl && handleViewImage(task.screenshotUrl)}
@@ -236,6 +260,16 @@ const ProgressTasksTab: React.FC<ProgressTasksTabProps> = ({
                   <div className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-10 flex items-center justify-center transition-all">
                     <span className="text-blue-500 text-lg opacity-0 hover:opacity-100 transition-opacity">点击放大</span>
                   </div>
+                  {/* 删除按钮 */}
+                  <button
+                    className="absolute top-1 right-1 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors z-10"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleRemoveImage(task.id);
+                    }}
+                  >
+                    X
+                  </button>
                 </>
               ) : (
                 <div className="w-full h-full flex flex-col items-center justify-center text-gray-400">
@@ -246,8 +280,8 @@ const ProgressTasksTab: React.FC<ProgressTasksTabProps> = ({
                 </div>
               )}
             </div>
-            <p className="text-xs text-black mt-1">
-              {task.screenshotUrl ? '已上传截图，点击可放大查看' : '点击上传按钮添加截图'}
+            <p className="text-xs text-blue-500 mt-1 pl-2">
+              {task.screenshotUrl ? '已上传截图，点击可放大查看' : '点击上传按钮上传图片'}
             </p>
           </div>
           

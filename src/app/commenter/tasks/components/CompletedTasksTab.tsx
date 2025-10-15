@@ -57,34 +57,57 @@ const CompletedTasksTab: React.FC<CompletedTasksTabProps> = ({
     <div className="mt-6">
       {tasks.map((task) => (
         <div key={task.id || 'unknown'} className="rounded-lg p-4 mb-4 shadow-sm transition-all hover:shadow-md bg-white">
-          <div className="flex justify-between items-start mb-3">
-            <h3 className="font-bold text-gray-800">订单号：{task.subOrderNumber || task.orderNumber || '未命名任务'}</h3>
-            <div className="text-lg font-bold text-orange-500 mb-2">订单单价：¥{(task.unitPrice || task.price || 0).toFixed(2)}</div>
+          <div className="flex justify-between items-start mb-2">
+            <h3 className="text-sm text-black inline-block flex items-center">
+              订单号：{task.subOrderNumber || task.orderNumber || '未命名任务'}
+              <button 
+                className="ml-2 text-blue-500 hover:text-blue-700 transition-colors"
+                onClick={() => {
+                  const orderNumber = task.subOrderNumber || task.orderNumber;
+                  if (orderNumber) {
+                    navigator.clipboard.writeText(orderNumber).then(() => {
+                      // 显示复制成功提示
+                      alert('订单号已复制到剪贴板');
+                    }).catch(err => {
+                      console.error('复制失败:', err);
+                    });
+                  }
+                }}
+              >
+                <svg className="w-4 h-4 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                </svg>
+                <span className="text-xs inline-block">复制</span>
+              </button>
+            </h3>
           </div>
           
-          <div>
-            <div className={`text-xs px-2 py-0.5 rounded whitespace-nowrap inline-block ${task.statusColor || 'bg-green-100 text-green-600'}`}>
+          {/* 价格和任务信息区域 - 显示单价、任务状态和发布时间 */}
+          <div className="mb-2">
+            <div className="text-sm text-black mb-1 inline-block">订单单价：¥{(task.unitPrice || task.price || 0).toFixed(2)}</div>
+            <div className="space-y-2">
+              <div>
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700 mr-2">
                   状态：{task.statusText || '已完成'}
-            </div>
-
-            <div className="text-xs px-2 py-0.5 rounded bg-blue-100 text-blue-600 whitespace-nowrap inline-block">
+                </span>
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
                   任务类型：{getTaskTypeName(task.taskType) || '评论'}
+                </span>
+              </div>
+              <div className="text-sm text-black block">
+                发布时间：{task.publishTime || '未知时间'}
+              </div>
+              {/* 完成时间 */}
+              {task.completedTime && (
+              <div className="text-sm text-black block  mt-2">
+                  完成时间：{task.completedTime}
+              </div>
+              )}
             </div>
-
-            <div className="text-xs text-gray-500">
-                  发布时间：{task.publishTime || '未知时间'}
-            </div>
-                
-            {/* 完成时间 */}
-            {task.completedTime && (
-            <div className="text-xs text-gray-500 mb-3">
-                完成时间：{task.completedTime}
-            </div>
-            )}
+               
           </div>
 
-          
-          <div className="text-sm text-gray-600 mb-3 overflow-hidden text-ellipsis whitespace-normal max-h-[72px] line-clamp-3">
+          <div className="text-sm mb-2 overflow-hidden text-ellipsis whitespace-normal max-h-[72px] line-clamp-3">
             要求：{task.requirements || '无特殊要求'}
           </div>
           
@@ -92,10 +115,10 @@ const CompletedTasksTab: React.FC<CompletedTasksTabProps> = ({
           
           {/* 打开视频按钮 */}
           {task.submitdvideoUrl && (
-            <div className="mb-4">
-              <span className="text-sm mr-2">接单员提交的视频连接：</span>
+            <div className="mb-4 border border-blue-200 rounded-lg p-3 bg-blue-50">
+              <span className="text-sm text-blue-700 mr-2">任务视频点击进入：</span>
               <button 
-                className="bg-purple-600 text-white py-2 px-4 rounded-lg text-sm font-medium hover:bg-purple-700 transition-colors flex items-center"
+                className="bg-blue-600 mt-1 text-white py-2 px-4 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors flex items-center"
                 onClick={() => window.open(task.submitdvideoUrl, '_blank')}
               >
                 <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -108,10 +131,10 @@ const CompletedTasksTab: React.FC<CompletedTasksTabProps> = ({
           )}
           
           {/* 截图显示区域 - 自适应高度，居中显示 */}
-          <div className="mb-4">
-            <span className="text-sm mb-2 inline-block">接单员提交的截图：</span>
+          <div className="mb-4 border border-blue-200 rounded-lg p-3 bg-blue-50">
+            <div className='text-sm text-blue-500 pl-2 py-2'>完成任务截图上传：</div>
             <div 
-              className={`w-1/3 relative cursor-pointer overflow-hidden rounded-lg border border-gray-300 bg-gray-50 transition-colors hover:border-blue-400 hover:shadow-md flex items-center justify-center min-h-[7.5rem]`}
+              className={`w-[130px] h-[130px] relative cursor-pointer overflow-hidden rounded-lg border border-gray-300 bg-gray-50 transition-colors hover:border-blue-400 ${task.screenshotUrl ? 'hover:shadow-md' : ''} flex items-center justify-center`}
               onClick={() => task.submitScreenshotUrl && handleViewImage(task.submitScreenshotUrl)}
             >
               {task.submitScreenshotUrl ? (
@@ -119,7 +142,7 @@ const CompletedTasksTab: React.FC<CompletedTasksTabProps> = ({
                   <img 
                     src={task.submitScreenshotUrl} 
                     alt="任务截图" 
-                    className="w-full h-auto max-h-[20rem] object-contain mx-auto"
+                    className="w-full h-full object-contain"
                   />
                   <div className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-10 flex items-center justify-center transition-all">
                     <span className="text-blue-500 text-lg opacity-0 hover:opacity-100 transition-opacity">点击放大</span>
@@ -134,7 +157,7 @@ const CompletedTasksTab: React.FC<CompletedTasksTabProps> = ({
                 </div>
               )}
             </div>
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="text-xs text-blue-500 mt-1 pl-2">
               点击可放大查看截图
             </p>
           </div>

@@ -80,7 +80,7 @@ const OrderHeaderTemplate: React.FC<OrderHeaderTemplateProps> = ({
         
         <button 
           onClick={onViewAllClick}
-          className="px-4 py-2 bg-blue-500 text-white rounded text-sm hover:bg-blue-600 transition-colors w-full"
+          className="px-4 py-2 bg-blue-600 text-white rounded text-sm hover:bg-blue-600 transition-colors w-full"
         >
           查看全部订单
         </button>

@@ -2,7 +2,9 @@
 import React from 'react';
 import OrderStatus, { OrderStatusType } from '../../order/OrderStatus';
 import OrderTaskType, { TaskType } from '../../order/OrderTaskType';
-import { CheckCircleOutlined, CloseCircleOutlined } from '@ant-design/icons';
+import { CheckCircleOutlined, CloseCircleOutlined,EditOutlined, CopyOutlined, LinkOutlined } from '@ant-design/icons';
+import { useState } from 'react';
+
 
 interface AuditOrderCardProps {
   order: {
@@ -27,6 +29,13 @@ const AuditOrderCard: React.FC<AuditOrderCardProps> = ({
   onOrderReview,
   onImageClick
 }) => {
+  // 图片预览状态
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  // 评论链接状态
+  const [reviewLink, setReviewLink] = useState('');
+  // 链接上传状态
+  const [linkUploadStatus, setLinkUploadStatus] = useState<'idle' | 'uploading' | 'success' | 'error'>('idle');
   // 处理复制订单号
   const handleCopyOrderNumber = () => {
     onCopyOrderNumber(order.orderNumber || order.id);
@@ -35,6 +44,38 @@ const AuditOrderCard: React.FC<AuditOrderCardProps> = ({
   // 处理图片点击
   const handleImageClick = (imageUrl: string) => {
     onImageClick(imageUrl);
+  };
+
+  // 处理查看详情
+  const handleViewDetails = () => {
+    // 这里可以添加查看详情的逻辑
+    console.log('View order details:', order.id);
+  };
+
+  // 处理评论链接变更
+  const handleReviewLinkChange = (value: string) => {
+    setReviewLink(value);
+    // 模拟上传过程
+    setLinkUploadStatus('uploading');
+    setTimeout(() => {
+      setLinkUploadStatus('success');
+    }, 1000);
+  };
+
+  // 处理图片预览
+  const handleImagePreview = (imageUrl: string) => {
+    setPreviewImage(imageUrl);
+    setIsPreviewOpen(true);
+    // 如果外部有onImageClick回调，也调用它
+    if (onImageClick) {
+      onImageClick(imageUrl);
+    }
+  };
+
+  // 关闭图片预览
+  const closeImagePreview = () => {
+    setIsPreviewOpen(false);
+    setPreviewImage(null);
   };
 
   // 处理审核操作
@@ -84,17 +125,17 @@ const AuditOrderCard: React.FC<AuditOrderCardProps> = ({
   };
 
   return (
-    <div className="p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow mb-2 bg-white">
+    <div className="p-3 rounded-lg shadow-sm hover:shadow-md transition-shadow mb-2 bg-white">
       {/* 订单号 */}
       <div className="flex items-center mb-2 overflow-hidden">
         <div className="flex-1 mr-2 whitespace-nowrap overflow-hidden text-truncate">
-          订单编号：{order.orderNumber || order.id}
+          订单号：{order.orderNumber || order.id}
         </div>
         <button 
-          className="text-blue-500 hover:bg-blue-500 hover:text-white px-2 py-1 rounded-md whitespace-nowrap"
+          className="text-blue-600 hover:text-blue-700 whitespace-nowrap text-sm"
           onClick={handleCopyOrderNumber}
         >
-          复制
+          <span>⧉ 复制</span>
         </button>
       </div>
       
@@ -104,90 +145,114 @@ const AuditOrderCard: React.FC<AuditOrderCardProps> = ({
         <OrderTaskType type={getTaskType(order.taskTitle)} />
       </div>
       
-      {/* 时间信息 - 各自独占一行 */}
-      <div className="text-sm text-black mb-2">
-        发布时间：
-        {order.submitTime ? (
-          typeof order.submitTime === 'string' && !isNaN(new Date(order.submitTime).getTime())
-            ? new Date(order.submitTime).toLocaleString('zh-CN')
-            : String(order.submitTime)
-        ) : '暂无发布时间'}
-      </div>
-      <div className="text-sm text-black mb-2">
-        更新时间：
-        {order.updatedTime ? (
-          typeof order.updatedTime === 'string' && !isNaN(new Date(order.updatedTime).getTime())
-            ? new Date(order.updatedTime).toLocaleString('zh-CN')
-            : String(order.updatedTime)
-        ) : order.submitTime ? (
-          typeof order.submitTime === 'string' && !isNaN(new Date(order.submitTime).getTime())
-            ? new Date(order.submitTime).toLocaleString('zh-CN')
-            : String(order.submitTime)
-        ) : '暂无更新时间'}
-      </div>
-  
-      {/* 领取用户信息展示 */}
-      <div className="text-sm text-black mb-2">
-        领取用户: {order.commenterName || String(order.id) || '未知评论员'}
-      </div>
-
-      {/* 提交内容 */}
+      {/* 价格和状态信息 */}
       <div className="mb-3">
-        <h5 className="text-sm font-medium  mb-2">提交内容:</h5>
-        <div className="bg-white p-3 rounded text-sm text-black border border-gray-500">
-          {order.content || '无内容'}
+        <div className="flex items-center mb-1">
+          <span className="text-sm text-black font-medium">订单单价：</span>
+          <span className="text-sm text-black">¥6.00</span>
         </div>
       </div>
+      
+      {/* 时间信息 - 各自独占一行 */}
+      <div className="text-sm text-black mb-2">
+        发布时间：2025-10-15 12:00:00
+      </div>
+      <div className="text-sm text-black mb-2">
+        提交时间：2025-10-15 14:00:00
+      </div>
+      
+      {/* 领取用户信息展示 */}
+      <div className="text-black text-sm mb-2 w-full rounded-lg">
+          要求：组合任务，中下评评论
+      </div>
 
-      {/* 图片附件 */}
-      <div className="mb-3">
-        <h5 className="text-sm font-medium text-gray-700 mb-2">上传截图:</h5>
+      <div className="mb-2 bg-blue-50 border border-blue-500 py-2 px-3 rounded-lg">
+        <p className='mb-2  text-sm text-blue-600'>已完成评论点击进入：</p>
+        <a 
+          href="http://localhost:3000/publisher/dashboard?tab=active" 
+          target="_blank" 
+          rel="noopener noreferrer" 
+          className="bg-blue-600 text-white px-3 py-1.5 rounded-md text-sm font-medium inline-flex items-center"
+          onClick={(e) => {
+            e.preventDefault();
+            // 在实际应用中，这里应该跳转到抖音视频页面
+            window.open('https://www.douyin.com', '_blank');
+          }}
+        >
+          <span className="mr-1">⦿</span> 打开视频
+        </a>
+      </div>
+
+      {/* 截图显示区域 - 自适应高度，居中显示 */}
+      <div className="mb-4 border border-blue-200 rounded-lg p-3 bg-blue-50">
+        <div className='text-sm text-blue-600 pl-2 py-2'>完成任务截图上传：</div>
         {order.images && order.images.length > 0 ? (
-          <div className="flex space-x-2 flex-wrap">
-            {order.images.map((image: string, index: number) => (
+          <div className="grid grid-cols-3 gap-2">
+            {order.images.map((imageUrl, index) => (
               <div 
-                key={index} 
-                className="w-20 h-20 bg-gray-200 rounded flex items-center justify-center text-sm text-gray-500 cursor-pointer hover:bg-gray-300 transition-colors overflow-hidden shadow-sm"
-                onClick={() => handleImageClick(image)}
+                key={index}
+                className="w-full h-[100px] relative cursor-pointer overflow-hidden rounded-lg border border-gray-300 bg-gray-50 transition-colors hover:border-blue-400 hover:shadow-md flex items-center justify-center"
+                onClick={() => handleImagePreview(imageUrl)}
               >
                 <img 
-                  src={image} 
-                  alt={`上传截图 ${index + 1}`} 
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement;
-                    target.onerror = null; // 防止无限循环
-                    target.src = '/images/20250916161008.png';
-                    target.alt = `图片加载失败 ${index + 1}`;
-                  }}
+                  src={imageUrl} 
+                  alt={`任务截图 ${index + 1}`} 
+                  className="w-full h-full object-contain"
                 />
+                <div className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-10 flex items-center justify-center transition-all">
+                  <span className="text-blue-600 text-xs opacity-0 hover:opacity-100 transition-opacity">点击放大</span>
+                </div>
               </div>
             ))}
           </div>
         ) : (
-          <div className="bg-gray-50 p-3 rounded text-sm text-gray-500 border border-gray-200">
-            暂无上传截图
+          <div className="w-full h-24 flex flex-col items-center justify-center text-gray-400">
+            <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            <span className="text-xs">未上传截图</span>
           </div>
         )}
+        <p className="text-xs text-blue-600 mt-1 pl-2">
+          点击可放大查看截图
+        </p>
       </div>
 
-      {/* 审核按钮 */}
-      <div className="flex space-x-3 mt-3">
-        <button
-          onClick={handleApprove}
-          className={`flex-1 py-2 rounded font-medium transition-colors text-sm ${order.status === 'completed' || order.status === 'approved' ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-green-600 text-white hover:bg-green-700'}`}
-          disabled={order.status === 'completed' || order.status === 'approved'}
-        >
-          <CheckCircleOutlined className="mr-1" /> 通过审核
-        </button>
-        <button
-          onClick={handleReject}
-          className={`flex-1 py-2 rounded font-medium transition-colors text-sm ${order.status === 'completed' || order.status === 'approved' ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-red-600 text-white hover:bg-red-700'}`}
-          disabled={order.status === 'completed' || order.status === 'approved'}
-        >
-          <CloseCircleOutlined className="mr-1" /> 驳回订单
-        </button>
-      </div>
+      {/* 按钮区域 */}
+        <div className="mt-4">
+          <button 
+            className="w-full py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-600 transition-colors"
+            onClick={handleViewDetails}
+          >
+            查看详情
+          </button>
+        </div>
+        
+        {/* 图片预览模态框 - 适配手机端 */}
+        {isPreviewOpen && previewImage && (
+          <div 
+            className="fixed inset-0 bg-black bg-opacity-95 z-50 flex flex-col items-center justify-center p-4"
+            onClick={closeImagePreview}
+          >
+            <button 
+              className="absolute top-4 right-4 text-white bg-black bg-opacity-50 rounded-full w-8 h-8 flex items-center justify-center z-10"
+              onClick={(e) => {
+                e.stopPropagation();
+                closeImagePreview();
+              }}
+            >
+              ✕
+            </button>
+            <div className="relative w-full max-w-[90vw] h-[80vh]">
+              <img 
+                src={previewImage} 
+                alt="预览图片" 
+                className="w-full h-full object-contain" 
+              />
+            </div>
+            <p className="absolute bottom-4 text-white text-sm">点击空白处或关闭按钮返回</p>
+          </div>
+        )}
     </div>
   );
 };
