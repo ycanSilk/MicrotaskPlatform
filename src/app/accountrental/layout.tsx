@@ -5,6 +5,7 @@ import Header from './components/Header';
 import ShopOutlined from '@ant-design/icons/ShopOutlined';
 import FileTextOutlined from '@ant-design/icons/FileTextOutlined';
 import UserOutlined from '@ant-design/icons/UserOutlined';
+import SearchOutlined from '@ant-design/icons/SearchOutlined';
 
 interface AccountRentalLayoutProps {
   children: React.ReactNode;
@@ -26,8 +27,14 @@ const AccountRentalLayout = memo(({ children }: AccountRentalLayoutProps) => {
     router.push('/accountrental/my-account-rental');
   };
 
+  // 跳转到求租信息页面
+  const handleRequestsClick = () => {
+    router.push('/accountrental/account-rental-requests');
+  };
+
   // 确定当前激活的导航项
   const isMarketActive = pathname?.includes('account-rental-market') ?? false;
+  const isRequestsActive = pathname?.includes('account-rental-requests') ?? false;
   const isPublishActive = pathname?.includes('account-rental-publish') ?? false;
   const isMyActive = pathname?.includes('my-account-rental') ?? false;
 
@@ -51,6 +58,15 @@ const AccountRentalLayout = memo(({ children }: AccountRentalLayoutProps) => {
             <ShopOutlined />
           </span>
           <span className={`text-xs ${isMarketActive ? 'text-blue-500' : 'text-gray-500'}`}>租赁市场</span>
+        </button>
+        <button 
+          onClick={handleRequestsClick}
+          className="flex flex-col items-center"
+        >
+          <span className={`text-xl w-6 h-6 flex items-center justify-center rounded-full  ${isRequestsActive ? ' text-blue-500' : 'text-gray-500'}`}>
+            <SearchOutlined />
+          </span>
+          <span className={`text-xs ${isRequestsActive ? 'text-blue-500' : 'text-gray-500'}`}>求租信息</span>
         </button>
         <button 
           onClick={handlePublishClick}

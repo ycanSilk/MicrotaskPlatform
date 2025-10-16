@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { BackButton } from '@/components/button/ReturnToPreviousPage';
 import SettingOutlined from '@ant-design/icons/SettingOutlined';
 import SearchBar from '@/components/button/SearchBar';
+import { CustomerServiceButton } from '../../../components/button/CustomerServiceButton';
 
 interface HeaderProps {
   // 可以添加需要的props
@@ -44,15 +45,19 @@ const Header: React.FC<HeaderProps> = ({ customBackHandler }) => {
       {/* 使用公共搜索组件 */}
       <div className="flex-1 ml-3 flex justify-end">
         <SearchBar
-          className="w-[36px] h-[36px] bg-transparent rounded-full flex items-center justify-center hover:bg-white/20"
+          className="w-[40px] h-[40px]  rounded-full flex items-center justify-center"
           customModules={accountRentalModules}
         />
+      </div>
+
+      <div >
+        <CustomerServiceButton className="font-bold text-white text-xl" />
       </div>
 
       {/* 管理后台按钮 - 修改为符号样式 */}
       <button
         onClick={handleDashboardClick}
-        className="ml-2 w-[36px] h-[36px] flex items-center justify-center bg-transparent border-none cursor-pointer text-white hover:bg-white/20 rounded-full transition-colors relative group"
+        className="ml-1 w-[36px] h-[36px] flex items-center justify-center bg-transparent border-none cursor-pointer text-white rounded-full transition-colors relative group"
       >
         {/* 使用@ant-design/icons中的设置图标 */}
           <SettingOutlined className="text-xl" />

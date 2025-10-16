@@ -211,7 +211,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
         onClick={handleSearchButtonClick}
         aria-label="搜索"
       >
-        <SearchOutlined className="h-4 w-6 text-white" />
+        <SearchOutlined className="h-6 w-6 text-white" />
       </button>
 
       {/* 全屏搜索模态框 */}
@@ -221,7 +221,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
           <div className="sticky top-0 z-10 bg-white px-4 py-3 border-b border-gray-200 flex items-center">
             <div className="relative flex-1 mr-3">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <SearchOutlined className="h-5 w-5 text-gray-600" />
+                <SearchOutlined className="h-7 w-7 " />
               </div>
               <input 
                 ref={searchInputRef}

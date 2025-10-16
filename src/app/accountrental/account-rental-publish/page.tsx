@@ -1,138 +1,90 @@
-'use client';
-import { useRouter } from 'next/navigation';
-import { useState } from 'react';
-import { AlertModal } from '@/components/ui';
-import { Button } from '@/components/ui/Button';
-import { AudioOutlined, BookOutlined, ToolOutlined, RightOutlined, BulbOutlined } from '@ant-design/icons';
+import Link from 'next/link';
 
-// 定义平台类型接口
-interface Platform {
-  id: string;
-  title: string;
-  icon: React.ReactNode;
-  description: string;
-  accountCount: number;
-  color: string;
-}
-
-// 平台类型配置
-const PLATFORMS: Platform[] = [
-  {
-    id: 'douyin',
-    title: '抖音',
-    icon: <AudioOutlined className="text-3xl" />,
-    description: '租用活跃抖音账号进行品牌推广和内容传播',
-    accountCount: 1000,
-    color: 'from-red-500 to-pink-600'
-  },
-  {
-    id: 'xiaohongshu',
-    title: '小红书',
-    icon: <BookOutlined className="text-3xl" />,
-    description: '租用高质量小红书账号发布种草笔记和产品推荐',
-    accountCount: 800,
-    color: 'from-red-400 to-orange-500'
-  },
-  {
-    id: 'kuaishou',
-    title: '快手',
-    icon: <ToolOutlined className="text-3xl" />,
-    description: '租用快手账号进行产品宣传和用户互动',
-    accountCount: 600,
-    color: 'from-blue-500 to-teal-400'
-  }
-];
-
-// 平台卡片组件
-const PlatformCard = ({ platform, onClick }: { platform: Platform, onClick: () => void }) => {
+const AccountRentalPublishPage = () => {
   return (
-    <div 
-      onClick={onClick}
-      className="bg-white rounded-2xl p-6 shadow-sm border-2 border-gray-100 hover:border-blue-200 hover:shadow-md transition-all cursor-pointer active:scale-95"
-    >
-      {/* 平台头部 */}
-      <div className="flex items-center space-x-4 mb-4">
-        <div className={`w-16 h-16 bg-gradient-to-r ${platform.color} rounded-2xl flex items-center justify-center text-3xl`}>
-          {platform.icon}
-        </div>
-        <div>
-          <h3 className="font-bold text-gray-900 text-xl">{platform.title}</h3>
-          <div className="flex items-center space-x-2 mt-1">
-            <span className="text-gray-500 text-sm">{platform.accountCount}+ 活跃账号</span>
-          </div>
-        </div>
-      </div>
-
-      {/* 平台描述 */}
-      <div className="mb-4">
-        <p className="text-gray-700">{platform.description}</p>
-      </div>
-
-      {/* 进入按钮 */}
-      <div className="flex items-center justify-end">
-        <div className="bg-blue-500 text-white px-5 py-2.5 rounded-lg text-sm font-medium flex items-center space-x-2">
-          <span>继续</span>
-          <RightOutlined />
-        </div>
-      </div>
-    </div>
-  );
-}
-
-export default function AccountRentalPlatformSelection() {
-  const router = useRouter();
-  const [isModalOpen, setIsModalOpen] = useState(false);
-
-  const handlePlatformClick = (platform: Platform) => {
-    if (platform.id === 'douyin') {
-      // 抖音平台跳转到platformtype页面
-      router.push('/accountrental/account-rental-publish/platformtype');
-    } else {
-      // 小红书和快手平台显示模态框
-      setIsModalOpen(true);
-    }
-  };
-
-  const closeModal = () => {
-    setIsModalOpen(false);
-  };
-
-  return (
-    <div className="min-h-screen pb-28">
-      {/* 平台卡片列表 */}
-      <div className="px-4 space-y-4">
-        {PLATFORMS.map((platform) => (
-          <PlatformCard 
-            key={platform.id} 
-            platform={platform} 
-            onClick={() => handlePlatformClick(platform)}
-          />
-        ))}
-      </div>
-
-      {/* 提示信息 */}
-      <div className="px-4">
-        <div className="bg-blue-50 rounded-2xl p-4">
-          <div className="flex items-start space-x-3">
-            <span className="text-2xl"><BulbOutlined /></span>
-            <div>
-              <h3 className="font-medium text-blue-900 mb-1">账号租用说明</h3>
-              <p className="text-blue-700 text-sm leading-relaxed">
-                请选择您需要租用账号的平台，目前支持抖音、小红书、快手等主流社交媒体平台。选择平台后，您将进入该平台的账号类型选择页面，可以选择具体的账号类型进行租用。
-              </p>
+    <div className="bg-gray-100 min-h-screen p-8">
+      <div className="max-w-4xl mx-auto">
+        {/* 抖音平台卡片 */}
+        <div className="mb-4 bg-white rounded-lg border border-blue-200 p-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center mr-4">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" fill="#FE2C55"/>
+                  <path d="M16.5 8.70001C16.5 7.2 15.3 6.00001 13.8 6.00001H10.2C8.7 6.00001 7.5 7.2 7.5 8.70001V13.5C7.5 14.6 7.95 15.65 8.75 16.45C9.55 17.25 10.6 17.7 11.7 17.7H12.3C13.4 17.7 14.45 17.25 15.25 16.45C16.05 15.65 16.5 14.6 16.5 13.5V8.70001Z" fill="white"/>
+                  <path d="M14.25 10.5C14.25 10.5 13.8 11.65 12 12.5C10.2 11.65 9.75 10.5 9.75 10.5" stroke="#FE2C55" strokeWidth="1.5"/>
+                </svg>
+              </div>
+              <div>
+                <div className="flex items-center">
+                  <h3 className="text-lg font-semibold text-gray-800">抖音</h3>
+                  <span className="ml-2 text-sm text-gray-500">1000+ 活跃账号</span>
+                </div>
+                <p className="text-gray-600 mt-1">租用活跃抖音账号进行品牌推广和内容传播</p>
+              </div>
             </div>
+            <Link href="/accountrental/account-rental-publish/platformtype?platform=douyin">
+              <div className="bg-blue-500 text-white px-4 py-2 rounded">
+                继续 &gt;
+              </div>
+            </Link>
+          </div>
+        </div>
+
+        {/* 小红书平台卡片 */}
+        <div className="mb-4 bg-white rounded-lg border border-blue-200 p-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <div className="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center mr-4">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" fill="#FF2442"/>
+                  <path d="M8.5 8L11.5 14L15.5 8" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </div>
+              <div>
+                <div className="flex items-center">
+                  <h3 className="text-lg font-semibold text-gray-800">小红书</h3>
+                  <span className="ml-2 text-sm text-gray-500">800+ 活跃账号</span>
+                </div>
+                <p className="text-gray-600 mt-1">租用高质量小红书账号发布种草笔记和产品推荐</p>
+              </div>
+            </div>
+            <Link href="/accountrental/account-rental-publish/platformtype?platform=xiaohongshu">
+              <div className="bg-blue-500 text-white px-4 py-2 rounded">
+                继续 &gt;
+              </div>
+            </Link>
+          </div>
+        </div>
+
+        {/* 快手平台卡片 */}
+        <div className="mb-4 bg-white rounded-lg border border-blue-200 p-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center mr-4">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" fill="#00C6FF"/>
+                  <path d="M9 8L13 10L17 8V14L13 12L9 14V8Z" fill="white"/>
+                </svg>
+              </div>
+              <div>
+                <div className="flex items-center">
+                  <h3 className="text-lg font-semibold text-gray-800">快手</h3>
+                  <span className="ml-2 text-sm text-gray-500">600+ 活跃账号</span>
+                </div>
+                <p className="text-gray-600 mt-1">租用快手账号进行产品宣传和用户互动</p>
+              </div>
+            </div>
+            <Link href="/accountrental/account-rental-publish/platformtype?platform=kuaishou">
+              <div className="bg-blue-500 text-white px-4 py-2 rounded">
+                继续 &gt;
+              </div>
+            </Link>
           </div>
         </div>
       </div>
-
-      {/* 功能暂未开放提示模态框 */}
-      <AlertModal 
-        isOpen={isModalOpen} 
-        icon={<ToolOutlined />} 
-        title="功能暂未开放" 
-        message="该功能暂未开放，无法使用" 
-        onClose={closeModal} 
-      />
     </div>
   );
-}
+};
+
+export default AccountRentalPublishPage;

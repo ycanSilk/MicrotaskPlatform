@@ -159,14 +159,14 @@ const ProgressTasksTab: React.FC<ProgressTasksTabProps> = ({
               <div className="space-y-2 mb-1">
                 <div>
                   <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700 mr-2">
-                    状态：{task.statusText || '进行中'}
+                    {task.statusText || '进行中'}
                   </span>
                   <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
-                    任务类型：{getTaskTypeName(task.taskType) || '评论'}
+                    {getTaskTypeName(task.taskType) || '评论'}
                   </span>
                 </div>
                 <div className="text-sm text-black block">
-                  发布时间：{task.publishTime || '未知时间'}
+                  {task.publishTime || '未知时间'}
                 </div>  
                 {/* 时间信息 */}
                 {task.deadline && (

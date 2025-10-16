@@ -87,10 +87,10 @@ const PendingReviewTasksTab: React.FC<PendingReviewTasksTabProps> = ({
             <div className="space-y-2 mb-2">
               <div>
                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-600 mr-2">
-                  状态：{task.statusText || '待审核'}
+                 {task.statusText || '待审核'}
                 </span>
                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
-                  任务类型：{getTaskTypeName(task.taskType) || '评论'}
+                 {getTaskTypeName(task.taskType) || '评论'}
                 </span>
               </div>
               <div className="text-sm text-black block mb-2">
