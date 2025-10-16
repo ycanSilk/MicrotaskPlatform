@@ -182,7 +182,8 @@ const MainOrderCard: React.FC<MainOrderCardProps> = ({
 
       <div className="flex space-x-3">
         <button 
-          className="bg-blue-600 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-md transition-colors flex-1"
+          className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition-colors flex-1"
+          onClick={handleViewDetails}
         >
           查看详情
         </button>

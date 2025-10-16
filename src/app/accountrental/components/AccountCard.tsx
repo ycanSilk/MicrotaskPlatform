@@ -60,10 +60,9 @@ const utils = {
 interface AccountCardProps {
   account: AccountRentalInfo;
   onAccountClick: (accountId: string) => void;
-  onRentNow: (accountId: string) => void;
 }
 
-const AccountCard: React.FC<AccountCardProps> = ({ account, onAccountClick, onRentNow }) => {
+const AccountCard: React.FC<AccountCardProps> = ({ account, onAccountClick }) => {
   // 获取第一张图片
   const firstImage = account.images && account.images.length > 0 ? account.images[0] : null;
   
@@ -131,14 +130,6 @@ const AccountCard: React.FC<AccountCardProps> = ({ account, onAccountClick, onRe
             ¥{account.price.toFixed(2)}元/天
           </div>
         </div>
-
-        {/* 租用按钮 - 使用新的方式处理点击事件，避免stopPropagation问题 */}
-          <Button
-            onClick={() => onRentNow(account.id)}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg text-lg font-medium shadow-md active:scale-95 transition-all min-h-12"
-          >
-            立即租用
-          </Button>
         </div>
       </div>
   );

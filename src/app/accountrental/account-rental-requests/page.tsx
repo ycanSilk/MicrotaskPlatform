@@ -26,6 +26,7 @@ interface RentalRequest {
   platformIcon: React.ReactNode;
   publisherName: string;
   publisherRating: number;
+  phoneNumber: string;
 }
 
 // 复制状态接口
@@ -110,7 +111,8 @@ const RentalRequestsPage = () => {
             platform: 'douyin',
             platformIcon: getPlatformIcon('douyin'),
             publisherName: '美食达人',
-            publisherRating: 4.8
+            publisherRating: 4.8,
+            phoneNumber: '138****1234'
           },
           {
             id: 'req002',
@@ -132,7 +134,8 @@ const RentalRequestsPage = () => {
             platform: 'xiaohongshu',
             platformIcon: getPlatformIcon('xiaohongshu'),
             publisherName: '时尚先锋',
-            publisherRating: 4.5
+            publisherRating: 4.5,
+            phoneNumber: '139****5678'
           },
           {
             id: 'req003',
@@ -154,7 +157,8 @@ const RentalRequestsPage = () => {
             platform: 'kuaishou',
             platformIcon: getPlatformIcon('kuaishou'),
             publisherName: '科技玩家',
-            publisherRating: 4.7
+            publisherRating: 4.7,
+            phoneNumber: '137****9012'
           }
         ];
         
@@ -246,7 +250,7 @@ const RentalRequestsPage = () => {
                 </div>
 
                 {/* 订单号和基本信息 */}
-                <div className="p-2">
+                <div className="p-3">
                     {/* 订单号和基本信息 */}
                     <div className="mb-1 text-sm space-y-1">
                     <div className="flex items-center space-x-2">
@@ -279,6 +283,9 @@ const RentalRequestsPage = () => {
                       发布用户：{request.publisherName}
                     </div>
                     <div className="">
+                      手机号：{request.phoneNumber}
+                    </div>
+                    <div className="">
                       发布时间：{formatDateTime(request.publishTime)}
                     </div>
                     <div className="">
@@ -290,6 +297,7 @@ const RentalRequestsPage = () => {
                   <div className='border border-blue-500 bg-blue-50 p-2 space-y-1 rounded-md text-blue-500'>  
                     {/* 描述信息 */}
                     <div className="">
+                      <div className="text-sm font-medium">租赁信息描述：</div>
                       <p className="text-sm text-blue-500">{request.description}</p>
                     </div>
 
@@ -298,7 +306,7 @@ const RentalRequestsPage = () => {
                       <div className="text-sm font-medium">账号要求：</div>
                       <div className="text-sm text-blue-500">
                         {request.accountRequirements.canChangeName && <div>• 可以修改抖音名称</div>}
-                        {request.accountRequirements.canChangeAvatar && <div>• 可以修改头像</div>}
+                        {request.accountRequirements.canChangeAvatar && <div>• 可以修改抖音头像</div>}
                         {request.accountRequirements.canPostComments && <div>• 可以发布评论</div>}
                         {request.accountRequirements.canPostVideos && <div>• 可以发布视频</div>}
                       </div>

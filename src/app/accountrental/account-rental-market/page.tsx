@@ -115,8 +115,6 @@ export default function AccountRentalMarketPage({ searchParams }: { searchParams
   const [publishTime, setPublishTime] = useState('all');
   const [priceFilter, setPriceFilter] = useState('all');
   const [loading, setLoading] = useState(true);
-  
-  // 懒加载相关状态
   const [displayedAccounts, setDisplayedAccounts] = useState<AccountRentalInfo[]>([]);
   const [page, setPage] = useState(1);
   const itemsPerPage = 10;
@@ -313,16 +311,7 @@ export default function AccountRentalMarketPage({ searchParams }: { searchParams
 
   // 处理账号卡片点击
   const handleAccountClick = (accountId: string) => {
-    // 在实际项目中，应该跳转到账号详情页
-    // router.push(`/publisher/account-rental-market/detail/${accountId}`);
-    console.log('查看账号详情:', accountId);
-  };
-
-  // 处理立即租用按钮点击
-  const handleRentNow = (accountId: string) => {
-    // 在实际项目中，应该跳转到租用确认页
-    // router.push(`/publisher/account-rental-market/rent/${accountId}`);
-    console.log('立即租用账号:', accountId);
+    router.push(`/accountrental/account-rental-market/market-ddetail?id=${accountId}`);
   };
 
   if (loading) {
@@ -339,8 +328,8 @@ export default function AccountRentalMarketPage({ searchParams }: { searchParams
     );
   }
 
-  return (
-    <div className="min-h-screen pb-28">
+    return (
+      <div className="min-h-screen pb-28">
       {/* 发布出租账号按钮 */}
       <div className="px-4 pt-4">
         <Button 
@@ -454,7 +443,6 @@ export default function AccountRentalMarketPage({ searchParams }: { searchParams
                         key={account.id} 
                         account={account} 
                         onAccountClick={handleAccountClick} 
-                        onRentNow={handleRentNow} 
                       />
                     ))}
 
@@ -491,8 +479,7 @@ export default function AccountRentalMarketPage({ searchParams }: { searchParams
         </div>
       </div>
 
-
-    </div>
-  );
+      </div>
+    );
 }
   

@@ -218,8 +218,8 @@ export default function DouyinAccountRentalPage() {
                 <div 
                   className={`rounded-lg p-3 border-2 transition-colors ${formData.accountImages.length >= 6 ? 'border-gray-200 bg-gray-50' : 'border-dashed border-gray-300 bg-white hover:border-blue-500'}`}
                   style={{
-                    minHeight: 200,
-                    height: 'auto'
+                    minHeight: 350,
+                    maxHeight: 'auto'
                   }}
                 >
                   <input
@@ -231,14 +231,14 @@ export default function DouyinAccountRentalPage() {
                     onChange={handleImagesUpload}
                   />
                   
-                  <div className="grid grid-cols-3 gap-3">
+                  <div className="grid grid-cols-3 gap-3 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-3 h-full">
                     {formData.accountImages.map((file, index) => (
-                      <div key={index} className="relative rounded-md overflow-hidden shadow-sm border border-gray-100" style={{ maxHeight: 95 }}>
+                      <div key={index} className="relative rounded-md overflow-hidden shadow-sm border border-gray-100 max-w-[150px] max-h-[150px] min-w-[75px] min-h-[75px] flex-shrink-0 w-full">
                         <img 
                           src={getImagePreviewUrl(file)} 
                           alt={`账号截图 ${index + 1}`} 
                           className="w-full h-full object-contain"
-                          style={{ maxHeight: 95, minHeight: 90 }}
+                          style={{ minHeight: 75, maxHeight: 150}}
                         />
                         <button 
                           type="button"
@@ -257,8 +257,7 @@ export default function DouyinAccountRentalPage() {
                         
                     {formData.accountImages.length < 6 && (
                       <div 
-                        className="border-2 border-dashed border-gray-300 rounded-md flex flex-col items-center justify-center bg-gray-50 cursor-pointer hover:border-blue-500"
-                        style={{ minHeight: 90, maxHeight: 95 }}
+                        className="border-2 border-dashed border-gray-300 rounded-md flex flex-col items-center justify-center bg-gray-50 cursor-pointer hover:border-blue-500 w-[87px] h-[87px]"
                         onClick={() => document.getElementById('accountImagesInput')?.click()}
                       >
                         <svg className="w-6 h-6 text-gray-400 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -324,7 +323,7 @@ export default function DouyinAccountRentalPage() {
               variant="primary"
               className="bg-blue-500 hover:bg-blue-600 w-full" // 设置宽度为100%
             >
-              确认无误，立即发布（¥价格：{calculateTotalPrice()}元）
+             立即发布（¥{calculateTotalPrice()}元）
             </Button>
           </div>
         </div>
