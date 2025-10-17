@@ -712,13 +712,7 @@ export default function CommenterTasksPage() {
 
   return (
     <>
-      {/* 冷却提示条 */}
-      {coolingDown && (
-        <div className="fixed top-0 left-0 right-0 bg-red-100 border-b border-red-300 text-red-700 py-2 px-4 z-50 flex justify-between items-center">
-          <span className="font-medium">任务冷却中：</span>
-          <span className="font-bold">剩余 {remainingTime.minutes}:{remainingTime.seconds.toString().padStart(2, '0')} 分钟</span>
-        </div>
-      )}
+      {/* 冷却提示条已移除，仅在抢单大厅显示 */}
       {/* 图片查看器模态框 */}
       {selectedImage && (
         <div 

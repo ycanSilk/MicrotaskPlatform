@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import CoolingTimer from '@/components/timer/CoolingTimer';
 import { useRouter } from 'next/navigation';
 import { ClockCircleOutlined, WarningOutlined, CloseCircleOutlined, BulbOutlined, CheckCircleOutlined, DollarOutlined, MailOutlined, ReloadOutlined } from '@ant-design/icons';
 import { CommenterAuthStorage } from '@/auth/commenter/auth';
@@ -27,10 +28,12 @@ export default function CommenterHallContentPage() {
   const [grabbingTasks, setGrabbingTasks] = useState(new Set()); // 正在抢单的任务ID
   const [lastUpdated, setLastUpdated] = useState(new Date());
   
-  // 冷却时间相关状态
-  const [coolingDown, setCoolingDown] = useState(false);
-  const [coolingEndTime, setCoolingEndTime] = useState<number | null>(null);
-  const [remainingTime, setRemainingTime] = useState({ minutes: 0, seconds: 0 });
+  // 冷却计时器引用
+  const coolingTimerRef = useRef<any>(null);
+  
+  // 从冷却计时器获取冷却状态
+  const isCoolingDown = () => coolingTimerRef.current?.isCoolingDown || false;
+  const getRemainingTime = () => coolingTimerRef.current?.remainingTime || { minutes: 0, seconds: 0 };
   const [showCoolingModal, setShowCoolingModal] = useState(false);
   const [showAlertModal, setShowAlertModal] = useState(false);
   const [alertConfig, setAlertConfig] = useState({
@@ -161,30 +164,47 @@ export default function CommenterHallContentPage() {
     setIsRefreshing(false);
   };
 
+  // 冷却计时器回调函数
+  const handleCoolingStart = (endTime: number) => {
+    console.log('页面组件: 冷却开始', { endTime });
+  };
+  
+  const handleCoolingEnd = () => {
+    console.log('页面组件: 冷却结束');
+  };
+  
   // 抢单功能 - 暂停API调用，仅显示模拟成功消息
   const handleGrabTask = async (taskId: string) => {
+    console.log('=== 抢单功能开始 ===', { taskId });
     // 检查是否处于冷却状态
-    if (coolingDown) {
+    if (isCoolingDown()) {
+      console.log('当前处于冷却状态，显示冷却模态框');
       setShowCoolingModal(true);
       return;
     }
 
-    if (grabbingTasks.has(taskId)) return;
+    if (grabbingTasks.has(taskId)) {
+      console.log('该任务正在抢单中，忽略重复点击');
+      return;
+    }
 
     try {
       const user = CommenterAuthStorage.getCurrentUser();
       if (!user) {
+        console.log('用户未登录');
         showAlert('提示', '请先登录', 'info');
         return;
       }
 
       // 检查用户角色是否为评论员
       if (user.role !== 'commenter') {
+        console.log('用户角色不是评论员');
         showAlert('权限不足', '您不是评论员角色，无法抢单', 'warning');
         return;
       }
 
       setGrabbingTasks(prev => new Set(prev).add(taskId));
+      console.log('设置任务为正在抢单状态');
 
       // 模拟网络延迟
       await new Promise(resolve => setTimeout(resolve, 500));
@@ -194,18 +214,13 @@ export default function CommenterHallContentPage() {
       // 模拟成功响应
       showAlert('抢单成功', '您已成功抢到该任务，即将跳转到任务页面', 'success');
       
-      // 设置5分钟冷却时间
-      const fiveMinutesInMs = 5 * 60 * 1000;
-      const endTime = Date.now() + fiveMinutesInMs;
-      setCoolingDown(true);
-      setCoolingEndTime(endTime);
-      
-      // 保存冷却状态到localStorage，以便在页面跳转后仍能保持冷却状态
-      localStorage.setItem('commenter_cooling_down', 'true');
-      localStorage.setItem('commenter_cooling_end_time', endTime.toString());
+      // 使用冷却计时器组件开始5分钟冷却
+      console.log('调用冷却计时器开始5分钟冷却');
+      coolingTimerRef.current?.startCooling(5);
       
       // 抢单成功后延迟1秒跳转到任务页面
       setTimeout(() => {
+        console.log('跳转到任务页面');
         router.push('/commenter/tasks');
       }, 1000);
       
@@ -221,6 +236,7 @@ export default function CommenterHallContentPage() {
         newSet.delete(taskId);
         return newSet;
       });
+      console.log('=== 抢单功能结束 ===');
     }
   };
 
@@ -230,94 +246,36 @@ export default function CommenterHallContentPage() {
     fetchAvailableTasks();
   }, []);
   
-  // 初始化冷却时间检查
-  useEffect(() => {
-    // 检查localStorage中的冷却状态
-    const isCoolingDown = localStorage.getItem('commenter_cooling_down') === 'true';
-    const coolingEndTimeStr = localStorage.getItem('commenter_cooling_end_time');
-    
-    if (isCoolingDown && coolingEndTimeStr) {
-      const coolingEndTime = parseInt(coolingEndTimeStr, 10);
-      const now = Date.now();
-      
-      if (now < coolingEndTime) {
-        // 如果冷却时间还未结束，恢复冷却状态
-        setCoolingDown(true);
-        setCoolingEndTime(coolingEndTime);
-      } else {
-        // 如果冷却时间已结束，清除localStorage中的记录
-        localStorage.removeItem('commenter_cooling_down');
-        localStorage.removeItem('commenter_cooling_end_time');
-      }
-    }
-  }, []);
+  // 初始化冷却时间检查已移至CoolingTimer组件中
   
-  // 冷却时间倒计时逻辑
-  useEffect(() => {
-    let timer: NodeJS.Timeout | undefined;
-    
-    // 如果处于冷却状态，定期更新剩余时间
-    if (coolingDown && coolingEndTime) {
-      const calculateRemainingTime = () => {
-        const now = Date.now();
-        const diff = coolingEndTime - now;
-        
-        // 如果冷却时间已结束
-        if (diff <= 0) {
-          setCoolingDown(false);
-          setCoolingEndTime(null);
-          setRemainingTime({ minutes: 0, seconds: 0 });
-          return;
-        }
-        
-        // 计算剩余分钟和秒数
-        const minutes = Math.floor(diff / (1000 * 60));
-        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-        
-        setRemainingTime({ minutes, seconds });
-      };
-      
-      // 立即计算一次
-      calculateRemainingTime();
-      
-      // 每秒更新一次
-      timer = setInterval(calculateRemainingTime, 1000);
-    }
-    
-    // 清理定时器
-    return () => {
-      if (timer) {
-        clearInterval(timer);
-      }
-    };
-  }, [coolingDown, coolingEndTime]);
+  // 冷却时间倒计时逻辑已移至CoolingTimer组件中
   
-  // 冷却时间结束时的处理
-  useEffect(() => {
-    if (coolingDown && remainingTime.minutes === 0 && remainingTime.seconds === 0) {
-      setCoolingDown(false);
-      setCoolingEndTime(null);
-      // 清除localStorage中的冷却状态
-      localStorage.removeItem('commenter_cooling_down');
-      localStorage.removeItem('commenter_cooling_end_time');
-    }
-  }, [coolingDown, remainingTime]);
+  // 冷却时间结束处理已移至CoolingTimer组件中
+  
+  // storage事件监听已移至CoolingTimer组件中
   
   // 获取排序后的任务
   const sortedTasks = sortTasks(tasks, sortBy, sortOrder);
   
   return (
     <div className="pb-32">
+      {/* 冷却计时器组件 */}
+      <CoolingTimer 
+        ref={coolingTimerRef}
+        onCoolingStart={handleCoolingStart}
+        onCoolingEnd={handleCoolingEnd}
+      />
+      
       {/* 冷却时间显示 */}
-      {coolingDown && (
+      {isCoolingDown() && (
         <div className="bg-gradient-to-r from-orange-500 to-red-500 text-white mx-4 mt-4 rounded-lg p-4 shadow-md">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
-                <ClockCircleOutlined className="text-xl" />
+                <ClockCircleOutlined className="text-xl" /> 
                 <span className="font-medium">抢单冷却中</span>
               </div>
             <div className="font-bold text-lg">
-              {remainingTime.minutes.toString().padStart(2, '0')}:{remainingTime.seconds.toString().padStart(2, '0')}
+              {getRemainingTime().minutes.toString().padStart(2, '0')}:{getRemainingTime().seconds.toString().padStart(2, '0')}
             </div>
           </div>
           <div className="mt-2 text-sm opacity-90">
@@ -426,11 +384,11 @@ export default function CommenterHallContentPage() {
             </div>
             
             <button 
-              className={`w-full py-3 rounded-lg font-medium transition-colors ${grabbingTasks.has(task.id) ? 'bg-gray-400 text-gray-200 cursor-not-allowed' : 'bg-blue-500 text-white hover:bg-blue-600'}`}
+              className={`w-full py-3 rounded-lg font-medium transition-colors ${grabbingTasks.has(task.id) || isCoolingDown() ? 'bg-gray-400 text-gray-200 cursor-not-allowed' : 'bg-blue-500 text-white hover:bg-blue-600'}`}
               onClick={() => handleGrabTask(task.id)}
-              disabled={grabbingTasks.has(task.id)}
+              disabled={grabbingTasks.has(task.id) || isCoolingDown()}
             >
-              {grabbingTasks.has(task.id) ? '抢单中...' : '抢单'}
+              {grabbingTasks.has(task.id) ? '抢单中...' : isCoolingDown() ? `冷却中 ${getRemainingTime().minutes}:${getRemainingTime().seconds < 10 ? '0' : ''}${getRemainingTime().seconds}` : '抢单'}
             </button>
             </div>
           ))
@@ -473,7 +431,7 @@ export default function CommenterHallContentPage() {
         isOpen={showCoolingModal}
         icon={<ClockCircleOutlined className="text-orange-500" />}
         title="抢单冷却中"
-        message={`您当前处于冷却期，还剩余 ${remainingTime.minutes} 分 ${remainingTime.seconds} 秒`}
+        message={`您当前处于冷却期，还剩余 ${getRemainingTime().minutes} 分 ${getRemainingTime().seconds} 秒`}
         onClose={() => setShowCoolingModal(false)}
       />
 

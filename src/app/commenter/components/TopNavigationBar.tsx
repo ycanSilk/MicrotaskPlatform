@@ -26,7 +26,14 @@ export default function TopNavigationBar({ user }: TopNavigationBarProps) {
         <div className="flex items-center space-x-1">
         </div>
       </div>
-      <div className="flex items-center space-x-3">
+      <div className="flex items-center  space-x-1">
+        
+        <CustomerServiceButton 
+          buttonText="联系客服" 
+          modalTitle="在线客服"
+          userId={user?.id || 'guest'}
+          className="text-white"
+        />
         <SearchBar 
           placeholder="搜索任务、订单" 
           customModules={[
@@ -46,12 +53,6 @@ export default function TopNavigationBar({ user }: TopNavigationBarProps) {
               exactMatch: false
             }
           ]}
-        />
-        <CustomerServiceButton 
-          buttonText="联系客服" 
-          modalTitle="在线客服"
-          userId={user?.id || 'guest'}
-          className="text-white"
         />
         <button onClick={handleLogout} className="text-sm">
           <UserOutlined />

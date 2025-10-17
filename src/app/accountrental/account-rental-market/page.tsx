@@ -198,7 +198,7 @@ export default function AccountRentalMarketPage({ searchParams }: { searchParams
 
   // 处理账号卡片点击
   const handleAccountClick = (accountId: string) => {
-    router.push(`/accountrental/account-rental-market/market-ddetail?id=${accountId}`);
+    router.push(`/accountrental/account-rental-market/market-detail?id=${accountId}`);
   };
 
   if (loading) {
