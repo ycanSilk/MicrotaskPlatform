@@ -175,13 +175,6 @@ export default function PublisherLayout({
       {/* 使用可复用的顶部导航栏组件 */}
       <PublisherHeader user={user} />
 
-      {/* 页面标题 */}
-      <div className="bg-white px-4 py-4">
-        <h2 className="text-lg font-bold text-gray-800">
-          {getPageTitle()}
-        </h2>
-      </div>
-
       {/* 主要内容区域 */}
       <main className="flex-1 pb-20">
         {children}

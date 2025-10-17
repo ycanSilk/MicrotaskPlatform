@@ -8,7 +8,6 @@ import { AlertModal } from '@/components/ui';
 interface Platform {
   id: string;
   title: string;
-  icon: string;
   description: string;
   taskCount: number;
   color: string;
@@ -19,7 +18,6 @@ const PLATFORMS: Platform[] = [
   {
     id: 'douyin',
     title: '抖音',
-    icon: '🎵',
     description: '在抖音平台发布各类任务，包括评论、账号出租、视频发送等',
     taskCount: 5,
     color: 'from-red-500 to-pink-600'
@@ -27,7 +25,6 @@ const PLATFORMS: Platform[] = [
   {
     id: 'xiaohongshu',
     title: '小红书',
-    icon: '📕',
     description: '在小红书平台发布各类任务，包括评论、笔记推广等',
     taskCount: 3,
     color: 'from-red-400 to-orange-500'
@@ -35,7 +32,6 @@ const PLATFORMS: Platform[] = [
   {
     id: 'kuaishou',
     title: '快手',
-    icon: '🔧',
     description: '在快手平台发布各类任务，包括评论、视频推广等',
     taskCount: 4,
     color: 'from-blue-500 to-teal-400'
@@ -51,15 +47,7 @@ const PlatformCard = ({ platform, onClick }: { platform: Platform, onClick: () =
     >
       {/* 平台头部 */}
       <div className="flex items-center space-x-4 mb-4">
-        <div className={`w-16 h-16 bg-gradient-to-r ${platform.color} rounded-2xl flex items-center justify-center text-3xl`}>
-          {platform.icon}
-        </div>
-        <div>
           <h3 className="font-bold text-gray-900 text-xl">{platform.title}</h3>
-          <div className="flex items-center space-x-2 mt-1">
-            <span className="text-gray-500 text-sm">{platform.taskCount} 种任务类型</span>
-          </div>
-        </div>
       </div>
 
       {/* 平台描述 */}
@@ -103,13 +91,7 @@ export default function CreateTask() {
   };
 
   return (
-    <div className="space-y-6 pb-20">
-      {/* 页面头部 */}
-      <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-8 ">
-        <h1 className="text-2xl font-bold mb-2 px-4">发布任务</h1>
-        <p className="text-blue-100 px-4">选择您想要发布任务的平台</p>
-      </div>
-
+    <div className="space-y-6 pt-10 pb-20">
       {/* 平台卡片列表 */}
       <div className="px-4 space-y-4">
         {PLATFORMS.map((platform) => (

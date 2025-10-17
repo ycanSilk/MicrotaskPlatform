@@ -70,7 +70,7 @@ const AccountCard: React.FC<AccountCardProps> = ({ account, onAccountClick }) =>
     <div 
       key={account.id}
       onClick={() => onAccountClick(account.id)}
-      className="bg-white rounded-xl shadow-sm border border-gray-100 hover:border-blue-200 hover:shadow-md transition-all cursor-pointer overflow-hidden p-4"
+      className="bg-white rounded-xl shadow-sm border border-gray-100 hover:border-blue-200 hover:shadow-md transition-all cursor-pointer overflow-hidden p-3"
       style={{
         // 移动端适配 - 增大点击区域
         touchAction: 'auto',
@@ -81,23 +81,16 @@ const AccountCard: React.FC<AccountCardProps> = ({ account, onAccountClick }) =>
       {/* 图片展示区域 - 只显示第一张图片 */}
       <div className="w-full mb-4">
         <div className="relative">
-          <div className="h-48 bg-gray-100">
-            {/* 短视频账号封面 */}
-            {firstImage ? (
+          {firstImage && (
+            <div className="h-48 bg-gray-100">
+              {/* 短视频账号封面 */}
               <img 
                 src={firstImage}
                 alt={account.description || '账号图片'}
                 className="w-full h-full object-cover"
               />
-            ) : (
-              <div className={`w-full h-full ${utils.getPlatformColor(account.platform)} flex items-center justify-center text-6xl`}>
-                {getPlatformIcon(account.platform)}
-              </div>
-            )}
-          </div>
-          <div className="absolute top-3 left-3 bg-green-500 text-white px-2 py-1 rounded text-xs">
-            {utils.getPlatformName(account.platform)}
-          </div>
+            </div>
+          )}
           {/* 用户标记 - 如果是当前用户(ID=3)发布的账号，显示标记 */}
           {account.userId === '3' && (
             <div className="absolute top-3 right-3 bg-blue-600 text-white px-2 py-1 rounded text-xs font-medium">
@@ -111,19 +104,6 @@ const AccountCard: React.FC<AccountCardProps> = ({ account, onAccountClick }) =>
       <div className="mb-3">
         <div className="mb-1 text-sm line-clamp-2">{account.description || account.accountTitle}</div>
 
-        {/* 发布时间显示 */}
-        {account.publishTime && (
-            <div className="text-sm  mb-1">
-              发布时间：{new Date(account.publishTime).toLocaleString('zh-CN')}
-            </div>
-          )}
-          
-          {account.publisherName && (
-            <div className="text-sm text-gray-600 mb-1">
-              发布用户：{account.publisherName}
-            </div>
-          )}
-          
           {account.rentalDuration && (
             <div className="text-sm mb-1">
               出租时长：{account.rentalDuration}天
@@ -132,10 +112,20 @@ const AccountCard: React.FC<AccountCardProps> = ({ account, onAccountClick }) =>
 
         {/* 租金时长展示 */}
         <div className="flex items-center justify-between mb-1">
-          <div className="text-sm text-red-600">
+          <div className="text-sm">
             ¥{account.price.toFixed(2)}元/天
           </div>
         </div>
+        
+        {/* 发布用户和平台信息 - 移到价格下方 */}
+        {account.publisherName && (
+          <div className="text-sm flex items-center justify-between">
+            <span>发布用户：{account.publisherName}</span>
+            <span className="bg-green-500 text-white px-2 py-0.5 rounded text-xs">
+              {utils.getPlatformName(account.platform)}
+            </span>
+          </div>
+        )}
         </div>
       </div>
   );

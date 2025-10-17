@@ -22,7 +22,7 @@ export default function TopNavigationBar({ user }: TopNavigationBarProps) {
   return (
     <div className="fixed top-0 left-0 right-0 z-50 bg-blue-500 text-white px-4 py-3 flex items-center justify-between shadow-md">
       <div className="flex items-center space-x-2">
-        <BackButton className="text-white hover:bg-blue-600" />
+        <BackButton className="text-white" />
         <div className="flex items-center space-x-1">
         </div>
       </div>

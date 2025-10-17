@@ -23,33 +23,20 @@ export default function CommenterProfilePage() {
 
       {/* 用户信息卡片 */}
       <div className="mx-4 mt-4">
-        <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg p-6">
-          <div className="flex items-center space-x-4 mb-4">
-            <div className="bg-white bg-opacity-20 rounded-full p-4">
-              <UserOutlined className="text-2xl" />
-            </div>
-            <div>
-              <div className="text-xl font-bold">抖音达人小王</div>
-              <div className="flex items-center space-x-2 text-sm">
-                <span className="bg-white bg-opacity-20 px-2 py-1 rounded">Lv.3 评论员</span>
-                <span>ID: COM001</span>
+        <div className="bg-blue-500 text-white rounded-lg p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <img 
+                src="/images/0e92a4599d02a7.jpg" 
+                alt="用户头像" 
+                className="w-12 h-12 rounded-full object-cover"
+              />
+              <div>
+                <div className="font-bold">张三</div>
+                <div className="text-sm">13800138000</div>
               </div>
             </div>
-          </div>
-          
-          <div className="grid grid-cols-3 gap-4 text-center">
-            <div>
-              <div className="text-2xl font-bold">156</div>
-              <div className="text-sm text-blue-100">合作任务</div>
-            </div>
-            <div>
-              <div className="text-2xl font-bold">91%</div>
-              <div className="text-sm text-blue-100">成功率</div>
-            </div>
-            <div>
-              <div className="text-2xl font-bold">¥2847.60</div>
-              <div className="text-sm text-blue-100">总收益</div>
-            </div>
+            <span className="text-gray-300">›</span>
           </div>
         </div>
       </div>
@@ -74,42 +61,22 @@ export default function CommenterProfilePage() {
 
       {/* 功能菜单 */}
       <div className="mx-4 mt-6 space-y-1">
-        <div className="bg-white rounded-lg shadow-sm">
+        <div className="bg-white rounded-lg shadow-sm">    
+          {/* 余额按钮 */}
           <button 
-            onClick={() => setActiveSection('profile')}
+            onClick={() => router.push('/commenter/balance')}
             className="w-full flex items-center justify-between p-4 border-b"
           >
             <div className="flex items-center space-x-3">
-                <UserOutlined className="text-xl" />
-                <span className="font-medium">个人资料</span>
+                <CreditCardOutlined className="text-xl" />
+                <span className="font-medium">我的余额</span>
               </div>
-            <span className="text-gray-400">›</span>
-          </button>
-          
-          <button 
-            onClick={() => setActiveSection('security')}
-            className="w-full flex items-center justify-between p-4 border-b"
-          >
-            <div className="flex items-center space-x-3">
-                <LockOutlined className="text-xl" />
-                <span className="font-medium">账号安全</span>
-              </div>
-            <span className="text-gray-400">›</span>
+            <div className="flex items-center">
+              <span className="text-red-500 font-medium mr-2">¥456.80</span>
+              <span className="text-gray-400">›</span>
+            </div>
           </button>
 
-          <button 
-            onClick={() => setActiveSection('stats')}
-            className="w-full flex items-center justify-between p-4 border-b"
-          >
-            <div className="flex items-center space-x-3">
-                <BarChartOutlined className="text-xl" />
-                <span className="font-medium">数据统计</span>
-              </div>
-            <span className="text-gray-400">›</span>
-          </button>
-
-
-          
           <button 
             onClick={() => router.push('/commenter/bank-cards')}
             className="w-full flex items-center justify-between p-4 border-b"
@@ -120,18 +87,17 @@ export default function CommenterProfilePage() {
               </div>
             <span className="text-gray-400">›</span>
           </button>
-
+          
           <button 
-            onClick={() => setActiveSection('history')}
-            className="w-full flex items-center justify-between p-4 border-b"
+            onClick={() => router.push('/commenter/earnings/overview')}
+            className="w-full flex items-center justify-between p-4"
           >
             <div className="flex items-center space-x-3">
-                <FileTextOutlined className="text-xl" />
-                <span className="font-medium">任务记录</span>
+                <BarChartOutlined className="text-xl" />
+                <span className="font-medium">收益统计</span>
               </div>
             <span className="text-gray-400">›</span>
           </button>
-
 
         </div>
       </div>
@@ -204,29 +170,18 @@ export default function CommenterProfilePage() {
           </div>
         </div>
       )}
-
-
-
-      {/* 帮助与客服 */}
-      <div className="mx-4 mt-6">
-        <div className="bg-white rounded-lg shadow-sm">
-          <button className="w-full flex items-center justify-between p-4 border-b">
-            <div className="flex items-center space-x-3">
-                <QuestionCircleOutlined className="text-xl" />
-                <span className="font-medium">帮助中心</span>
-              </div>
-            <span className="text-gray-400">›</span>
-          </button>
-          
-          <button className="w-full flex items-center justify-between p-4 border-b">
-            <div className="flex items-center space-x-3">
-                <MessageOutlined className="text-xl" />
-                <span className="font-medium">联系客服</span>
-              </div>
-            <span className="bg-red-500 text-white text-xs px-2 py-1 rounded mr-2">在线</span>
-          </button>
-        </div>
-      </div>
+              {/* 帮助与客服 */}
+                <div className="mx-4 mt-6">
+                  <div className="bg-white rounded-lg shadow-sm">
+                    <button className="w-full flex items-center justify-between p-4 border-b">
+                      <div className="flex items-center space-x-3">
+                          <QuestionCircleOutlined className="text-xl" />
+                          <span className="font-medium">帮助中心</span>
+                        </div>
+                      <span className="text-gray-400">›</span>
+                    </button>
+                  </div>
+                </div>
 
       {/* 退出登录 */}
       <div className="mx-4 mt-6">

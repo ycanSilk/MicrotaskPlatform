@@ -28,6 +28,7 @@ function PublishedAccountsPage() {
   const [loading, setLoading] = useState(true);
   const [publishedAccounts, setPublishedAccounts] = useState<PublishedAccount[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState('published'); // 默认选中已发布选项卡
 
   useEffect(() => {
     const fetchPublishedAccounts = async () => {
@@ -88,19 +89,47 @@ function PublishedAccountsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gray-50 px-3 py-8">
       <div className="max-w-7xl mx-auto">
         <div className="bg-white shadow-sm rounded-lg overflow-hidden">
-          <div className="p-6">
+          <div className="p-3">
             <h1 className="text-2xl font-bold text-gray-900 mb-6">已发布账号</h1>
             
-            {/* 发布新账号按钮 - 保留原有功能 */}
+            {/* 发布新账号按钮 */}
             <div className="mb-6">
               <button 
                 onClick={() => router.push('/accountrental/account-rental-publish')}
                 className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded"
               >
                 发布新账号
+              </button>
+            </div>
+
+            {/* 状态切换选项卡 */}
+            <div className="flex border-b border-gray-200 mb-6">
+              <button 
+                onClick={() => setActiveTab('published')}
+                className={`px-4 py-2 text-sm font-medium ${activeTab === 'published' ? 'border-b-2 border-green-500 text-green-600' : 'text-gray-500 hover:text-gray-700'}`}
+              >
+                已发布
+              </button>
+              <button 
+                onClick={() => setActiveTab('rented')}
+                className={`px-4 py-2 text-sm font-medium ${activeTab === 'rented' ? 'border-b-2 border-green-500 text-green-600' : 'text-gray-500 hover:text-gray-700'}`}
+              >
+                已出租
+              </button>
+              <button 
+                onClick={() => setActiveTab('renting')}
+                className={`px-4 py-2 text-sm font-medium ${activeTab === 'renting' ? 'border-b-2 border-green-500 text-green-600' : 'text-gray-500 hover:text-gray-700'}`}
+              >
+                出租中
+              </button>
+              <button 
+                onClick={() => setActiveTab('canceled')}
+                className={`px-4 py-2 text-sm font-medium ${activeTab === 'canceled' ? 'border-b-2 border-green-500 text-green-600' : 'text-gray-500 hover:text-gray-700'}`}
+              >
+                已取消
               </button>
             </div>
 
@@ -163,11 +192,11 @@ function PublishedAccountsPage() {
                         {/* 商品信息和价格 */}
                         <div className="flex px-4 py-3 space-x-4">
                           {/* 平台图标 */}
-                          <div className="w-20 h-20 bg-gray-100 rounded overflow-hidden flex-shrink-0">
+                          <div className="w-20 h-20 bg-gray-100 rounded overflow-hidden flex-shrink-0 flex items-center justify-center">
                             <img 
                               src={platformImages[account.platform as keyof typeof platformImages] || platformImages.douyin}
                               alt={account.platform || '平台图标'}
-                              className="w-full h-full object-cover"
+                              className="max-w-full max-h-full object-contain"
                             />
                           </div>
                           
@@ -176,9 +205,6 @@ function PublishedAccountsPage() {
                             <h3 className="text-base font-medium mb-1 line-clamp-2">
                               {account.title || '未命名账号'}
                             </h3>
-                            <p className="text-xs text-gray-500 mb-1">
-                              {getPlatformName(account.platform)}账号 · {account.followers || '0'}粉丝
-                            </p>
                             <div className="flex flex-wrap gap-2 mb-1">
                               <span className="text-xs text-gray-600">
                                 租赁天数：{account.minRentalDays || 1}天 - {account.maxRentalDays || 30}天
@@ -187,12 +213,6 @@ function PublishedAccountsPage() {
                                 {statusInfo.text}
                               </span>
                             </div>
-                            <p className="text-xs text-gray-500 mb-2">
-                              租金：¥{(account.price || 0).toFixed(2)}/天 · 已出租{account.rentalCount || 0}次 · 评分{(account.rating || 5).toFixed(1)}
-                            </p>
-                            <p className="text-xs text-gray-600 mb-1">
-                              发布用户：{account.publisherName || account.sellerName || '未知'}
-                            </p>
                             {account.hasReturnInsurance && (
                               <span className="text-xs text-orange-500 border border-orange-200 px-1.5 py-0.5 rounded">
                                 退货包运费
@@ -202,7 +222,7 @@ function PublishedAccountsPage() {
                           
                           {/* 价格 */}
                           <div className="text-right">
-                            <p className="text-sm font-medium text-gray-900 mb-1">
+                            <p className="text-sm font-medium text-gray-900">
                               ¥{(account.price || 0).toFixed(2)}
                             </p>
                           </div>

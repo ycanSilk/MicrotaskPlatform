@@ -201,7 +201,7 @@ const RentalRequestsPage = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* 顶部搜索栏 */}
-      <div className="bg-white border-b border-gray-200 p-4">
+      <div className="border-b border-gray-200 p-4">
         <div className="max-w-7xl mx-auto">
           <div className="relative">
             <SearchOutlined className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
@@ -324,7 +324,7 @@ const RentalRequestsPage = () => {
 
                   {/* 风险提示 */}
                   <div className="mb-4 mt-2 p-2 bg-red-50 rounded-md text-xs text-red-600">
-                    风险提示：出租账户期间账户可能被平台封禁风险，如有封禁，租户自行承担。租赁期间如被封禁，租户需按照要求进行验证解禁，并继续履约。
+                    风险提示：出租账户期间账户可能被平台封禁风险，租赁期间如被封禁，租户需按照抖音平台要求进行验证解封。
                   </div>
 
                   {/* 按钮区域 */}

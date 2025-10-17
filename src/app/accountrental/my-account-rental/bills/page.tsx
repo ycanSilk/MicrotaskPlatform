@@ -49,6 +49,8 @@ const BillsPage = () => {
   const [isFilterVisible, setIsFilterVisible] = useState(false);
   const [sortBy, setSortBy] = useState('latest');
   const [activeTab, setActiveTab] = useState('all');
+  const [showCopyModal, setShowCopyModal] = useState(false);
+  const [copiedOrderId, setCopiedOrderId] = useState('');
 
   // 模拟获取数据
   useEffect(() => {
@@ -364,35 +366,6 @@ const BillsPage = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* 顶部导航栏 */}
-      <header className="sticky top-0 z-10 bg-white shadow-sm">
-        <div className="flex items-center justify-between px-4 py-3">
-          <button 
-            onClick={() => router.back()}
-            className="p-1 rounded-full hover:bg-gray-100"
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M15 18l-6-6 6-6" />
-            </svg>
-          </button>
-          <h1 className="text-lg font-bold text-center flex-1">我的账单</h1>
-          <div className="flex space-x-1">
-            <button 
-              className="p-1 rounded-full hover:bg-gray-100"
-              onClick={() => console.log('筛选')}
-            >
-              <FilterOutlined className="h-5 w-5 text-gray-600" />
-            </button>
-            <button 
-              className="p-1 rounded-full hover:bg-gray-100"
-              onClick={() => console.log('更多')}
-            >
-              <MoreOutlined className="h-5 w-5 text-gray-600" />
-            </button>
-          </div>
-        </div>
-      </header>
-
       {/* 待支付提示 */}
       {totalUnpaidAmount > 0 && (
         <div className="px-4 py-3 mt-2 bg-orange-50">
@@ -421,34 +394,6 @@ const BillsPage = () => {
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10 pr-4 py-2 w-full rounded-lg border-gray-200 focus:border-blue-500 focus:ring-blue-500"
           />
-        </div>
-
-        <div className="flex justify-between items-center">
-          <button 
-            onClick={() => setIsFilterVisible(!isFilterVisible)}
-            className="flex items-center text-gray-600 text-sm px-3 py-1.5 rounded-full border border-gray-200"
-          >
-            <FilterOutlined className="mr-1 h-4 w-4" />
-            筛选
-          </button>
-          
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button 
-                className="flex items-center text-gray-600 text-sm px-3 py-1.5 rounded-full border border-gray-200"
-              >
-                {sortBy === 'latest' && '最新账单'}
-                {sortBy === 'amount_desc' && '金额从高到低'}
-                {sortBy === 'amount_asc' && '金额从低到高'}
-                <DownOutlined className="ml-1 h-4 w-4" />
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-40">
-              <DropdownMenuItem onClick={() => setSortBy('latest')}>最新账单</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setSortBy('amount_desc')}>金额从高到低</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setSortBy('amount_asc')}>金额从低到高</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
         </div>
       </div>
 
@@ -600,13 +545,13 @@ const BillsPage = () => {
             <div className="text-5xl mb-3">📄</div>
             <h3 className="text-lg font-medium text-gray-800 mb-1">暂无账单记录</h3>
             {activeTab === 'unpaid' && (
-              <p className="text-gray-500 text-sm mb-4">您没有待支付的账单</p>
+              <p className=" text-sm mb-4">您没有待支付的账单</p>
             )}
             {activeTab === 'paid' && (
-              <p className="text-gray-500 text-sm mb-4">您没有已支付的账单</p>
+              <p className=" text-sm mb-4">您没有已支付的账单</p>
             )}
             {activeTab === 'all' && (
-              <p className="text-gray-500 text-sm mb-4">您还没有任何账单记录</p>
+              <p className=" text-sm mb-4">您还没有任何账单记录</p>
             )}
           </div>
         ) : (
@@ -654,31 +599,41 @@ const BillsPage = () => {
                         <div className={`font-bold ${isIncome ? 'text-green-600' : 'text-red-600'}`}>
                           {isIncome ? '+' : '-'}{bill.amount.toFixed(2)}
                         </div>
-                        <div className="text-xs text-gray-500 mt-0.5">
+                        <div className="text-xs  mt-0.5">
                           {formatDate(bill.date)}
                         </div>
                       </div>
                     </div>
 
+                    
+                    <div className="flex items-center mb-2">
+                        <span className="text-gray-500">订单号：</span>
+                        <span className="font-medium text-gray-800 truncate mr-2">{bill.orderId}</span>
+                        <button 
+                          className="p-1.5 rounded-full hover:bg-gray-100 flex items-center text-sm text-gray-600" 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigator.clipboard.writeText(bill.orderId).then(() => {
+                              setCopiedOrderId(bill.orderId);
+                              setShowCopyModal(true);
+                            });
+                          }}
+                          title="复制订单号"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-gray-500 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                          </svg>
+                          复制
+                        </button>
+                      </div>
+                    
+
                     <div className="grid grid-cols-2 gap-y-2 gap-x-4 mb-3 text-xs">
-                      <div className="flex justify-between">
-                        <span className="text-gray-500">订单编号</span>
-                        <span className="font-medium text-gray-800 truncate max-w-[120px]">{bill.orderId}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-500">账单类型</span>
-                        <span className="font-medium text-gray-800">{getBillType(bill.type)}</span>
-                      </div>
-                      {bill.paymentMethod && (
-                        <div className="flex justify-between">
-                          <span className="text-gray-500">支付方式</span>
-                          <span className="font-medium text-gray-800">{bill.paymentMethod}</span>
-                        </div>
-                      )}
+
                       {bill.dueDate && (
-                        <div className="flex justify-between">
-                          <span className="text-gray-500">到期日期</span>
-                          <span className={`font-medium ${isUnpaid ? 'text-orange-600' : 'text-gray-800'}`}>
+                        <div className="flex items-center text-xs  col-span-2">
+                          <CalendarOutlined className="h-3.5 w-3.5 mr-1" />
+                          到账日期: <span className={`font-medium ${isUnpaid ? 'text-orange-600' : 'text-gray-800'} ml-1`}>
                             {getFullDate(bill.dueDate)}
                           </span>
                         </div>
@@ -686,30 +641,13 @@ const BillsPage = () => {
                     </div>
 
                     <div className="flex justify-between items-center">
-                      <div className="flex items-center text-xs text-gray-500">
+                      <div className="flex items-center text-xs ">
                         <CalendarOutlined className="h-3.5 w-3.5 mr-1" />
                         账单日期: {getFullDate(bill.date)}
-                      </div>
-                      
-                      <div className="flex space-x-2">
-                        <button 
-                          className="p-1.5 rounded-full hover:bg-gray-100"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDownloadBill(bill.id);
-                          }}
-                        >
-                          <DownloadOutlined className="h-4 w-4 text-gray-500" />
-                        </button>
-                        <button 
-                          className="p-1.5 rounded-full hover:bg-gray-100"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleShareBill(bill.id);
-                          }}
-                        >
-                          <ShareAltOutlined className="h-4 w-4 text-gray-500" />
-                        </button>
+                      </div>  
+                    </div>
+                    <div className="flex justify-end space-x-2 mt-2">
+                        {/* 已删除下载和分享按钮 */}
                         {isUnpaid && (
                           <Button 
                             onClick={(e) => {
@@ -735,7 +673,6 @@ const BillsPage = () => {
                           </Button>
                         )}
                       </div>
-                    </div>
                   </div>
                 </Card>
               );
@@ -748,6 +685,26 @@ const BillsPage = () => {
       <div className="px-4 py-4 text-center text-xs text-gray-500">
         <p>账单记录保存期限为12个月</p>
       </div>
+      
+      {/* 复制成功模态框 */}
+      {showCopyModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-lg w-full max-w-md p-6">
+            <h3 className="text-xl font-semibold text-center mb-4">复制成功</h3>
+            <p className="text-center text-gray-600 mb-6">
+              订单编号 {copiedOrderId} 已成功复制到剪贴板
+            </p>
+            <div className="flex justify-center">
+              <Button 
+                className="bg-blue-600 hover:bg-blue-700 text-white" 
+                onClick={() => setShowCopyModal(false)}
+              >
+                确定
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

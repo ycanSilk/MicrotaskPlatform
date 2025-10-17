@@ -48,6 +48,10 @@ export default function CommenterTasksPage() {
   // 从URL参数中获取初始tab值，如果没有则默认为sub_progress
   const tabFromUrl = (searchParams?.get('tab') || '')?.trim() as TaskStatus | null;
   const [activeTab, setActiveTab] = useState<TaskStatus>(tabFromUrl || 'sub_progress');
+  
+  // 冷却状态相关状态
+  const [coolingDown, setCoolingDown] = useState(false);
+  const [remainingTime, setRemainingTime] = useState({ minutes: 0, seconds: 0 });
   const [tasks, setTasks] = useState<Task[]>([
     // 添加静态渲染数据，这些数据会在API请求完成前显示
     {
@@ -140,10 +144,89 @@ export default function CommenterTasksPage() {
     }
   }
   
+  // 检查冷却状态
+  useEffect(() => {
+    const checkCoolingStatus = () => {
+      const isCoolingDown = localStorage.getItem('commenter_cooling_down') === 'true';
+      const coolingEndTimeStr = localStorage.getItem('commenter_cooling_end_time');
+      
+      if (isCoolingDown && coolingEndTimeStr) {
+        const coolingEndTime = parseInt(coolingEndTimeStr, 10);
+        const now = Date.now();
+        
+        if (now < coolingEndTime) {
+          setCoolingDown(true);
+          
+          // 计算剩余时间
+          const remainingMs = coolingEndTime - now;
+          const minutes = Math.floor(remainingMs / (1000 * 60));
+          const seconds = Math.floor((remainingMs % (1000 * 60)) / 1000);
+          setRemainingTime({ minutes, seconds });
+          
+          // 清除过期的冷却状态
+          const timeUntilExpiry = coolingEndTime - now;
+          setTimeout(() => {
+            localStorage.removeItem('commenter_cooling_down');
+            localStorage.removeItem('commenter_cooling_end_time');
+            setCoolingDown(false);
+          }, timeUntilExpiry);
+        } else {
+          // 冷却时间已过，清除状态
+          localStorage.removeItem('commenter_cooling_down');
+          localStorage.removeItem('commenter_cooling_end_time');
+        }
+      }
+    };
+    
+    checkCoolingStatus();
+    
+    // 监听storage事件，当冷却状态在其他页面发生变化时更新
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'commenter_cooling_down' || e.key === 'commenter_cooling_end_time') {
+        checkCoolingStatus();
+      }
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+  
   // 初始化数据
   useEffect(() => {
     fetchUserTasks();
   }, []);
+  
+  // 冷却倒计时更新
+  useEffect(() => {
+    if (!coolingDown) return;
+    
+    const timer = setInterval(() => {
+      const coolingEndTimeStr = localStorage.getItem('commenter_cooling_end_time');
+      if (!coolingEndTimeStr) {
+        setCoolingDown(false);
+        clearInterval(timer);
+        return;
+      }
+      
+      const coolingEndTime = parseInt(coolingEndTimeStr, 10);
+      const now = Date.now();
+      
+      if (now >= coolingEndTime) {
+        setCoolingDown(false);
+        setRemainingTime({ minutes: 0, seconds: 0 });
+        localStorage.removeItem('commenter_cooling_down');
+        localStorage.removeItem('commenter_cooling_end_time');
+        clearInterval(timer);
+      } else {
+        const remainingMs = coolingEndTime - now;
+        const minutes = Math.floor(remainingMs / (1000 * 60));
+        const seconds = Math.floor((remainingMs % (1000 * 60)) / 1000);
+        setRemainingTime({ minutes, seconds });
+      }
+    }, 1000);
+    
+    return () => clearInterval(timer);
+  }, [coolingDown]);
 
   // 处理标签切换，同时更新URL参数
   const handleTabChange = (tab: TaskStatus) => {
@@ -207,6 +290,12 @@ export default function CommenterTasksPage() {
 
   // 上传截图按钮功能 - 优化版：只在本地保存压缩后的图片，不立即上传到服务器
   const handleUploadScreenshot = (taskId: string) => {
+    // 检查是否处于冷却状态
+    if (coolingDown) {
+      setModalMessage(`截图上传受限：正在冷却期，剩余 ${remainingTime.minutes}:${remainingTime.seconds.toString().padStart(2, '0')} 分钟`);
+      setShowModal(true);
+      return;
+    }
     const fileInput = document.createElement('input');
     fileInput.type = 'file';
     fileInput.accept = 'image/*';
@@ -259,6 +348,13 @@ export default function CommenterTasksPage() {
   
   // 提交订单按钮功能 - 优化版：在提交订单时一并上传截图
   const handleSubmitOrder = async (taskId: string) => {
+    // 检查是否处于冷却状态
+    if (coolingDown) {
+      setModalMessage(`任务提交受限：正在冷却期，剩余 ${remainingTime.minutes}:${remainingTime.seconds.toString().padStart(2, '0')} 分钟`);
+      setShowModal(true);
+      return;
+    }
+    
     try {
       // 添加验证逻辑：检查是否已上传截图
       const task = tasks.find(t => t.id === taskId);
@@ -473,6 +569,13 @@ export default function CommenterTasksPage() {
   
   // 上传链接功能
   const handleUploadLink = async (taskId: string, reviewLink?: string) => {
+    // 检查是否处于冷却状态
+    if (coolingDown) {
+      setModalMessage(`链接上传受限：正在冷却期，剩余 ${remainingTime.minutes}:${remainingTime.seconds.toString().padStart(2, '0')} 分钟`);
+      setShowModal(true);
+      return;
+    }
+    
     try {
       setLinkUploadStatus(prev => ({ ...prev, [taskId]: 'uploading' }));
       
@@ -609,6 +712,13 @@ export default function CommenterTasksPage() {
 
   return (
     <>
+      {/* 冷却提示条 */}
+      {coolingDown && (
+        <div className="fixed top-0 left-0 right-0 bg-red-100 border-b border-red-300 text-red-700 py-2 px-4 z-50 flex justify-between items-center">
+          <span className="font-medium">任务冷却中：</span>
+          <span className="font-bold">剩余 {remainingTime.minutes}:{remainingTime.seconds.toString().padStart(2, '0')} 分钟</span>
+        </div>
+      )}
       {/* 图片查看器模态框 */}
       {selectedImage && (
         <div 
@@ -704,6 +814,8 @@ export default function CommenterTasksPage() {
             handleRemoveImage={handleRemoveImage} 
             fetchUserTasks={fetchUserTasks} 
             getTaskTypeName={getTaskTypeName}
+            setModalMessage={setModalMessage}
+            setShowModal={setShowModal}
           />
         )}
         
@@ -715,6 +827,8 @@ export default function CommenterTasksPage() {
             handleViewImage={handleViewImage} 
             fetchUserTasks={fetchUserTasks} 
             getTaskTypeName={getTaskTypeName}
+            setModalMessage={setModalMessage}
+            setShowModal={setShowModal}
           />
         )}
         
@@ -726,6 +840,8 @@ export default function CommenterTasksPage() {
             handleViewImage={handleViewImage} 
             fetchUserTasks={fetchUserTasks} 
             getTaskTypeName={getTaskTypeName}
+            setModalMessage={setModalMessage}
+            setShowModal={setShowModal}
           />
         )}
       </div>

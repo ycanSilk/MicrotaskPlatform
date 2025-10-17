@@ -1,62 +1,53 @@
 import { NextResponse } from 'next/server';
 import { AccountRentalInfo } from '@/app/accountrental/types';
 
-// 根据平台获取对应图标名称
-const getPlatformIconName = (platform: string): string => {
-  switch (platform) {
-    case 'douyin':
-      return 'AudioOutlined';
-    case 'xiaohongshu':
-      return 'BookOutlined';
-    case 'kuaishou':
-      return 'ToolOutlined';
-    default:
-      return 'BookOutlined';
-  }
-};
-
 // 转换外部API数据为前端需要的格式
-const transformLeaseInfoToAccountRentalInfo = (leaseInfo: any): AccountRentalInfo => {
-  // 计算价格，假设外部API返回的是派单单价
-  const orderPrice = leaseInfo.price || 0;
-  const price = orderPrice * 0.77; // 订单单价 = 派单单价 * 77%
-  
-  // 创建基本对象，不包含platformIcon字段（由前端处理）
-  const baseObject: Partial<AccountRentalInfo> = {
-    id: leaseInfo.id || `lease-${Date.now()}`,
-    platform: leaseInfo.platform || 'douyin',
-    accountTitle: leaseInfo.title || '账号出租',
-    followersRange: leaseInfo.followerCount || '0-0',
-    engagementRate: leaseInfo.engagementRate || '0%',
-    contentCategory: leaseInfo.category || 'other',
-    region: leaseInfo.region || 'national',
-    accountAge: leaseInfo.accountAge || '0',
-    accountScore: leaseInfo.score || 0,
-    orderPrice: orderPrice,
-    price: price,
-    rentalDuration: leaseInfo.duration || 1,
-    minimumRentalHours: leaseInfo.minHours || 1,
-    deliveryTime: leaseInfo.deliveryTime || 60,
-    maxConcurrentUsers: leaseInfo.maxConcurrentUsers || 1,
-    responseTime: leaseInfo.responseTime || 30,
-    includedFeatures: leaseInfo.features || [],
-    description: leaseInfo.description || '',
-    advantages: leaseInfo.advantages || [],
-    restrictions: leaseInfo.restrictions || [],
-    isVerified: leaseInfo.verified || false,
-    rating: leaseInfo.rating || 0,
-    rentalCount: leaseInfo.rentalCount || 0,
-    availableCount: leaseInfo.availableCount || 1,
-    publishTime: leaseInfo.createTime || new Date().toISOString(),
-    status: leaseInfo.status === 'ACTIVE' ? 'active' : 'inactive',
-    images: leaseInfo.images || [],
-    publisherName: leaseInfo.publisherName || '未知发布者',
-    userId: leaseInfo.userId || Math.random() > 0.7 ? '3' : undefined // 模拟数据：随机将约30%的租赁信息标记为用户ID=3发布的
+  const transformLeaseInfoToAccountRentalInfo = (leaseInfo: any): AccountRentalInfo => {
+    // 根据用户提供的API数据结构进行转换
+    // 平台映射
+    const platformMap: Record<string, string> = {
+      '抖音': 'douyin',
+    };
+    
+    // 价格处理 - 使用pricePerDay作为价格
+    const price = leaseInfo.pricePerDay || 0;
+    
+    // 创建基本对象，不包含platformIcon字段（由前端处理）
+    const baseObject: Partial<AccountRentalInfo> = {
+      id: String(leaseInfo.id) || `lease-${Date.now()}`,
+      platform: platformMap[leaseInfo.accountType] || 'douyin',
+      accountTitle: leaseInfo.title || '账号出租',
+      followersRange: '0-0', // API中没有提供粉丝数信息
+      engagementRate: '0%', // API中没有提供互动率信息
+      contentCategory: 'other', // API中没有提供内容分类信息
+      region: 'national', // API中没有提供地区信息
+      accountAge: '0', // API中没有提供账号年龄信息
+      accountScore: 0, // API中没有提供账号评分信息
+      price: price,
+      rentalDuration: leaseInfo.minLeaseDays || 1,
+      minimumRentalHours: 24 * (leaseInfo.minLeaseDays || 1), // 转换为小时
+      deliveryTime: 60, // 默认值
+      maxConcurrentUsers: 1, // 默认值
+      responseTime: 30, // 默认值
+      availableCount: 1, // 默认值
+      publishTime: leaseInfo.createTime || new Date().toISOString(),
+      // 添加可能需要的额外字段
+      orderPrice: price,
+      includedFeatures: [],
+      description: leaseInfo.description || '',
+      advantages: [],
+      restrictions: [],
+      isVerified: false,
+      rating: 0,
+      rentalCount: 0,
+      status: leaseInfo.status === 'ACTIVE' ? 'active' : 'inactive',
+      images: [],
+      publisherName: leaseInfo.username || '未知发布者'
+    };
+    
+    // 返回符合AccountRentalInfo类型的对象
+    return baseObject as AccountRentalInfo;
   };
-  
-  // 返回符合AccountRentalInfo类型的对象
-  return baseObject as AccountRentalInfo;
-};
 
 export async function GET(request: Request) {
   try {
@@ -66,10 +57,9 @@ export async function GET(request: Request) {
     const size = url.searchParams.get('size') || '10';
     const sort = url.searchParams.get('sort') || 'createTime';
     const direction = url.searchParams.get('direction') || 'DESC';
-    const status = url.searchParams.get('status') || 'ACTIVE';
     
-    // 使用固定的新API URL
-    const externalApiUrl = `http://14.29.178.235:8889/api/lease/market/lease-infos?status=ACTIVE&page=0&size=10&sort=createTime&direction=DESC`;
+    // 更新为新的外部API地址
+    const externalApiUrl = `http://localhost:8889/api/lease/market/lease-infos?page=${page}&size=${size}&sort=${sort}&direction=${direction}`;
     
     console.log('请求外部API:', externalApiUrl);
     
@@ -77,7 +67,7 @@ export async function GET(request: Request) {
     const response = await fetch(externalApiUrl, {
       method: 'GET',
       headers: {
-        'Content-Type': 'application/json',
+        'accept': '*/*',
       },
     });
     
@@ -88,8 +78,8 @@ export async function GET(request: Request) {
     const data = await response.json();
     console.log('外部API返回数据:', data);
     
-    // 转换数据格式
-    const transformedData = data.data?.items?.map((item: any) => 
+    // 根据用户提供的API数据结构，使用data.content来获取数据
+    const transformedData = data.data?.content?.map((item: any) => 
       transformLeaseInfoToAccountRentalInfo(item)
     ) || [];
     
@@ -97,7 +87,7 @@ export async function GET(request: Request) {
     return NextResponse.json({
       success: true,
       data: transformedData,
-      total: data.data?.total || 0,
+      total: data.data?.totalElements || 0,
       page: parseInt(page),
       size: parseInt(size)
     });
@@ -105,71 +95,16 @@ export async function GET(request: Request) {
   } catch (error) {
     console.error('获取租赁市场数据失败:', error);
     
-    // 为了保证系统可用性，如果外部API调用失败，返回模拟数据
-    const mockData: AccountRentalInfo[] = [
-      {
-        id: 'mock-acc-001',
-        platform: 'douyin',
-        accountTitle: '美食探店达人',
-        followersRange: '50k-100k',
-        engagementRate: '5.2%',
-        contentCategory: 'food',
-        orderPrice: 120,
-        price: 120 * 0.77,
-        rentalDuration: 1,
-        minimumRentalHours: 2,
-        accountScore: 4.8,
-        region: 'national',
-        accountAge: '12+',
-        deliveryTime: 60,
-        maxConcurrentUsers: 1,
-        responseTime: 30,
-        availableCount: 1,
-        publishTime: new Date().toISOString(),
-        includedFeatures: ['基础发布', '数据分析'],
-        description: '专注于美食探店内容，有稳定的粉丝群体和良好的互动率',
-        advantages: ['粉丝活跃度高', '内容质量优', '响应速度快'],
-        restrictions: ['禁止发布违法内容', '禁止更改账号设置'],
-        status: 'active',
-        images: ['/images/douyin-logo.png'],
-        publisherName: '美食达人'
-      } as AccountRentalInfo,
-      {
-        id: 'mock-acc-002',
-        platform: 'xiaohongshu',
-        accountTitle: '生活方式博主',
-        followersRange: '30k-50k',
-        engagementRate: '4.8%',
-        contentCategory: 'lifestyle',
-        orderPrice: 90,
-        price: 90 * 0.77,
-        rentalDuration: 1,
-        minimumRentalHours: 1,
-        accountScore: 4.6,
-        region: 'national',
-        accountAge: '8+',
-        deliveryTime: 45,
-        maxConcurrentUsers: 1,
-        responseTime: 20,
-        availableCount: 1,
-        publishTime: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-        includedFeatures: ['基础发布', '评论回复'],
-        description: '分享日常生活技巧和好物推荐',
-        advantages: ['互动性强', '粉丝黏性高'],
-        restrictions: ['禁止发布违法内容'],
-        status: 'active',
-        images: ['/images/xiaohongshu-logo.png'],
-        publisherName: '生活家'
-      } as AccountRentalInfo
-    ];
-    
+    // 返回错误信息，不使用模拟数据
     return NextResponse.json({
-      success: true,
-      data: mockData,
-      total: mockData.length,
+      success: false,
+      data: [],
+      total: 0,
       page: 0,
       size: 10,
-      warning: '使用模拟数据，外部API可能暂时不可用'
+      message: error instanceof Error ? error.message : '获取租赁市场数据失败'
+    }, {
+      status: 500
     });
   }
 }

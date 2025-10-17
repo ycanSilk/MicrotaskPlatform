@@ -9,7 +9,6 @@ const TASK_TYPES = [
   {
     id: 'comment_top',
     title: '上评评论',
-    icon: '⭐',
     price: 3.0,
     description: '真人账号发布高质量评论',
     requirements: '真人评论，评论内容真实有效。',
@@ -19,7 +18,6 @@ const TASK_TYPES = [
   {
     id: 'comment_middle',
     title: '中评评论',
-    icon: '💬',
     price: 2.0,
     description: '真人账号发布高质量评论',
     requirements: '真人评论，评论内容真实有效。',
@@ -29,7 +27,6 @@ const TASK_TYPES = [
   {
     id: 'task_combination_top_middle',
     title: '上中评评论',
-    icon: '🌟',
     price: 9.0,
     description: '组合评论 - 1条上评评论 + 3条中评评论（数量可自定义选择，支持@功能）',
     requirements: '真人评论，评论内容真实有效。上评完成后需提交链接作为结算条件。',
@@ -39,7 +36,6 @@ const TASK_TYPES = [
   {
     id: 'task_combination_middle_bottom',
     title: '中下评评论',
-    icon: '🌓',
     price: 6.0,
     description: '组合评论 - 1条中评评论 + 2条下评评论（支持@功能）',
     requirements: '真人评论，评论内容真实有效。下评完成后需提交链接作为结算条件。',
@@ -49,7 +45,6 @@ const TASK_TYPES = [
   {
     id: 'search_keyword',
     title: '放大镜搜索词',
-    icon: '🔍',
     price: 5.0,
     description: '抖音平台规则原因，本产品属于概率出放大镜，搜索词搜索次数越多，出现概率越大',
     requirements: '在视频页面右上角搜索框中搜索指定内容，重复执行100次搜索操作',
@@ -68,19 +63,11 @@ const TaskCard = ({ task, onClick }: { task: any, onClick: () => void }) => {
       {/* 任务头部 */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center space-x-3">
-          <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center text-2xl">
-            {task.icon}
-          </div>
-          <div>
             <h3 className="font-bold text-gray-900 text-lg">{task.title}</h3>
-          </div>
         </div>
         <div className="text-right">
           <div className="text-2xl font-bold text-orange-500">
             {task.price === '自定义' ? '自定义' : `¥${task.price}`}
-          </div>
-          <div className="text-gray-500 text-sm">
-            {task.price === '自定义' ? '支持任意金额' : '单价'}
           </div>
         </div>
       </div>
@@ -132,8 +119,7 @@ export default function CreateTask() {
       // 上评任务 - 跳转到上评任务发布页面
       const params = new URLSearchParams({
         taskId: task.id,
-        title: task.title,
-        icon: task.icon,
+        title: task.title,      
         price: task.price.toString(),
         description: task.description
       });
@@ -142,8 +128,7 @@ export default function CreateTask() {
       // 上中评任务 - 跳转到上中评任务发布页面
       const params = new URLSearchParams({
         taskId: task.id,
-        title: task.title,
-        icon: task.icon,
+        title: task.title,     
         price: task.price.toString(),
         description: task.description
       });
@@ -152,8 +137,7 @@ export default function CreateTask() {
       // 中下评任务 - 跳转到中下评任务发布页面
       const params = new URLSearchParams({
         taskId: task.id,
-        title: task.title,
-        icon: task.icon,
+        title: task.title,  
         price: task.price.toString(),
         description: task.description
       });
@@ -162,8 +146,7 @@ export default function CreateTask() {
       // 放大镜搜索词任务 - 跳转到专用发布页面
       const params = new URLSearchParams({
         taskId: task.id,
-        title: task.title,
-        icon: task.icon,
+        title: task.title,        
         price: task.price.toString(),
         description: task.description
       });
@@ -172,8 +155,7 @@ export default function CreateTask() {
       // 其他任务类型（包括中评任务）
       const params = new URLSearchParams({
         taskId: task.id,
-        title: task.title,
-        icon: task.icon,
+        title: task.title,       
         price: task.price.toString(),
         description: task.description
       });
@@ -184,7 +166,7 @@ export default function CreateTask() {
   return (
     <div className="space-y-6 pb-20">
       {/* 页面头部 */}
-      <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-8 -mx-4 -mt-4">
+      <div className="from-blue-500 to-purple-600 text-white mt-10">
         <div className="flex items-center space-x-4 mb-2 px-4">
             <button 
             onClick={handleBackToPlatforms}
@@ -194,8 +176,6 @@ export default function CreateTask() {
             <span className='text-blue-500'>← 返回选择任务</span>
           </button> 
         </div>
-        <h1 className="text-2xl font-bold ml- px-4">发布抖音评论任务</h1>
-        <p className="text-blue-100 px-4 mt-3">选择抖音评论任务类型</p>
       </div>
 
       {/* 任务卡片列表 */}
@@ -213,7 +193,6 @@ export default function CreateTask() {
       <div className="px-4 space-y-4">
         <div className="bg-blue-50 rounded-2xl p-4">
           <div className="flex items-start space-x-3">
-            <span className="text-2xl">💡</span>
             <div>
               <h3 className="font-medium text-blue-900 mb-1">任务说明</h3>
               <p className="text-blue-700 text-sm leading-relaxed">

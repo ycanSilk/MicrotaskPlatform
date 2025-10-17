@@ -41,6 +41,8 @@ interface CompletedTasksTabProps {
   getTaskTypeName: (taskType?: string) => string;
   isLoading: boolean;
   fetchUserTasks: () => void;
+  setModalMessage: (message: string) => void;
+  setShowModal: (show: boolean) => void;
 }
 
 const CompletedTasksTab: React.FC<CompletedTasksTabProps> = ({
@@ -49,7 +51,9 @@ const CompletedTasksTab: React.FC<CompletedTasksTabProps> = ({
   handleViewImage,
   getTaskTypeName,
   isLoading,
-  fetchUserTasks
+  fetchUserTasks,
+  setModalMessage,
+  setShowModal
 }) => {
   const router = useRouter();
 
@@ -66,10 +70,14 @@ const CompletedTasksTab: React.FC<CompletedTasksTabProps> = ({
                   const orderNumber = task.subOrderNumber || task.orderNumber;
                   if (orderNumber) {
                     navigator.clipboard.writeText(orderNumber).then(() => {
-                      // 显示复制成功提示
-                      alert('订单号已复制到剪贴板');
+                      // 使用模态框显示复制成功提示，而不是alert
+                      setModalMessage('订单号已复制到剪贴板');
+                      setShowModal(true);
                     }).catch(err => {
                       console.error('复制失败:', err);
+                      // 使用模态框显示错误提示
+                      setModalMessage('复制失败，请手动复制');
+                      setShowModal(true);
                     });
                   }
                 }}

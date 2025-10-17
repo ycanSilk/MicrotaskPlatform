@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { ClockCircleOutlined, WarningOutlined, CloseCircleOutlined, BulbOutlined, CheckCircleOutlined, DollarOutlined, MailOutlined, ReloadOutlined } from '@ant-design/icons';
 import { CommenterAuthStorage } from '@/auth/commenter/auth';
 import AlertModal from '../../../components/ui/AlertModal';
@@ -9,6 +10,7 @@ export default function CommenterHallContentPage() {
   const [sortBy, setSortBy] = useState('time'); // 'time' | 'price'
   const [sortOrder, setSortOrder] = useState('desc'); // 'asc' | 'desc'
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const router = useRouter();
   // 任务接口定义
   interface Task {
     id: string;
@@ -190,13 +192,22 @@ export default function CommenterHallContentPage() {
       console.log('模拟抢单成功');
       
       // 模拟成功响应
-      showAlert('抢单成功', '您已成功抢到该任务，可以在我的任务中查看', 'success');
+      showAlert('抢单成功', '您已成功抢到该任务，即将跳转到任务页面', 'success');
       
-      // 设置10分钟冷却时间
-      const tenMinutesInMs = 10 * 60 * 1000;
-      const endTime = Date.now() + tenMinutesInMs;
+      // 设置5分钟冷却时间
+      const fiveMinutesInMs = 5 * 60 * 1000;
+      const endTime = Date.now() + fiveMinutesInMs;
       setCoolingDown(true);
       setCoolingEndTime(endTime);
+      
+      // 保存冷却状态到localStorage，以便在页面跳转后仍能保持冷却状态
+      localStorage.setItem('commenter_cooling_down', 'true');
+      localStorage.setItem('commenter_cooling_end_time', endTime.toString());
+      
+      // 抢单成功后延迟1秒跳转到任务页面
+      setTimeout(() => {
+        router.push('/commenter/tasks');
+      }, 1000);
       
       // 抢单成功后立即刷新列表
       await fetchAvailableTasks();
@@ -217,6 +228,28 @@ export default function CommenterHallContentPage() {
   useEffect(() => {
     // 初始加载订单
     fetchAvailableTasks();
+  }, []);
+  
+  // 初始化冷却时间检查
+  useEffect(() => {
+    // 检查localStorage中的冷却状态
+    const isCoolingDown = localStorage.getItem('commenter_cooling_down') === 'true';
+    const coolingEndTimeStr = localStorage.getItem('commenter_cooling_end_time');
+    
+    if (isCoolingDown && coolingEndTimeStr) {
+      const coolingEndTime = parseInt(coolingEndTimeStr, 10);
+      const now = Date.now();
+      
+      if (now < coolingEndTime) {
+        // 如果冷却时间还未结束，恢复冷却状态
+        setCoolingDown(true);
+        setCoolingEndTime(coolingEndTime);
+      } else {
+        // 如果冷却时间已结束，清除localStorage中的记录
+        localStorage.removeItem('commenter_cooling_down');
+        localStorage.removeItem('commenter_cooling_end_time');
+      }
+    }
   }, []);
   
   // 冷却时间倒计时逻辑
@@ -259,6 +292,17 @@ export default function CommenterHallContentPage() {
     };
   }, [coolingDown, coolingEndTime]);
   
+  // 冷却时间结束时的处理
+  useEffect(() => {
+    if (coolingDown && remainingTime.minutes === 0 && remainingTime.seconds === 0) {
+      setCoolingDown(false);
+      setCoolingEndTime(null);
+      // 清除localStorage中的冷却状态
+      localStorage.removeItem('commenter_cooling_down');
+      localStorage.removeItem('commenter_cooling_end_time');
+    }
+  }, [coolingDown, remainingTime]);
+  
   // 获取排序后的任务
   const sortedTasks = sortTasks(tasks, sortBy, sortOrder);
   
@@ -277,7 +321,7 @@ export default function CommenterHallContentPage() {
             </div>
           </div>
           <div className="mt-2 text-sm opacity-90">
-            为保证任务质量，每成功抢单后将有10分钟冷却时间
+            为保证任务质量，每成功抢单后将有5分钟冷却时间
           </div>
         </div>
       )}

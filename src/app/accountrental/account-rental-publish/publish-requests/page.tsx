@@ -14,11 +14,13 @@ const PublishForm = () => {
     accountRequirements: {
       canChangeName: false,
       canPostComments: false,
-      canPostVideos: false
+      canPostVideos: false,
+      canIntroduction: false
     },
     loginMethods: {
       qrCode: false,
-      phoneSms: false
+      phoneSms: false,
+      noLogin: false
     }
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -207,6 +209,15 @@ const PublishForm = () => {
               <label className="flex items-center">
                 <input
                   type="checkbox"
+                  checked={formData.accountRequirements.canIntroduction}
+                  onChange={() => handleCheckboxChange('accountRequirements', 'canIntroduction')}
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                />
+                <span className="ml-2 text-sm text-gray-700">修改账号简介</span>
+              </label>
+              <label className="flex items-center">
+                <input
+                  type="checkbox"
                   checked={formData.accountRequirements.canPostComments}
                   onChange={() => handleCheckboxChange('accountRequirements', 'canPostComments')}
                   className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
@@ -248,6 +259,15 @@ const PublishForm = () => {
                   className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                 />
                 <span className="ml-2 text-sm text-gray-700">手机号+短信验证登录</span>
+              </label>
+              <label className="flex items-center">
+                <input
+                  type="checkbox"
+                  checked={formData.loginMethods.noLogin}
+                  onChange={() => handleCheckboxChange('loginMethods', 'noLogin')}
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                />
+                <span className="ml-2 text-sm text-gray-700">不登录账号，按照承租方要求完成租赁</span>
               </label>
             </div>
           </div>

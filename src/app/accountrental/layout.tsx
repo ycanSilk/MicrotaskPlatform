@@ -79,7 +79,7 @@ const AccountRentalLayout = memo(({ children }: AccountRentalLayoutProps) => {
       <Header user={user} />
 
       {/* 主内容区域 */}
-      <main className="flex-1 p-4 overflow-y-auto">
+      <main className="flex-1 px-2 py-4 overflow-y-auto">
         {children}
       </main>
 

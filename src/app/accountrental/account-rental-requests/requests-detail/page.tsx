@@ -402,7 +402,7 @@ const RentalRequestDetailPage = () => {
           <div className="p-4 bg-red-50">
             <h4 className="text-red-700 font-medium mb-2">风险提示</h4>
             <p className="text-sm text-red-600">
-              出租账户期间账户可能被平台封禁风险，如有封禁，租户自行承担。租赁期间如被封禁，租户需按照要求进行验证解禁，并继续履约。
+              出租账户期间账户可能被平台封禁风险，租赁期间如被封禁，租户需按照抖音平台要求进行验证解封
               请确保您了解并同意平台的服务条款和风险提示后再进行租赁操作。
             </p>
           </div>

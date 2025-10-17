@@ -16,6 +16,14 @@ interface DouyinAccountRentalForm {
   // 商品信息
   price: number;
   rentalDuration: number;
+  
+  // 账号要求
+  accountRequirements: {
+    canChangeName: boolean;
+    canIntroduction: boolean;
+    canPostComments: boolean;
+    canPostVideos: boolean;
+  };
 
 }
 
@@ -32,7 +40,15 @@ export default function DouyinAccountRentalPage() {
     
     // 商品信息
     price: 50, // 默认价格改为50元/天
-    rentalDuration: 1 // 默认1天
+    rentalDuration: 1, // 默认1天
+    
+    // 账号要求
+    accountRequirements: {
+      canChangeName: false,
+      canIntroduction: false,
+      canPostComments: false,
+      canPostVideos: false,
+    }
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showAlertModal, setShowAlertModal] = useState(false);
@@ -97,6 +113,17 @@ export default function DouyinAccountRentalPage() {
         [field]: ''
       }));
     }
+  };
+  
+  // 处理复选框变化
+  const handleCheckboxChange = (group: string, field: string) => {
+    setFormData(prev => ({
+      ...prev,
+      [group]: {
+        ...prev[group as keyof DouyinAccountRentalForm] as Record<string, boolean>,
+        [field]: !(prev[group as keyof DouyinAccountRentalForm] as Record<string, boolean>)[field]
+      }
+    }));
   };
 
   // 处理输入框失焦事件 - 当用户离开输入框后，自动填充默认值
@@ -313,6 +340,49 @@ export default function DouyinAccountRentalPage() {
               </div>
               
 
+            </div>
+            
+            {/* 账号要求 */}
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2">账号要求</label>
+              <div className="space-y-2">
+                <label className="flex items-center">
+                  <input
+                    type="checkbox"
+                    checked={formData.accountRequirements.canChangeName}
+                    onChange={() => handleCheckboxChange('accountRequirements', 'canChangeName')}
+                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                  />
+                  <span className="ml-2 text-sm text-gray-700">修改抖音账号名称和头像</span>
+                </label>
+                <label className="flex items-center">
+                  <input
+                    type="checkbox"
+                    checked={formData.accountRequirements.canIntroduction}
+                    onChange={() => handleCheckboxChange('accountRequirements', 'canIntroduction')}
+                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                  />
+                  <span className="ml-2 text-sm text-gray-700">修改账号简介</span>
+                </label>
+                <label className="flex items-center">
+                  <input
+                    type="checkbox"
+                    checked={formData.accountRequirements.canPostComments}
+                    onChange={() => handleCheckboxChange('accountRequirements', 'canPostComments')}
+                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                  />
+                  <span className="ml-2 text-sm text-gray-700">支持发布评论</span>
+                </label>
+                <label className="flex items-center">
+                  <input
+                    type="checkbox"
+                    checked={formData.accountRequirements.canPostVideos}
+                    onChange={() => handleCheckboxChange('accountRequirements', 'canPostVideos')}
+                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                  />
+                  <span className="ml-2 text-sm text-gray-700">支持发布视频</span>
+                </label>
+              </div>
             </div>
           </div>
           
