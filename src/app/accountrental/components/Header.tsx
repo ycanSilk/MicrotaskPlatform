@@ -6,12 +6,15 @@ import SettingOutlined from '@ant-design/icons/SettingOutlined';
 import SearchBar from '@/components/button/SearchBar';
 import { CustomerServiceButton } from '../../../components/button/CustomerServiceButton';
 
+import { User } from '@/types';
+
 interface HeaderProps {
   // 可以添加需要的props
   customBackHandler?: () => void;
+  user?: User | null;
 }
 
-const Header: React.FC<HeaderProps> = ({ customBackHandler }) => {
+const Header: React.FC<HeaderProps> = ({ customBackHandler, user }) => {
   const router = useRouter();
 
   const handleDashboardClick = () => {
@@ -53,6 +56,15 @@ const Header: React.FC<HeaderProps> = ({ customBackHandler }) => {
       <div >
         <CustomerServiceButton className="font-bold text-white text-xl" />
       </div>
+
+      {/* 用户信息显示 */}
+      {user && (
+        <div className="ml-2 text-white flex items-center">
+          <div className="text-sm font-medium mr-2">
+            用户{user.id}
+          </div>
+        </div>
+      )}
 
       {/* 管理后台按钮 - 修改为符号样式 */}
       <button

@@ -31,4 +31,5 @@ export interface AccountRentalInfo {
   status: 'active' | 'inactive' | 'pending';
   images?: string[];
   publisherName?: string;
+  userId?: string; // 用户ID，用于标识账号的发布者
 }

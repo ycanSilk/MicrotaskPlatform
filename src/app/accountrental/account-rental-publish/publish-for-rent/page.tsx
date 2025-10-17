@@ -218,7 +218,7 @@ export default function DouyinAccountRentalPage() {
                 <div 
                   className={`rounded-lg p-3 border-2 transition-colors ${formData.accountImages.length >= 6 ? 'border-gray-200 bg-gray-50' : 'border-dashed border-gray-300 bg-white hover:border-blue-500'}`}
                   style={{
-                    minHeight: 350,
+                    minHeight: 230,
                     maxHeight: 'auto'
                   }}
                 >
@@ -298,7 +298,7 @@ export default function DouyinAccountRentalPage() {
               
               {/* 租赁时长 */}
               <div className="space-y-2">
-                <Label required>默认租赁时长 (天)</Label>
+                <Label required>出租时长 (天)</Label>
                 <input
                   type="number"
                   value={formData.rentalDuration || ''}

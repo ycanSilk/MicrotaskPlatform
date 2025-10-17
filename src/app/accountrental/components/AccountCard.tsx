@@ -95,9 +95,15 @@ const AccountCard: React.FC<AccountCardProps> = ({ account, onAccountClick }) =>
               </div>
             )}
           </div>
-          <div className="absolute top-3 left-3 bg-black bg-green-500 text-white px-2 py-1 rounded text-xs">
+          <div className="absolute top-3 left-3 bg-green-500 text-white px-2 py-1 rounded text-xs">
             {utils.getPlatformName(account.platform)}
           </div>
+          {/* 用户标记 - 如果是当前用户(ID=3)发布的账号，显示标记 */}
+          {account.userId === '3' && (
+            <div className="absolute top-3 right-3 bg-blue-600 text-white px-2 py-1 rounded text-xs font-medium">
+              我的账号
+            </div>
+          )}
         </div>
       </div>
 

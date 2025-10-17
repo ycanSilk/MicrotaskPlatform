@@ -126,23 +126,43 @@ export default function AccountRentalMarketPage({ searchParams }: { searchParams
     const fetchAccounts = async () => {
       try {
         setLoading(true);
-        // 模拟API请求延迟 - 减少延迟时间以提高用户体验
-        await new Promise(resolve => setTimeout(resolve, 200));
         
-        // 实际项目中，这里应该从API获取数据
-        // const response = await fetch('/api/account-rental/market', {
-        //   headers: {
-        //     'Content-Type': 'application/json',
-        //     'Authorization': `Bearer ${authToken}`
-        //   }
-        // });
-        // const result = await response.json();
-        // if (result.success) {
-        //   setAccounts(result.data);
-        // }
+        // 调用新创建的API获取数据
+        const response = await fetch(`/api/accountrental/market-lease-infos?status=ACTIVE&page=0&size=20&sort=createTime&direction=DESC`);
+        const result = await response.json();
         
-        // 暂时使用模拟数据
-        // 为了演示懒加载效果，复制数据以增加数量
+        if (result.success) {
+          // 为API返回的数据添加平台图标信息
+          const accountsWithIcons = result.data.map((account: AccountRentalInfo) => ({
+            ...account,
+            platformIcon: getPlatformIcon(account.platform)
+          }));
+          
+          setAccounts(accountsWithIcons);
+        } else {
+          console.error('获取账号租赁市场数据失败:', result.message);
+          // 如果API调用失败但有模拟数据，使用模拟数据
+          if (result.data && result.data.length > 0) {
+            const accountsWithIcons = result.data.map((account: AccountRentalInfo) => ({
+              ...account,
+              platformIcon: getPlatformIcon(account.platform)
+            }));
+            setAccounts(accountsWithIcons);
+          } else {
+            // 没有有效的API数据时，使用模拟数据作为后备方案
+            const expandedData = [...MOCK_ACCOUNT_DATA];
+            for (let i = 0; i < 5; i++) {
+              expandedData.push(...MOCK_ACCOUNT_DATA.map(item => ({
+                ...item,
+                id: `${item.id}-${i+1}`
+              })));
+            }
+            setAccounts(expandedData);
+          }
+        }
+      } catch (error) {
+        console.error('获取账号租赁市场数据失败:', error);
+        // API调用异常时，使用模拟数据作为后备方案
         const expandedData = [...MOCK_ACCOUNT_DATA];
         for (let i = 0; i < 5; i++) {
           expandedData.push(...MOCK_ACCOUNT_DATA.map(item => ({
@@ -151,8 +171,6 @@ export default function AccountRentalMarketPage({ searchParams }: { searchParams
           })));
         }
         setAccounts(expandedData);
-      } catch (error) {
-        console.error('获取账号租赁市场数据失败:', error);
       } finally {
         setLoading(false);
       }
