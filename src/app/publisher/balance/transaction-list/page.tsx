@@ -334,7 +334,7 @@ const TransactionListPage = () => {
             <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="all" className="text-sm">全部明细</TabsTrigger>
               <TabsTrigger value="recharge" className="text-sm">充值记录</TabsTrigger>
-              <TabsTrigger value="withdraw" className="text-sm">提现记录</TabsTrigger>
+              <TabsTrigger value="withdraw" className="text-sm">消费记录</TabsTrigger>
             </TabsList>
           </Tabs>
         </div>
@@ -373,8 +373,8 @@ const TransactionListPage = () => {
             // 空状态 - 提现记录
             <div className="py-12 px-4 text-center">
               <div className="text-5xl mb-3">💳</div>
-              <h3 className="text-lg font-medium text-gray-800 mb-1">暂无提现记录</h3>
-              <p className="text-gray-500 text-sm mb-4">您还没有提现过</p>
+              <h3 className="text-lg font-medium text-gray-800 mb-1">暂无支出记录</h3>
+              <p className="text-gray-500 text-sm mb-4">您还没有支出记录</p>
             </div>
           ) : (
             // 交易记录列表
@@ -403,7 +403,7 @@ const TransactionListPage = () => {
                         </div>
                         <div className="flex justify-between items-center">
                           <div className="text-xs text-gray-500">
-                            {getTransactionType(transaction.type)} · {formatDate(transaction.date)} {transaction.time}
+                            {formatDate(transaction.date)} {transaction.time}
                           </div>
                           <div className="text-xs text-gray-500">
                             余额: {transaction.balanceAfter.toFixed(2)}
@@ -436,11 +436,11 @@ const TransactionListPage = () => {
                         </div>
                         <div className="flex justify-between items-center">
                           <div className="text-xs text-gray-500">
-                            {record.paymentMethod} · {record.date}
+                            {record.date}
                           </div>
-                          <Badge className={`${statusInfo.color.replace('text-', 'bg-').replace('600', '100')} ${statusInfo.color}`}>
-                            {statusInfo.text}
-                          </Badge>
+                          <div className="text-xs text-gray-500">
+                            余额: 1298.00
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -464,16 +464,16 @@ const TransactionListPage = () => {
                        
                       <div className="flex-1">
                         <div className="flex justify-between items-start mb-1">
-                          <h3 className="font-medium text-gray-900">账户提现</h3>
+                          <h3 className="font-medium text-gray-900">账户支出</h3>
                           <span className="font-medium text-red-600">-{record.amount.toFixed(2)}</span>
                         </div>
                         <div className="flex justify-between items-center">
                           <div className="text-xs text-gray-500">
-                            {record.bankAccount} · {record.date}
+                            {record.date}
                           </div>
-                          <Badge className={`${statusInfo.color.replace('text-', 'bg-').replace('600', '100')} ${statusInfo.color}`}>
-                            {statusInfo.text}
-                          </Badge>
+                          <div className="text-xs text-gray-500">
+                            余额: 1298.00
+                          </div>
                         </div>
                       </div>
                     </div>

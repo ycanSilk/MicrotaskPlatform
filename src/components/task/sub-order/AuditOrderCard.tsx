@@ -221,12 +221,18 @@ const AuditOrderCard: React.FC<AuditOrderCardProps> = ({
       </div>
 
       {/* 按钮区域 */}
-        <div className="mt-4">
+        <div className="mt-4 flex gap-2">
           <button 
-            className="w-full py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-600 transition-colors"
-            onClick={handleViewDetails}
+            className="flex-1 py-2 bg-green-600 text-white rounded-md text-sm font-medium hover:bg-green-700 transition-colors"
+            onClick={handleApprove}
           >
-            查看详情
+            审核通过
+          </button>
+          <button 
+            className="flex-1 py-2 bg-red-600 text-white rounded-md text-sm font-medium hover:bg-red-700 transition-colors"
+            onClick={handleReject}
+          >
+            驳回订单
           </button>
         </div>
         

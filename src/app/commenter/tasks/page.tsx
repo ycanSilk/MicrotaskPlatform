@@ -6,9 +6,10 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import ProgressTasksTab from './components/ProgressTasksTab';
 import PendingReviewTasksTab from './components/PendingReviewTasksTab';
 import CompletedTasksTab from './components/CompletedTasksTab';
+import RejectedTasksTab from './components/RejectedTasksTab';
 
 // 定义任务状态类型
-type TaskStatus = 'sub_progress' | 'sub_completed' | 'sub_pending_review' | 'waiting_collect';
+type TaskStatus = 'sub_progress' | 'sub_completed' | 'sub_pending_review' | 'waiting_collect' | 'sub_rejected';
 
 // 定义任务接口
 interface Task {
@@ -111,6 +112,23 @@ export default function CommenterTasksPage() {
       submitdvideoUrl: 'https://www.douyin.com/root/search/%E8%B6%85%E5%93%A5%E8%B6%85%E8%BD%A6?aid=5a719aba-452c-49c8-b8bb-548b1e4bc313&modal_id=7561069119617994024&type=general',     //接待提交上传的视频评论连接
       submitScreenshotUrl: '/images/1758380776810_96.jpg',   //接单上传提交的截图
       requiringCommentUrl:'https://www.douyin.com/root/search/%E8%B6%85%E5%93%A5%E8%B6%85%E8%BD%A6?aid=5a719aba-452c-49c8-b8bb-548b1e4bc313&modal_id=7560656965447830784&type=general'  //派单的评论链接
+    },
+    {
+      id: 'static-task-4',
+      subOrderNumber: 'COM20240608004',
+      orderNumber: 'PUB20240608004',
+      title: '抖音短视频点赞评论任务',
+      unitPrice: 5.88,
+      status: 'sub_rejected',
+      statusText: '已驳回',
+      statusColor: 'bg-red-100 text-red-700',
+      requirements: '1. 点赞视频\n2. 发表积极正面的评论\n3. 评论需包含关键词：优质内容、太精彩了\n4. 评论字数不少于10个字\n5. 完成后上传截图',
+      publishTime: '2024-06-08 14:30:00',
+      submitTime: '2024-06-09 09:20:00',
+      taskType: 'comment_middle',
+      reviewNote: '评论内容不符合要求，未包含指定关键词「优质内容」和「太精彩了」。请重新提交符合要求的评论内容。',
+      submitScreenshotUrl: '/images/1758596791656_544.jpg',
+      requiringVideoUrl: 'https://www.douyin.com/root/search/%E8%B6%85%E5%93%A5%E8%B6%85%E8%BD%A6?aid=5a719aba-452c-49c8-b8bb-548b1e4bc313&modal_id=7561069119617994024&type=general'
     }
   ]);
   const [isLoading, setIsLoading] = useState(false);
@@ -259,6 +277,7 @@ export default function CommenterTasksPage() {
   const subPendingReviewTasks = getFilteredTasks('sub_pending_review');
   const subCompletedTasks = getFilteredTasks('sub_completed');
   const waitingCollectTasks = getFilteredTasks('waiting_collect');
+  const subRejectedTasks = getFilteredTasks('sub_rejected');
   
   const currentTasks = getFilteredTasks(activeTab);
   
@@ -781,6 +800,17 @@ export default function CommenterTasksPage() {
             <span className="text-xs">已完成</span>
           </div>
         </button>
+        <button 
+          onClick={() => handleTabChange('sub_rejected')}
+          className={getTabButtonStyle('sub_rejected')}
+        >
+          <div className="flex flex-col items-center">
+            <div className={activeTab === 'sub_rejected' ? 'text-lg font-bold text-white' : 'text-lg font-bold text-red-500'}>
+              {subRejectedTasks.length}
+            </div>
+            <span className="text-xs">异常订单</span>
+          </div>
+        </button>
       </div>
 
       {/* 错误提示 */}
@@ -830,7 +860,17 @@ export default function CommenterTasksPage() {
           <CompletedTasksTab 
             tasks={subCompletedTasks} 
             isLoading={isLoading} 
-            handleViewDetails={handleViewDetails} 
+            handleViewImage={handleViewImage} 
+            fetchUserTasks={fetchUserTasks} 
+            getTaskTypeName={getTaskTypeName}
+            setModalMessage={setModalMessage}
+            setShowModal={setShowModal}
+          />
+        )}
+        {activeTab === 'sub_rejected' && (
+          <RejectedTasksTab 
+            tasks={subRejectedTasks} 
+            isLoading={isLoading} 
             handleViewImage={handleViewImage} 
             fetchUserTasks={fetchUserTasks} 
             getTaskTypeName={getTaskTypeName}

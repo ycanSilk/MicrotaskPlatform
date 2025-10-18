@@ -124,27 +124,68 @@ export default function DataStatsPage() {
         </div>
       </div>
 
-      {/* 任务分类统计 */}
+      {/* 订单数据总览 */}
       <div className="mt-5 px-5">
         <div className="bg-white rounded-lg p-5 shadow-sm">
-          <h3 className="font-medium text-gray-700 mb-4">分类统计</h3>
-          <div className="space-y-3">
-            {categoryStats.map((item, index) => (
-              <div key={index} className="flex items-center justify-between py-2">
-                <div className="flex items-center space-x-3">
-                  <div className={`px-2 py-1 rounded-full text-xs ${item.color}`}>
-                    {item.category}
+          <h3 className="font-medium text-gray-700 mb-4">订单数据总览</h3>
+          <div className="space-y-4">
+            {/* 评论订单 */}
+            <div className="border border-gray-100 rounded-lg p-4">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center space-x-2">
+                  <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                    </svg>
                   </div>
-                  <div className="text-sm text-gray-600">{item.count}个任务</div>
+                  <div className="font-medium text-gray-800">评论订单</div>
                 </div>
-                <div className="text-right">
-                  <div className="font-medium text-gray-800">¥{item.spent}</div>
-                  <div className="text-xs text-gray-500">
-                    {((item.spent / currentStats.totalSpent) * 100).toFixed(1)}%
-                  </div>
+                <div className="text-sm text-gray-500">{dateRange === 'today' ? '今日' : dateRange === 'week' ? '本周' : '本月'}</div>
+              </div>
+              <div className="grid grid-cols-3 gap-3">
+                <div className="text-center p-2 bg-gray-50 rounded">
+                  <div className="text-xs text-gray-500 mb-1">订单总数</div>
+                  <div className="font-bold text-gray-800">{dateRange === 'today' ? 10 : dateRange === 'week' ? 38 : 156}</div>
+                </div>
+                <div className="text-center p-2 bg-gray-50 rounded">
+                  <div className="text-xs text-gray-500 mb-1">已完成</div>
+                  <div className="font-bold text-green-600">{dateRange === 'today' ? 7 : dateRange === 'week' ? 32 : 134}</div>
+                </div>
+                <div className="text-center p-2 bg-gray-50 rounded">
+                  <div className="text-xs text-gray-500 mb-1">总支出</div>
+                  <div className="font-bold text-orange-600">¥{dateRange === 'today' ? 128.5 : dateRange === 'week' ? 724.3 : 3125.8}</div>
                 </div>
               </div>
-            ))}
+            </div>
+            
+            {/* 租赁订单 */}
+            <div className="border border-gray-100 rounded-lg p-4">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center space-x-2">
+                  <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-green-600">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                    </svg>
+                  </div>
+                  <div className="font-medium text-gray-800">租赁订单</div>
+                </div>
+                <div className="text-sm text-gray-500">{dateRange === 'today' ? '今日' : dateRange === 'week' ? '本周' : '本月'}</div>
+              </div>
+              <div className="grid grid-cols-3 gap-3">
+                <div className="text-center p-2 bg-gray-50 rounded">
+                  <div className="text-xs text-gray-500 mb-1">订单总数</div>
+                  <div className="font-bold text-gray-800">{dateRange === 'today' ? 2 : dateRange === 'week' ? 7 : 33}</div>
+                </div>
+                <div className="text-center p-2 bg-gray-50 rounded">
+                  <div className="text-xs text-gray-500 mb-1">进行中</div>
+                  <div className="font-bold text-blue-600">{dateRange === 'today' ? 1 : dateRange === 'week' ? 3 : 12}</div>
+                </div>
+                <div className="text-center p-2 bg-gray-50 rounded">
+                  <div className="text-xs text-gray-500 mb-1">总支出</div>
+                  <div className="font-bold text-orange-600">¥{dateRange === 'today' ? 28.3 : dateRange === 'week' ? 168.2 : 721.4}</div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -154,7 +195,7 @@ export default function DataStatsPage() {
         <div className="bg-white rounded-lg p-5 shadow-sm">
           <h3 className="font-medium text-gray-700 mb-4">效果分析</h3>
           <div className="grid grid-cols-2 gap-3">
-            {effectStats.map((item, index) => (
+            {effectStats.slice(0, 2).map((item, index) => (
               <div key={index} className="border border-gray-100 rounded-lg p-3">
                 <div className="text-xs text-gray-500 mb-1.5">{item.metric}</div>
                 <div className="font-bold text-gray-800 mb-1.5">{item.value}</div>
@@ -167,32 +208,6 @@ export default function DataStatsPage() {
                 </div>
               </div>
             ))}
-          </div>
-        </div>
-      </div>
-
-      {/* 优化建议 */}
-      <div className="mt-5 px-5 mb-8">
-        <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-lg p-4">
-          <div className="flex items-start space-x-3">
-            <span className="text-yellow-500 text-xl mt-0.5">💡</span>
-            <div>
-              <h4 className="font-medium text-yellow-800 mb-1.5">优化建议</h4>
-              <div className="text-sm text-yellow-700 space-y-2">
-                <p className="flex items-start">
-                  <span className="mr-2">•</span>
-                  <span>美食类任务表现最佳，建议增加投入</span>
-                </p>
-                <p className="flex items-start">
-                  <span className="mr-2">•</span>
-                  <span>复购率有所下降，建议关注用户反馈</span>
-                </p>
-                <p className="flex items-start">
-                  <span className="mr-2">•</span>
-                  <span>可适当提高单价以吸引更多优质评论员</span>
-                </p>
-              </div>
-            </div>
           </div>
         </div>
       </div>

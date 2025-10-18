@@ -61,10 +61,8 @@ export default function CreateTask() {
     if (taskType.id === 'manual_comment') {
       // Manual Comment 跳转到 platformtype 页面
       router.push('/publisher/create/platformtype' as any);
-    } else if (taskType.id === 'account_rental') {
-      // Account Rental 跳转到 account-rental 页面
-      router.push('/accountrental/account-rental-publish' as any);
     }
+    // 移除账号租赁相关功能入口
   };
 
 

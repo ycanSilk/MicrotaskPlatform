@@ -285,34 +285,7 @@ export default function TaskCombinationAllPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
-      {/* 页面头部 */}
-      <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-4 py-6">
-        <div className="flex mb-4 items-center justify-center p-3 bg-white rounded-xl shadow-sm border border-gray-100 w-20 hover:shadow-md transition-all">
-          <button 
-            onClick={() => router.back()}
-            className="flex items-center justify-center w-full h-full text-purple-600 hover:text-purple-700 font-medium text-sm transition-colors"
-          >
-            ← 返回
-          </button>
-        </div>
-        <div className="flex items-center space-x-3 mb-4">
-          <h1 className="text-xl font-bold">发布{taskTitle}</h1>
-        </div>
-        
-        {/* 任务信息展示 */}
-        <div className="bg-white bg-opacity-10 rounded-2xl p-4">
-          <div className="flex items-center space-x-3 mb-3">
-            <div className="w-10 h-10 bg-white bg-opacity-20 rounded-xl flex items-center justify-center text-xl">
-              {taskIcon}
-            </div>
-            <div>
-              <h3 className="font-bold text-white">{taskTitle}</h3>
-              <p className="text-purple-100 text-sm">单价: ¥{taskPrice}</p>
-            </div>
-          </div>
-          <p className="text-purple-100 text-sm">{taskDescription}</p>
-        </div>
-      </div>
+
 
       <div className="px-4 py-6 space-y-6">
         {/* 任务套餐介绍 */}

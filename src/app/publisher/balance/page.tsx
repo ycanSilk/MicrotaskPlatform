@@ -269,16 +269,7 @@ const BalancePage = () => {
 
   // 处理充值
   const handleRecharge = () => {
-    console.log('充值');
-    // @ts-ignore
-    alert('即将跳转到充值页面');
-  };
-
-  // 处理提现
-  const handleWithdraw = () => {
-    console.log('提现');
-    // @ts-ignore
-    alert('即将跳转到提现页面');
+    router.push('/publisher/finance');
   };
 
   // 处理查看交易详情
@@ -291,7 +282,7 @@ const BalancePage = () => {
     router.push(`/publisher/balance/transaction-details/${rechargeId}`);
   };
 
-  // 处理查看提现详情
+  // 处理查看支出详情
   const handleViewWithdrawal = (withdrawalId: string) => {
     router.push(`/publisher/balance/transaction-details/${withdrawalId}`);
   };
@@ -307,43 +298,35 @@ const BalancePage = () => {
     <div className="min-h-screen bg-gray-50">
     
       {/* 余额卡片 */}
-      <div className="px-4 mt-3">
+      <div className="p-2 mt-3 relative">
         <Card className="bg-gradient-to-r from-blue-500 to-blue-600 text-white overflow-hidden relative">
           <div className="absolute right-0 top-0 w-32 h-32 bg-white opacity-10 rounded-full -mr-16 -mt-16" />
           <div className="absolute left-0 bottom-0 w-24 h-24 bg-white opacity-10 rounded-full -ml-12 -mb-12" />
-          
-          <div className="p-5 relative z-10">
-            <div className="flex justify-between items-start mb-4">
-              <h2 className="text-white text-opacity-80 font-medium">账户余额（元）</h2>
-              <Button 
-                onClick={handleViewAllTransactions}
-                className="bg-white bg-opacity-20 hover:bg-opacity-30 text-white text-xs px-3 py-1 rounded-full"
-              >
-                查看全部明细
-              </Button>
-            </div>
-            
-            <div className="flex items-baseline mb-5">
-              <span className="text-3xl font-bold">{balance.toFixed(2)}</span>
-              <span className="ml-2 text-sm text-white text-opacity-70">可用余额</span>
-            </div>
-            
-            {frozenBalance > 0 && (
-              <div className="text-sm text-white text-opacity-70 mb-6">
-                冻结余额: <span className="text-white">{frozenBalance.toFixed(2)}</span> 元
+          <div className="p-2 relative z-10 mt-5">
+            <div className="mb-10 grid grid-cols-2 gap-2">
+              <div className="text-center bg-green-500 rounded-lg p-2">
+                <div>可用余额:</div>
+                <div>{balance.toFixed(2)}</div>
               </div>
-            )}
+              <div className="text-center bg-green-500 rounded-lg p-2">
+                <div>冻结余额:</div>
+                <div>{frozenBalance.toFixed(2)}</div>
+              </div>
+            </div>
             
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-2">
               <Button 
                 onClick={handleRecharge}
-                className="bg-white text-blue-600 hover:bg-blue-50 font-medium"
+                className="bg-blue-700 text-white hover:bg-blue-600 font-medium"
               >
                 充值
               </Button>
-              <Button onClick={handleWithdraw} className="bg-green-500 text-white border border-white border-opacity-30 hover:bg-green-600 font-medium">
-                提现
-              </Button>
+              <Button 
+              onClick={handleViewAllTransactions}
+              className="bg-blue-700 text-white hover:bg-blue-600 font-medium"
+            >
+              全部明细
+            </Button>
             </div>
           </div>
         </Card>
@@ -356,7 +339,7 @@ const BalancePage = () => {
             <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="all" className="text-sm">全部明细</TabsTrigger>
               <TabsTrigger value="recharge" className="text-sm">充值记录</TabsTrigger>
-              <TabsTrigger value="withdraw" className="text-sm">提现记录</TabsTrigger>
+              <TabsTrigger value="withdraw" className="text-sm">消费记录</TabsTrigger>
             </TabsList>
           </Tabs>
         </div>
@@ -398,23 +381,17 @@ const BalancePage = () => {
               </Button>
             </div>
           ) : activeTab === 'withdraw' && withdrawalRecords.length === 0 ? (
-            // 空状态 - 提现记录
+            // 空状态 - 支出记录
             <div className="py-12 px-4 text-center">
               <div className="text-5xl mb-3">💳</div>
-              <h3 className="text-lg font-medium text-gray-800 mb-1">暂无提现记录</h3>
-              <p className="text-gray-500 text-sm mb-4">您还没有提现过</p>
-              <Button
-                onClick={handleWithdraw}
-                className="bg-blue-600 hover:bg-blue-700 text-white"
-              >
-                立即提现
-              </Button>
+              <h3 className="text-lg font-medium text-gray-800 mb-1">暂无支出记录</h3>
+              <p className="text-gray-500 text-sm mb-4">您还没有支出记录</p>
             </div>
           ) : (
             // 交易记录列表
             <div>
               {activeTab === 'all' && (
-                transactions.map((transaction) => {
+                transactions.slice(0, 10).map((transaction) => {
                   const iconInfo = getTransactionIcon(transaction.type);
                   const isIncome = transaction.amount > 0;
                   
@@ -437,7 +414,7 @@ const BalancePage = () => {
                         </div>
                         <div className="flex justify-between items-center">
                           <div className="text-xs text-gray-500">
-                            {getTransactionType(transaction.type)} · {formatDate(transaction.date)} {transaction.time}
+                            {formatDate(transaction.date)} {transaction.time}
                           </div>
                           <div className="text-xs text-gray-500">
                             余额: {transaction.balanceAfter.toFixed(2)}
@@ -450,7 +427,7 @@ const BalancePage = () => {
               )}
               
               {activeTab === 'recharge' && (
-                rechargeRecords.map((record) => {
+                rechargeRecords.slice(0, 10).map((record) => {
                   const statusInfo = getStatusInfo(record.status);
                   
                   return (
@@ -470,11 +447,11 @@ const BalancePage = () => {
                         </div>
                         <div className="flex justify-between items-center">
                           <div className="text-xs text-gray-500">
-                            {record.paymentMethod} · {record.date}
+                            {record.date}
                           </div>
-                          <Badge className={`${statusInfo.color.replace('text-', 'bg-').replace('600', '100')} ${statusInfo.color}`}>
-                            {statusInfo.text}
-                          </Badge>
+                          <div className="text-xs text-gray-500">
+                            余额: {balance.toFixed(2)}
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -483,7 +460,7 @@ const BalancePage = () => {
               )}
               
               {activeTab === 'withdraw' && (
-                withdrawalRecords.map((record) => {
+                withdrawalRecords.slice(0, 10).map((record) => {
                   const statusInfo = getStatusInfo(record.status);
                   
                   return (
@@ -498,16 +475,16 @@ const BalancePage = () => {
                       
                       <div className="flex-1">
                         <div className="flex justify-between items-start mb-1">
-                          <h3 className="font-medium text-gray-900">账户提现</h3>
+                          <h3 className="font-medium text-gray-900">账户支出</h3>
                           <span className="font-medium text-red-600">-{record.amount.toFixed(2)}</span>
                         </div>
                         <div className="flex justify-between items-center">
                           <div className="text-xs text-gray-500">
-                            {record.bankAccount} · {record.date}
+                            {record.date}
                           </div>
-                          <Badge className={`${statusInfo.color.replace('text-', 'bg-').replace('600', '100')} ${statusInfo.color}`}>
-                            {statusInfo.text}
-                          </Badge>
+                          <div className="text-xs text-gray-500">
+                            余额: {balance.toFixed(2)}
+                          </div>
                         </div>
                       </div>
                     </div>

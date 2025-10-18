@@ -21,16 +21,25 @@ export default function PublishTaskPage() {
   const taskDescription = getSearchParam('description').trim() || '任务描述';
   
   // 新的表单数据结构，包含评论和图片上传信息
+  // 添加默认信息填充以模拟补单操作
   const [formData, setFormData] = useState({
-    videoUrl: '',
-    quantity: 1, // 固定为1条上评评论
+    videoUrl: 'https://www.douyin.com/video/example', // 默认视频链接
+    quantity: 3, // 默认任务数量设为3
     comments: [
       {
-        content: '🔺上评评论，XXXXXXXXX',
+        content: '这款产品真的太好了，超出预期！质量做工都很棒，强烈推荐给大家！',
+        image: null as File | null
+      },
+      {
+        content: '绝对五星好评！使用体验非常棒，客服态度也很好，物流也很快，下次还会购买！',
+        image: null as File | null
+      },
+      {
+        content: '第一次购买就被惊艳到了，产品设计很人性化，功能也很实用，已经推荐给朋友们了！',
         image: null as File | null
       }
     ],
-    deadline: '24'
+    deadline: '48' // 默认截止时间设为48小时
   });
 
   const [isPublishing, setIsPublishing] = useState(false);
@@ -77,7 +86,7 @@ export default function PublishTaskPage() {
         const newComments = [...prevData.comments];
         for (let i = currentCommentCount; i < quantity; i++) {
           newComments.push({
-            content: `🔺上评评论 ${i + 1}，XXXXXXXXX`,
+            content: ``,
             image: null
           });
         }
@@ -389,36 +398,7 @@ export default function PublishTaskPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
-      {/* 页面头部 */}
-      <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-4 py-6">
-        <div className="flex mb-4 items-center justify-center p-3 bg-white rounded-xl shadow-sm border border-gray-100 w-20 hover:shadow-md transition-all">
-          <button 
-            onClick={() => router.back()}
-            className="flex items-center justify-center w-full h-full text-blue-500 hover:text-blue-600 font-medium text-sm transition-colors"
-          >
-            ← 返回
-          </button>
-        </div>
-        <div className="flex items-center space-x-3 mb-4">
-          <h1 className="text-xl font-bold">发布{taskTitle}</h1>
-        </div>
-        
-        {/* 任务信息展示 */}
-        <div className="bg-white bg-opacity-10 rounded-2xl p-4">
-          <div className="flex items-center space-x-3 mb-3">
-            <div className="w-10 h-10 bg-white bg-opacity-20 rounded-xl flex items-center justify-center text-xl">
-              {taskIcon}
-            </div>
-            <div>
-              <h3 className="font-bold text-white">{taskTitle}</h3>
-              <p className="text-blue-100 text-sm">单价: ¥{taskPrice}</p>
-            </div>
-          </div>
-          <p className="text-blue-100 text-sm">{taskDescription}</p>
-        </div>
-      </div>
-
-      <div className="px-4 py-3 space-y-4">
+       <div className="px-4 py-3 space-y-4">
         {/* 视频链接 */}
         <div className="bg-white rounded-2xl p-4 shadow-sm">
           <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -473,7 +453,7 @@ export default function PublishTaskPage() {
               <textarea
                 className="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
                 rows={3}
-                placeholder={`请输入上评评论内容 ${index + 1}`}
+                placeholder={`请输入上评评论内容`}
                 value={comment.content}
                 onChange={(e) => {
                   const newComments = [...formData.comments];

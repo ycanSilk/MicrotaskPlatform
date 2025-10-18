@@ -94,7 +94,8 @@ const MainOrderCard: React.FC<MainOrderCardProps> = ({
     if (onReorder) {
       onReorder(order.id);
     } else {
-      router.push(`/publisher/create?reorder=${order.id}`);
+      // 跳转到新的补单页面
+      router.push(`/publisher/create/supplementaryorder?reorder=true&orderId=${order.id}&title=${encodeURIComponent(order.title)}&description=${encodeURIComponent(order.description)}&type=${order.type}&budget=${order.budget.toString()}&subOrderCount=${order.subOrders.length}`);
     }
   };
 
@@ -186,6 +187,12 @@ const MainOrderCard: React.FC<MainOrderCardProps> = ({
           onClick={handleViewDetails}
         >
           查看详情
+        </button>
+        <button 
+          className="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-md transition-colors flex-1"
+          onClick={handleReorder}
+        >
+          补单
         </button>
       </div>
     </div>

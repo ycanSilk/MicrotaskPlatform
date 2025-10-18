@@ -59,7 +59,7 @@ export async function GET(request: Request) {
     const direction = url.searchParams.get('direction') || 'DESC';
     
     // 更新为新的外部API地址
-    const externalApiUrl = `http://localhost:8889/api/lease/market/lease-infos?page=${page}&size=${size}&sort=${sort}&direction=${direction}`;
+    const externalApiUrl = `http://14.29.178.235:8889/api/lease/market/lease-infos?status=ACTIVE&page=0&size=10&sort=createTime&direction=DESC`;
     
     console.log('请求外部API:', externalApiUrl);
     

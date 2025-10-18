@@ -1,48 +1,75 @@
 'use client';
 
 import { Button, Input, AlertModal } from '@/components/ui';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { PublisherAuthStorage } from '@/auth';
 
-export default function PublishTaskPage() {
+interface OrderData {
+  id?: string;
+  title?: string;
+  description?: string;
+  type?: string;
+  budget?: number;
+  subOrderCount?: number;
+}
+
+export default function SupplementaryOrderPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const [orderData, setOrderData] = useState<OrderData>({});
   
   // 从URL参数获取任务信息，确保searchParams不为null
   const getSearchParam = (key: string) => {
     return searchParams?.get(key) || '';
   };
   
-  const taskId = getSearchParam('taskId').trim();
-  const taskTitle = getSearchParam('title').trim() || '中评任务发布页';
-  const taskIcon = getSearchParam('icon').trim() || '📝';
-  const taskPrice = parseFloat(getSearchParam('price').trim() || '0');
-  const taskDescription = getSearchParam('description').trim() || '任务描述';
+  // 从URL参数获取订单信息
+  useEffect(() => {
+    if (!searchParams) return;
+    const reorder = getSearchParam('reorder');
+    if (reorder === 'true' || reorder === '') {
+      const orderId = getSearchParam('orderId');
+      const title = getSearchParam('title');
+      const description = getSearchParam('description');
+      const type = getSearchParam('type');
+      const budget = getSearchParam('budget');
+      const subOrderCount = getSearchParam('subOrderCount');
+
+      const data: OrderData = {};
+      if (orderId) data.id = orderId;
+      if (title) data.title = title;
+      if (description) data.description = description;
+      if (type) data.type = type;
+      if (budget) data.budget = parseFloat(budget);
+      if (subOrderCount) data.subOrderCount = parseInt(subOrderCount, 10);
+
+      setOrderData(data);
+    }
+  }, [searchParams]);
   
-  // @用户相关状态 - 只用于中评
+  // @用户相关状态
   const [mentionInput, setMentionInput] = useState('');
   const [mentions, setMentions] = useState<string[]>([]);
   
-  // 新的表单数据结构，分离中评和下评的数据
+  // 新的表单数据结构 - 所有内容都已默认填充
   const [formData, setFormData] = useState({
-    videoUrl: '',
+    // 预设视频链接，确保发布按钮可用
+    videoUrl: 'https://www.douyin.com/video/7355624132482887973',
     
-    // 中评评论模块 - 固定为1条
-    middleComment: {
-      content: '',
-      image: null as File | null
-    },
-    
-    // 下评评论模块 - 默认2条
-    bottomQuantity: 2,
-    bottomComments: [
+    // 评论模块 - 默认3条，已预设评论内容
+    commentQuantity: 3,
+    comments: [
       {
-        content: '',
+        content: '🔺这个产品真的很棒，使用后效果超出预期，强烈推荐给大家！',
         image: null as File | null
       },
       {
-        content: '',
+        content: '🔺性价比很高，质量也不错，物流速度快，服务态度好，下次还会购买。',
+        image: null as File | null
+      },
+      {
+        content: '🔺收到货后非常满意，和描述的一样好，朋友看到后也想要购买链接。',
         image: null as File | null
       }
     ],
@@ -79,16 +106,16 @@ export default function PublishTaskPage() {
     setShowAlertModal(true);
   };
 
-  // 处理下评任务数量变化，实现与评论输入框的联动
-  const handleBottomQuantityChange = (newQuantity: number) => {
+  // 处理评论数量变化，实现与评论输入框的联动
+  const handleCommentQuantityChange = (newQuantity: number) => {
     const quantity = Math.max(0, newQuantity); // 允许数量为0，实现完全移除
     setFormData(prevData => {
-      let newComments = [...prevData.bottomComments];
+      let newComments = [...prevData.comments];
       
       // 如果新数量大于现有评论数量，添加新评论
       while (newComments.length < quantity) {
         newComments.push({
-          content: `🔺下评评论${newComments.length + 1}，请输入评论内容`,
+          content: `🔺补单评论${newComments.length + 1}，请输入评论内容`,
           image: null
         });
       }
@@ -118,13 +145,13 @@ export default function PublishTaskPage() {
       
       return {
         ...prevData,
-        bottomQuantity: quantity,
-        bottomComments: newComments
+        commentQuantity: quantity,
+        comments: newComments
       };
     });
   };
   
-  // 处理添加@用户标记 - 只用于下评
+  // 处理添加@用户标记
   const handleAddMention = () => {
     const trimmedMention = mentionInput.trim();
     
@@ -146,12 +173,12 @@ export default function PublishTaskPage() {
       setMentions([trimmedMention]); // 只保留一个用户
       setMentionInput('');
       
-      // 将@标记插入到下评评论列表的最后一条
-      if (formData.bottomComments.length > 0) {
-        const lastIndex = formData.bottomComments.length - 1;
+      // 将@标记插入到评论列表的最后一条
+      if (formData.comments.length > 0) {
+        const lastIndex = formData.comments.length - 1;
         setFormData(prevData => ({
           ...prevData,
-          bottomComments: prevData.bottomComments.map((comment, index) => 
+          comments: prevData.comments.map((comment, index) => 
             index === lastIndex 
               ? { 
                   ...comment, 
@@ -168,46 +195,32 @@ export default function PublishTaskPage() {
     }
   };
   
-  // 移除@用户标记 - 只用于下评
+  // 移除@用户标记
   const removeMention = (mention: string) => {
     setMentions(mentions.filter(m => m !== mention));
     
-    // 从下评评论中移除该@标记
+    // 从评论中移除该@标记
     setFormData(prevData => ({
       ...prevData,
-      bottomComments: prevData.bottomComments.map(comment => ({
+      comments: prevData.comments.map(comment => ({
         ...comment,
         content: comment.content?.replace(` @${mention}`, '').replace(`@${mention}`, '') || comment.content
       }))
     }));
   };
 
-  // AI优化中评评论功能
-  const handleAIMiddleCommentOptimize = () => {
+  // AI优化评论功能
+  const handleAICommentOptimize = () => {
     // 模拟AI优化评论的逻辑
     // 实际项目中可能需要调用AI API
     setFormData(prevData => ({
       ...prevData,
-      middleComment: {
-        ...prevData.middleComment,
-        content: prevData.middleComment.content + ' [AI优化]'
-      }
-    }));
-    showAlert('优化成功', '中评评论内容已通过AI优化！', '✨');
-  };
-  
-  // AI优化下评评论功能
-  const handleAIBottomCommentsOptimize = () => {
-    // 模拟AI优化评论的逻辑
-    // 实际项目中可能需要调用AI API
-    setFormData(prevData => ({
-      ...prevData,
-      bottomComments: prevData.bottomComments.map(comment => ({
+      comments: prevData.comments.map(comment => ({
         ...comment,
         content: comment.content + ' [AI优化]'
       }))
     }));
-    showAlert('优化成功', '下评评论内容已通过AI优化！', '✨');
+    showAlert('优化成功', '评论内容已通过AI优化！', '✨');
   };
 
   // 图片压缩函数
@@ -272,8 +285,8 @@ export default function PublishTaskPage() {
     });
   };
 
-  // 处理中评评论图片上传
-  const handleMiddleCommentImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  // 处理评论图片上传
+  const handleCommentImageUpload = async (index: number, event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -284,54 +297,22 @@ export default function PublishTaskPage() {
       // 更新表单数据中的图片
       setFormData(prevData => ({
         ...prevData,
-        middleComment: { ...prevData.middleComment, image: compressedFile }
-      }));
-      
-      showAlert('上传成功', '中评图片已成功上传并压缩！', '✅');
-    } catch (error) {
-      showAlert('上传失败', '图片上传失败，请重试', '❌');
-    }
-  };
-
-  // 处理下评评论图片上传
-  const handleBottomCommentImageUpload = async (index: number, event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    try {
-      // 压缩图片
-      const compressedFile = await compressImage(file);
-      
-      // 更新表单数据中的图片
-      setFormData(prevData => ({
-        ...prevData,
-        bottomComments: prevData.bottomComments.map((comment, i) => 
+        comments: prevData.comments.map((comment, i) => 
           i === index ? { ...comment, image: compressedFile } : comment
         )
       }));
       
-      showAlert('上传成功', '下评图片已成功上传并压缩！', '✅');
+      showAlert('上传成功', '图片已成功上传并压缩！', '✅');
     } catch (error) {
       showAlert('上传失败', '图片上传失败，请重试', '❌');
     }
   };
 
-  // 移除中评评论图片
-  const removeMiddleCommentImage = () => {
+  // 移除已上传的图片
+  const removeCommentImage = (index: number) => {
     setFormData(prevData => ({
       ...prevData,
-      middleComment: {
-        ...prevData.middleComment,
-        image: null
-      }
-    }));
-  };
-
-  // 移除下评评论图片
-  const removeBottomCommentImage = (index: number) => {
-    setFormData(prevData => ({
-      ...prevData,
-      bottomComments: prevData.bottomComments.map((comment, i) => 
+      comments: prevData.comments.map((comment, i) => 
         i === index ? { ...comment, image: null } : comment
       )
     }));
@@ -339,25 +320,23 @@ export default function PublishTaskPage() {
 
   // 发布任务
   const handlePublish = async () => {
-    // 表单验证 - 完整验证逻辑
+    // 表单验证
     if (!formData.videoUrl) {
       showAlert('输入错误', '请输入视频链接', '⚠️');
       return;
     }
     
     // 验证任务数量
-    if (formData.bottomQuantity === undefined) {
+    if (formData.commentQuantity === undefined) {
       showAlert('输入错误', '请输入任务数量', '⚠️');
       return;
     }
-    
-    // 评论已调整为可选填项，不再强制验证
 
     // 显示加载状态
     setIsPublishing(true);
-    console.log('开始发布任务...');
+    console.log('开始发布补单...');
     console.log('表单数据:', formData);
-    console.log('任务ID:', taskId);
+    console.log('原订单信息:', orderData);
 
     try {
       // 使用PublisherAuthStorage获取认证token和用户信息
@@ -365,10 +344,10 @@ export default function PublishTaskPage() {
       const token = auth?.token;
       const userInfo = PublisherAuthStorage.getCurrentUser();
       
-      console.log('[任务发布] 认证信息:', { token: token ? '存在' : '不存在', userInfo });
+      console.log('[补单发布] 认证信息:', { token: token ? '存在' : '不存在', userInfo });
       
       if (!token || !userInfo) {
-        console.log('[任务发布] 认证失败: 用户未登录或会话已过期');
+        console.log('[补单发布] 认证失败: 用户未登录或会话已过期');
         showAlert('认证失败', '用户未登录，请重新登录', '❌');
         // 使用setTimeout延迟跳转，确保用户看到提示
         setTimeout(() => {
@@ -377,11 +356,15 @@ export default function PublishTaskPage() {
         return;
       }
 
-      // 计算总费用 - 基于评论任务类型：2元(1条中评) + 下评数量×2元
-      const totalCost = 2 + formData.bottomQuantity * 2;
+      // 计算总费用 - 基于补单任务数量
+      // 这里使用默认价格2元/条，可以根据需要从orderData中获取
+      const unitPrice = orderData.budget && orderData.subOrderCount 
+        ? orderData.budget / orderData.subOrderCount 
+        : 2;
+      const totalCost = unitPrice * formData.commentQuantity;
       
       // 余额校验 - 获取当前用户的可用余额
-      console.log('[任务发布] 开始余额校验，总费用:', totalCost);
+      console.log('[补单发布] 开始余额校验，总费用:', totalCost);
       const balanceResponse = await fetch('/api/publisher/finance', {
         method: 'GET',
         headers: {
@@ -392,21 +375,21 @@ export default function PublishTaskPage() {
       });
       
       const balanceData = await balanceResponse.json();
-      console.log('[任务发布] 余额校验结果:', balanceData);
+      console.log('[补单发布] 余额校验结果:', balanceData);
       
       if (!balanceData.success || !balanceData.data) {
-        console.log('[任务发布] 获取余额失败');
+        console.log('[补单发布] 获取余额失败');
         showAlert('系统错误', '获取账户余额失败，请稍后重试', '❌');
         return;
       }
       
       // 获取可用余额
       const availableBalance = balanceData.data.balance?.available || 0;
-      console.log('[任务发布] 当前可用余额:', availableBalance);
+      console.log('[补单发布] 当前可用余额:', availableBalance);
       
       // 比较余额和总费用
       if (availableBalance < totalCost) {
-        console.log('[任务发布] 余额不足，可用余额:', availableBalance, '总费用:', totalCost);
+        console.log('[补单发布] 余额不足，可用余额:', availableBalance, '总费用:', totalCost);
         showAlert(
           '余额不足', 
           `您的账户可用余额为 ¥${availableBalance.toFixed(2)}，完成此任务需要 ¥${totalCost.toFixed(2)}，请先充值再发布任务。`, 
@@ -415,17 +398,17 @@ export default function PublishTaskPage() {
         return;
       }
       
-      console.log('[任务发布] 余额充足，继续发布流程');
+      console.log('[补单发布] 余额充足，继续发布流程');
 
-      // 构建API请求体 - 合并中评和下评评论
-      const requirements = `【中评评论】\n${formData.middleComment.content}\n\n【下评评论】\n${formData.bottomComments.map(comment => comment.content).join('\n\n')}`;
+      // 构建API请求体
+      const requirements = `${formData.comments.map(comment => comment.content).join('\n\n')}`;
       const requestBody = {
-        taskId: taskId || '',
-        taskTitle,
-        taskPrice: taskPrice,
+        originalOrderId: orderData.id || '',
+        taskTitle: orderData.title || '补单任务',
+        taskPrice: unitPrice,
         requirements: requirements,
         videoUrl: formData.videoUrl,
-        quantity: formData.bottomQuantity,
+        quantity: formData.commentQuantity,
         deadline: formData.deadline,
         mentions: mentions,
         needImageComment: true // 由于我们总是允许图片上传，设为true
@@ -433,7 +416,7 @@ export default function PublishTaskPage() {
 
       console.log('API请求体:', requestBody);
       
-      // 调用API发布任务
+      // 调用API发布补单
       const response = await fetch('/api/publisher/comment-order', {
         method: 'POST',
         headers: {
@@ -452,7 +435,7 @@ export default function PublishTaskPage() {
         // 修改为用户点击确认后才跳转
         showAlert(
           '发布成功', 
-          `任务发布成功！订单号：${result.order?.orderNumber || ''}`, 
+          `补单发布成功！订单号：${result.order?.orderNumber || ''}`, 
           '✅',
           '确定',
           () => {
@@ -468,32 +451,35 @@ export default function PublishTaskPage() {
             router.push('/publisher/finance');
           });
         } else {
-          showAlert('发布失败', `任务发布失败: ${result.message || '未知错误'}`, '❌');
+          showAlert('发布失败', `补单发布失败: ${result.message || '未知错误'}`, '❌');
         }
       }
     } catch (error) {
-      console.error('发布任务时发生错误:', error);
-      showAlert('网络错误', '发布任务时发生错误，请稍后重试', '⚠️');
+      console.error('发布补单时发生错误:', error);
+      showAlert('网络错误', '发布补单时发生错误，请稍后重试', '⚠️');
     } finally {
       setIsPublishing(false);
     }
   };
 
-  // 价格计算：2元(1条中评) + 下评数量×2元
-  const totalCost = (2 + formData.bottomQuantity * 2).toFixed(2);
+  // 价格计算
+  const unitPrice = orderData.budget && orderData.subOrderCount 
+    ? orderData.budget / orderData.subOrderCount 
+    : 2;
+  const totalCost = (unitPrice * formData.commentQuantity).toFixed(2);
 
-  // 如果没有找到任务类型，返回错误页面
-  if (!taskId) {
+  // 如果没有找到原订单信息，返回错误页面
+  if (!orderData.id && getSearchParam('reorder') !== '') {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="text-2xl mb-2">❌</div>
-          <div className="text-lg font-medium text-gray-800 mb-2">任务信息不完整</div>
+          <div className="text-lg font-medium text-gray-800 mb-2">订单信息不完整</div>
           <Button 
-            onClick={() => router.push('/publisher/create')}
+            onClick={() => router.push('/publisher/dashboard')}
             className="bg-blue-500 text-white p-4 rounded-lg hover:bg-blue-600 transition-colors"
           >
-            返回选择任务
+            返回任务管理
           </Button>
         </div>
       </div>
@@ -502,20 +488,16 @@ export default function PublishTaskPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
-
-
       <div className="px-4 py-3 space-y-4">
         {/* 视频链接 */}
         <div className="bg-white rounded-2xl p-4 shadow-sm">
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            上评链接 <span className="text-red-500">*</span>
+            视频链接 <span className="text-red-500">*</span>
           </label>
           <Input
-            placeholder="请输入抖音视频上评链接"
+            placeholder="请输入抖音视频链接"
             value={formData.videoUrl}
-            onChange={(e) => {
-              setFormData({...formData, videoUrl: e.target.value});
-            }}
+            onChange={(e) => setFormData({...formData, videoUrl: e.target.value})}
             className="w-full"
           />
         </div>
@@ -536,164 +518,89 @@ export default function PublishTaskPage() {
           </select>
         </div>
 
-        {/* 中评评论模块 - 新增 */}
-          <div className="bg-white rounded-2xl p-4 shadow-sm">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              中评评论
-            </label>
-            
-            {/* 中评评论输入框 - 固定一条 */}
-            <div className="mb-1 py-2 border-b border-gray-900">
-              <textarea
+        {/* 评论模块 */}
+        <div className="bg-white rounded-2xl p-4 shadow-sm overflow-y-auto">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            补单评论
+          </label>
+          
+          {/* AI优化评论功能按钮 */}
+          <div className="mb-4">
+            <Button 
+              onClick={handleAICommentOptimize}
+              className="w-full py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
+            >
+              AI优化评论
+            </Button>
+          </div>
+          
+          {/* 动态生成评论输入框 */}
+          {formData.comments.map((comment, index) => {
+            return (
+              <div key={index} className="mb-1 py-2 border-b border-gray-900">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  补单评论{index + 1}
+                </label>
+                <textarea
                   className="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
                   rows={3}
-                  placeholder="默认最后一条评论带@功能"
-                  value={formData.middleComment.content}
+                  placeholder={`请输入评论内容`}
+                  value={comment.content}
                   onChange={(e) => {
-                    setFormData({...formData, middleComment: {...formData.middleComment, content: e.target.value}});
+                    const newComments = [...formData.comments];
+                    newComments[index] = {...newComments[index], content: e.target.value};
+                    setFormData({...formData, comments: newComments});
                   }}
                 />
-              
-              {/* 图片上传区域 */}
-              <div className="mt-1">
-                <div className="flex items-end space-x-3">
-                  <div 
-                    className={`w-20 h-20 border-2 border-dashed rounded-lg flex flex-col items-center justify-center cursor-pointer transition-all ${formData.middleComment.image ? 'border-green-500' : 'border-gray-300 hover:border-blue-500'}`}
-                    onClick={() => document.getElementById('middle-comment-image-upload')?.click()}
-                  >
-                    {formData.middleComment.image ? (
-                      <div className="relative w-full h-full">
-                        <img 
-                          src={URL.createObjectURL(formData.middleComment.image)} 
-                          alt="中评评论图片" 
-                          className="w-full h-full object-cover rounded"
-                        />
-                        <button 
-                          type="button"
-                          className="absolute top-1 right-1 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            removeMiddleCommentImage();
-                          }}
-                        >
-                          ✕
-                        </button>
-                      </div>
-                    ) : (
-                      <>
-                        <span className="text-xl">+</span>
-                        <span className="text-xs text-gray-500 mt-1">点击上传图片</span>
-                      </>
-                    )}
-                  </div>
-                  <div className="text-xs text-gray-500">
-                    支持JPG、PNG格式，最大200KB
-                  </div>
-                </div>
-                <input
-                  id="middle-comment-image-upload"
-                  type="file"
-                  accept="image/*"
-                  onChange={handleMiddleCommentImageUpload}
-                  className="hidden"
-                />
-              </div>
-            </div>
-            
-            {/* AI优化评论功能按钮 - 移动到评论容器下方 */}
-            <div className="mt-4">
-              <Button 
-                onClick={handleAIMiddleCommentOptimize}
-                className="w-full py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
-              >
-                AI优化评论
-              </Button>
-            </div>
-          </div>
-
-          {/* 下评评论模块 - 修改自原评论区域 */}
-          <div className="bg-white rounded-2xl p-4 shadow-sm overflow-y-auto h-[600px]">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              下评评论
-            </label>
-            
-            {/* 动态生成下评评论输入框 */}
-            {formData.bottomComments.map((comment, index) => {
-              return (
-                <div key={index} className="mb-1 py-2 border-b border-gray-900">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    下评评论{index + 1}
-                  </label>
-                  <textarea
-                    className="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-                    rows={3}
-                    placeholder={`请输入下评评论${index + 1}的内容`}
-                    value={comment.content}
-                    onChange={(e) => {
-                      const newComments = [...formData.bottomComments];
-                      newComments[index] = {...newComments[index], content: e.target.value};
-                      setFormData({...formData, bottomComments: newComments});
-                    }}
-                  />
-                  
-                  {/* 图片上传区域 */}
-                    <div className="mt-1">
-                      <div className="flex items-end space-x-3">
-                        <div 
-                            className={`w-20 h-20 border-2 border-dashed rounded-lg flex flex-col items-center justify-center cursor-pointer transition-all ${comment.image ? 'border-green-500' : 'border-gray-300 hover:border-blue-500'}`}
-                          onClick={() => document.getElementById(`bottom-image-upload-${index}`)?.click()}
-                        >
-                          {comment.image ? (
-                            <div className="relative w-full h-full">
-                              <img 
-                                src={URL.createObjectURL(comment.image)} 
-                                alt={`下评评论${index + 1}图片`} 
-                                className="w-full h-full object-cover rounded"
-                              />
-                              <button 
-                                type="button"
-                                className="absolute top-1 right-1 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  removeBottomCommentImage(index);
-                                }}
-                              >
-                                ✕
-                              </button>
-                            </div>
-                          ) : (
-                            <>
-                              <span className="text-xl">+</span>
-                              <span className="text-xs text-gray-500 mt-1">点击上传图片</span>
-                            </>
-                          )}
+                
+                {/* 图片上传区域 */}
+                <div className="mt-1">
+                  <div className="flex items-end space-x-3">
+                    <div 
+                      className={`w-20 h-20 border-2 border-dashed rounded-lg flex flex-col items-center justify-center cursor-pointer transition-all ${comment.image ? 'border-green-500' : 'border-gray-300 hover:border-blue-500'}`}
+                      onClick={() => document.getElementById(`comment-image-upload-${index}`)?.click()}
+                    >
+                      {comment.image ? (
+                        <div className="relative w-full h-full">
+                          <img 
+                            src={URL.createObjectURL(comment.image)} 
+                            alt={`补单评论${index + 1}图片`} 
+                            className="w-full h-full object-cover rounded"
+                          />
+                          <button 
+                            type="button"
+                            className="absolute top-1 right-1 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              removeCommentImage(index);
+                            }}
+                          >
+                            ✕
+                          </button>
                         </div>
-                        <div className="text-xs text-gray-500">
-                          支持JPG、PNG格式，最大200KB
-                        </div>
-                      </div>
-                      <input
-                        id={`bottom-image-upload-${index}`}
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => handleBottomCommentImageUpload(index, e)}
-                        className="hidden"
-                      />
+                      ) : (
+                        <>
+                          <span className="text-xl">+</span>
+                          <span className="text-xs text-gray-500 mt-1">点击上传图片</span>
+                        </>
+                      )}
                     </div>
+                    <div className="text-xs text-gray-500">
+                      支持JPG、PNG格式，最大200KB
+                    </div>
+                  </div>
+                  <input
+                    id={`comment-image-upload-${index}`}
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => handleCommentImageUpload(index, e)}
+                    className="hidden"
+                  />
                 </div>
-              );
-            })}
-            
-            {/* AI优化评论功能按钮 - 移动到评论容器下方 */}
-            <div className="mt-4">
-              <Button 
-                onClick={handleAIBottomCommentsOptimize}
-                className="w-full py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
-              >
-                AI优化评论
-              </Button>
-            </div>
-          </div>
+              </div>
+            );
+          })}
+        </div>
 
         {/* @用户标记 */}
         <div className="bg-white rounded-2xl p-4 shadow-sm">
@@ -735,55 +642,56 @@ export default function PublishTaskPage() {
           )}
         </div>
 
-        {/* 任务数量 - 移至评论区域下方 */}
-          <div className="bg-white rounded-2xl p-4 shadow-sm">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              下评任务数量 <span className="text-red-500">*</span>
-            </label>
-            <div className="flex items-center space-x-4">
-              <button 
-                onClick={() => handleBottomQuantityChange(Math.max(1, formData.bottomQuantity - 1))}
-                className="w-10 h-10 rounded-full bg-blue-100 hover:bg-blue-200 text-blue-600 flex items-center justify-center text-lg font-bold transition-colors"
-              >
-                -
-              </button>
-              <div className="flex-1">
-                <Input
-                  type="number"
-                  value={formData.bottomQuantity.toString()}
-                  onChange={(e) => handleBottomQuantityChange(parseInt(e.target.value) || 0)}
-                  className="w-full text-2xl font-bold text-gray-900 text-center py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-              <button 
-                onClick={() => handleBottomQuantityChange(formData.bottomQuantity + 1)}
-                className="w-10 h-10 rounded-full bg-blue-100 hover:bg-blue-200 text-blue-600 flex items-center justify-center text-lg font-bold transition-colors"
-              >
-                +
-              </button>
+        {/* 任务数量 */}
+        <div className="bg-white rounded-2xl p-4 shadow-sm">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            补单任务数量 <span className="text-red-500">*</span>
+          </label>
+          <div className="flex items-center space-x-4">
+            <button 
+              onClick={() => handleCommentQuantityChange(Math.max(1, formData.commentQuantity - 1))}
+              className="w-10 h-10 rounded-full bg-blue-100 hover:bg-blue-200 text-blue-600 flex items-center justify-center text-lg font-bold transition-colors"
+            >
+              -
+            </button>
+            <div className="flex-1">
+              <Input
+                type="number"
+                min="1"
+                value={formData.commentQuantity.toString()}
+                onChange={(e) => handleCommentQuantityChange(parseInt(e.target.value) || 1)}
+                className="w-full text-2xl font-bold text-gray-900 text-center py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
             </div>
-            <div className="mt-2 text-sm text-gray-500">
-              中评任务固定1条，下评任务单价为¥{taskPrice.toFixed(1)}
-            </div>
+            <button 
+              onClick={() => handleCommentQuantityChange(formData.commentQuantity + 1)}
+              className="w-10 h-10 rounded-full bg-blue-100 hover:bg-blue-200 text-blue-600 flex items-center justify-center text-lg font-bold transition-colors"
+            >
+              +
+            </button>
           </div>
+          <div className="mt-2 text-sm text-gray-500">
+            补单任务单价为¥{unitPrice.toFixed(1)}
+          </div>
+        </div>
 
         {/* 费用预览 */}
-        <div className="bg-white rounded-2xl p-4 shadow-sm">         
-              <div className="flex justify-between">
+        <div className="bg-white rounded-2xl p-4 shadow-sm">
+            <div className="flex justify-between">
                 <span className="font-medium text-gray-900">总计费用</span>
                 <span className="font-bold text-lg text-orange-500">¥{totalCost}</span>
-              </div>
+            </div>
         </div>
       </div>
 
-      {/* 底部固定发布按钮 - 增强表单提交控制 */}
+      {/* 底部固定发布按钮 */}
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t p-4 space-y-3">
         <Button 
             onClick={handlePublish}
-            disabled={!formData.videoUrl || formData.bottomQuantity === undefined}
+            disabled={!formData.videoUrl || formData.commentQuantity === undefined}
             className="w-full py-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-2xl font-bold text-lg disabled:opacity-50"
           >
-            立即发布任务 - ¥{totalCost}
+            立即发布补单 - ¥{totalCost}
           </Button>
         <Button 
           onClick={() => router.back()}

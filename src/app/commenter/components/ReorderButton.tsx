@@ -41,7 +41,7 @@ const ReorderButton: React.FC<ReorderButtonProps> = ({ order, taskId, className 
     }
     
     // 构建完整路径并使用as any绕过typedRoutes的严格类型检查
-    const path = `/publisher/create/?${queryParams.toString()}`;
+    const path = `/publisher/create/supplementaryorder/?${queryParams.toString()}`;
     router.push(path as any);
   };
 

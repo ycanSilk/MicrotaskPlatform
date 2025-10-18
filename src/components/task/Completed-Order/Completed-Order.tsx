@@ -88,13 +88,10 @@ const CompletedOrderCard: React.FC<CompletedOrderCardProps> = ({
     }
   };
 
-  // 处理补单
+  // 处理补单 - 跳转到补单页面并传递订单信息
   const handleReorder = () => {
-    if (onReorder) {
-      onReorder(order.id);
-    } else {
-      router.push(`/publisher/create?reorder=${order.id}`);
-    }
+    // 跳转到专门的补单页面，并传递订单信息
+    router.push(`/publisher/create/supplementaryorder?reorder=true&orderId=${order.id}&title=${encodeURIComponent(order.title)}&description=${encodeURIComponent(order.description)}&type=${order.type}&budget=${order.budget.toString()}&subOrderCount=${order.subOrders.length}`);
   };
 
   return (
@@ -115,7 +112,7 @@ const CompletedOrderCard: React.FC<CompletedOrderCardProps> = ({
           已完成
         </span>
         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
-          中下评评论
+          {order.title.includes('上评评论') ? '上评评论' : order.title.includes('中评评论') ? '中评评论' : '评论任务'}
         </span>
       </div>
       <div className="mb-2 text-sm text-black text-sm">
@@ -125,7 +122,7 @@ const CompletedOrderCard: React.FC<CompletedOrderCardProps> = ({
         截止时间：{new Date(new Date(order.createdAt).getTime() + 7 * 24 * 60 * 60 * 1000).toLocaleString('zh-CN')}
       </div>
       <div className="text-black text-sm mb-2 w-full rounded-lg">
-          要求：组合任务，中下评评论
+          要求：组合任务，{order.title.includes('上评评论') ? '上评评论' : order.title.includes('中评评论') ? '中评评论' : '评论任务'}
       </div>
 
       <div className="mb-2 bg-blue-50 border border-blue-500 py-2 px-3 rounded-lg">
@@ -182,12 +179,13 @@ const CompletedOrderCard: React.FC<CompletedOrderCardProps> = ({
       <div className="flex space-x-3">
         <button 
           className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition-colors flex-1"
+          onClick={handleViewDetails}
         >
           查看详情
         </button>
         <button 
           className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition-colors flex-1"
-          onClick={handleViewDetails}
+          onClick={handleReorder}
         >
           补单
         </button>

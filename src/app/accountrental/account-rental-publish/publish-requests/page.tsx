@@ -61,9 +61,8 @@ const PublishForm = () => {
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
     
-    if (!formData.phoneNumber.trim()) {
-      newErrors.phoneNumber = '请输入手机号';
-    } else if (!validatePhoneNumber(formData.phoneNumber)) {
+    // 手机号变为非必填，但如果填写了则需要验证格式
+    if (formData.phoneNumber.trim() && !validatePhoneNumber(formData.phoneNumber)) {
       newErrors.phoneNumber = '请输入有效的手机号';
     }
     
@@ -157,7 +156,7 @@ const PublishForm = () => {
           {/* 手机号 */}
           <div>
             <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-700 mb-1">
-              联系电话 <span className="text-red-500">*</span>
+              联系电话（选填）
             </label>
             <input
               type="tel"
@@ -167,7 +166,6 @@ const PublishForm = () => {
               onChange={handleInputChange}
               className={`w-full px-4 py-2 border ${errors.phoneNumber ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200`}
               placeholder="请输入手机号"
-              required
             />
             {errors.phoneNumber && (
               <p className="text-red-500 text-xs mt-1">{errors.phoneNumber}</p>

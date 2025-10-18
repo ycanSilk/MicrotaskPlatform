@@ -95,8 +95,43 @@ export default function PublisherDashboardPage() {
     totalPendingSubOrders: 0, // 待抢单的子订单数量
     averageOrderValue: 0 // 平均客单价
   });
+  
+  // 任务列表状态
   const [myTasks, setMyTasks] = useState<Task[]>([]);
-  const [pendingOrders, setPendingOrders] = useState<PendingOrder[]>([]);
+  
+  // 待审核订单状态
+  const [pendingOrders, setPendingOrders] = useState<PendingOrder[]>([
+    {
+      id: 'SUB1758353659512002',
+      orderNumber: 'SUB1758353659512002',
+      taskTitle: '使用提供的账号登录后，按照要求浏览指定内容并发表评论',
+      commenterName: '测试评论员1',
+      submitTime: new Date(Date.now() - 3600000).toISOString(),
+      content: '这个内容很有价值，学到了很多东西。希望以后能有更多这样的优质内容分享。',
+      images: ['/images/1758380776810_96.jpg'],
+      status: 'reviewing'
+    },
+    {
+      id: 'SUB1758353659512003',
+      orderNumber: 'SUB1758353659512003',
+      taskTitle: '视频内容评论任务，需要观看完整视频并给出真实评价',
+      commenterName: '测试评论员2',
+      submitTime: new Date(Date.now() - 7200000).toISOString(),
+      content: '视频制作非常精良，内容讲解清晰易懂，强烈推荐给大家观看。',
+      images: ['/images/1758384598887_578.jpg'],
+      status: 'reviewing'
+    },
+    {
+      id: 'SUB1758353659512004',
+      orderNumber: 'SUB1758353659512004',
+      taskTitle: '产品体验反馈任务',
+      commenterName: '测试评论员3',
+      submitTime: new Date(Date.now() - 10800000).toISOString(),
+      content: '产品界面设计很简洁，操作也很流畅，但是有些功能还不够完善，希望能继续优化。',
+      images: [],
+      status: 'reviewing'
+    }
+  ]);
   const [dispatchedTasks, setDispatchedTasks] = useState<DispatchedTask[]>([]);
   const [activeTasks, setActiveTasks] = useState<Task[]>([]); // 进行中的任务
   const [completedTasks, setCompletedTasks] = useState<Task[]>([]); // 已完成的任务
@@ -146,7 +181,8 @@ export default function PublisherDashboardPage() {
           
           setStats(result.data.stats);
           setMyTasks([...result.data.activeTasks, ...result.data.completedTasks]);
-          setPendingOrders(result.data.pendingOrders);
+          // 保留静态数据，不被API返回的数据覆盖
+          // setPendingOrders(result.data.pendingOrders);
           setDispatchedTasks(result.data.dispatchedTasks);
           
           // 设置进行中和已完成的任务
@@ -155,6 +191,7 @@ export default function PublisherDashboardPage() {
         }
       } catch (error) {
         // 静默处理错误，UI会显示加载状态
+        // 静态数据已经在useState初始化时设置，不需要在这里重复添加
       } finally {
         setLoading(false);
       }

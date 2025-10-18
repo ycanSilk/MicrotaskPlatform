@@ -17,11 +17,11 @@ import {
  * 封装了发布者页面的底部导航栏，包含订单、发布、统计、财务和我的五个导航项
  */
 export const PublisherBottomNavigation: React.FC = () => {
-  // 发布者导航项配置
+  // 发布者导航项配置 - 移除账号租赁相关内容
   const publisherNavigationItems: NavigationItem[] = [
     {
       icon: <FileOutlined />,
-      label: '订单总览',
+      label: '评论订单',
       path: '/publisher/dashboard'
     },
     {
@@ -30,14 +30,9 @@ export const PublisherBottomNavigation: React.FC = () => {
       path: '/publisher/create'
     },
     {
-      icon: <TeamOutlined />,
-      label: '账号租赁',
-      path: '/accountrental'
-    },
-    {
       icon: <WalletOutlined />,
-      label: '充值',
-      path: '/publisher/finance'
+      label: '租赁市场',
+      path: '/accountrental'
     },
     {
       icon: <UserOutlined />,

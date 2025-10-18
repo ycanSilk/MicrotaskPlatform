@@ -65,7 +65,7 @@
       "mention": "科技前沿账号",
       "status": "pending",
       "quantity": 2,
-      "completedQuantity": 0,
+      "completedQuantity": 2,
       "unitPrice": 50,
       "taskRequirements": "使用提供的账号登录后，按照要求浏览指定内容，每天至少在线2小时",
       "publishTime": "2025-09-19T07:34:19.512Z",
@@ -103,7 +103,7 @@
           "id": "sub1758353659512002",
           "orderNumber": "SUB1758353659512002",
           "parentId": "pub003_1758353659512",
-          "status": "sub_pending_review",
+          "status": "sub_completed",
           "commenterId": "",
           "commenterName": "",
           "commentContent": "",
@@ -171,7 +171,6 @@
           },
           "userId": "com004"
         }
-        
       ]
     }
   ]

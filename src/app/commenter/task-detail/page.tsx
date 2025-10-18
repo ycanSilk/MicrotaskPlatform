@@ -1,243 +1,65 @@
 'use client'
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { CommenterAuthStorage } from '@/auth/commenter/auth';
 import { BulbOutlined } from '@ant-design/icons';
 
-// 定义任务接口（API返回的数据结构）
-interface Task {
+// 定义任务详情接口
+interface TaskDetail {
   id: string;
-  parentId?: string;
   title: string;
   price: number;
   category: string;
-  status: 'sub_pending_review' | 'sub_progress' | 'sub_completed' | 'waiting_collect';
+  status: string;
   description: string;
   deadline?: string;
-  progress?: number;
-  submitTime?: string;
-  completedTime?: string;
   requirements: string;
   publishTime: string;
-  videoUrl?: string;
-  mention?: string;
-  taskType?: 'sub_task' | string;
-}
-
-// 定义增强后的任务详情接口（添加了显示需要的字段）
-interface TaskDetail extends Task {
+  taskType?: string;
+  recommendedComment?: string;
   commentContent?: string;
   screenshotUrl?: string;
   reviewNote?: string;
   orderNumber?: string;
   statusText?: string;
   statusColor?: string;
-  recommendedComment?: string;
+  submitTime?: string;
+  completedTime?: string;
 }
 
 export default function TaskDetailPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const taskId = (searchParams?.get('id') || '')?.trim();
+  // 直接使用静态数据，不再依赖任务ID参数
+  const [taskDetail] = useState<TaskDetail>({
+    id: 'static-task-demo',
+    title: '抖音短视频点赞评论任务',
+    price: 5.88,
+    category: '短视频评论',
+    status: 'sub_completed',
+    description: '这是一个抖音短视频点赞评论任务，请按照要求完成。',
+    deadline: '2024-07-30 23:59:59',
+    requirements: '1. 点赞视频\n2. 发表积极正面的评论\n3. 评论需包含关键词：优质内容、太精彩了\n4. 评论字数不少于10个字\n5. 完成后上传截图',
+    publishTime: '2024-07-25 10:30:00',
+    taskType: 'sub_task',
+    recommendedComment: '这个内容真的太棒了，优质内容！制作非常用心，太精彩了，支持一下！',
+    commentContent: '内容制作得很精美，支持创作者的优质内容，太精彩了！',
+    screenshotUrl: '/images/1758596791656_544.jpg',
+    orderNumber: 'ORDER20240725001',
+    statusText: '已完成',
+    statusColor: 'bg-green-100 text-green-600',
+    submitTime: '2024-07-26 15:20:00',
+    completedTime: '2024-07-27 10:00:00',
+    reviewNote: '任务完成得很好，评论符合要求，截图清晰可见。'
+  });
   
-  // 添加调试日志
-  console.log('调试信息 - 任务详情页面初始化:');
-  console.log('当前URL:', typeof window !== 'undefined' ? window.location.href : '服务器端渲染');
-  console.log('searchParams:', searchParams);
-  console.log('获取的taskId:', taskId, '类型:', typeof taskId);
-  
-  const [taskDetail, setTaskDetail] = useState<TaskDetail | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  
-  // 状态转换映射
-  const statusMap: Record<string, { text: string; color: string }> = {
-    'sub_pending_review': { text: '待审核', color: 'bg-yellow-100 text-yellow-600' },
-    'sub_progress': { text: '进行中', color: 'bg-blue-100 text-blue-600' },
-    'sub_completed': { text: '已完成', color: 'bg-green-100 text-green-600' },
-    'waiting_collect': { text: '待领取', color: 'bg-purple-100 text-purple-600' }
-  };
-
-  // 获取任务详情
-  const fetchTaskDetail = async () => {
-    console.log('===== 调试信息 - 开始获取任务详情 =====');
-    console.log('当前时间戳:', new Date().toISOString());
-    console.log('尝试获取的taskId:', taskId, '类型:', typeof taskId, '是否为空:', !taskId);
-    
-    if (!taskId) {
-      console.error('❌ 调试错误 - 任务ID为空');
-      setErrorMessage('任务ID不存在');
-      console.log('===== 调试信息 - 获取任务详情结束 =====');
-      return;
-    }
-    
-    try {
-      console.log('📋 调试信息 - 设置加载状态为true');
-      setIsLoading(true);
-      setErrorMessage(null);
-      
-      const token = localStorage.getItem('commenter_auth_token');
-      console.log('🔑 调试信息 - 认证token存在:', !!token, 'token长度:', token ? token.length : 0);
-      
-      if (!token) {
-        console.error('❌ 调试错误 - 未找到认证token');
-        setErrorMessage('请先登录');
-        setTimeout(() => router.push('/auth/login/commenterlogin'), 1000);
-        console.log('===== 调试信息 - 获取任务详情结束 =====');
-        return;
-      }
-      
-      console.log('🚀 调试信息 - 准备请求API，URL:', `/api/commenter/task-detail?id=${taskId}`);
-      console.log('📊 调试信息 - 请求头:', {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token.substring(0, 10)}...` // 只显示部分token，保护安全
-      });
-      
-      const startTime = performance.now();
-      const response = await fetch(`/api/commenter/task-detail?id=${taskId}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      const endTime = performance.now();
-      
-      console.log('✅ 调试信息 - API响应状态码:', response.status, '响应时间:', (endTime - startTime).toFixed(2), 'ms');
-      console.log('📝 调试信息 - 响应头:', {
-        'content-type': response.headers.get('content-type'),
-        'content-length': response.headers.get('content-length')
-      });
-      
-      const result = await response.json();
-      console.log('📦 调试信息 - API响应内容:', {
-        success: result.success,
-        hasData: !!result.data,
-        message: result.message,
-        dataKeys: result.data ? Object.keys(result.data) : []
-      });
-      
-      if (result.success && result.data) {
-        console.log('🎉 调试信息 - 获取任务详情成功，数据结构:');
-        console.log('  - ID:', result.data.id);
-        console.log('  - 状态:', result.data.status);
-        console.log('  - 任务类型:', result.data.taskType);
-        console.log('  - 评论员ID:', result.data.commenterId);
-        console.log('  - 有截图URL:', !!result.data.screenshotUrl);
-        
-        // 添加状态文本和颜色转换
-        const taskData = {
-          ...result.data,
-          statusText: statusMap[result.data.status]?.text || '未知状态',
-          statusColor: statusMap[result.data.status]?.color || 'bg-gray-100 text-gray-600'
-        };
-        
-        console.log('🔄 调试信息 - 转换后的数据:', {
-          statusText: taskData.statusText,
-          statusColor: taskData.statusColor
-        });
-        
-        setTaskDetail(taskData);
-      } else if (response.status === 401) {
-        console.error('❌ 调试错误 - 认证失败 (401)');
-        setErrorMessage('登录已过期，请重新登录');
-        localStorage.removeItem('commenter_auth_token');
-        localStorage.removeItem('commenter_user_info');
-        localStorage.removeItem('commenter_auth_expires');
-        setTimeout(() => router.push('/auth/login/commenterlogin'), 1500);
-      } else {
-        console.error('❌ 调试错误 - 获取任务详情失败:', {
-          status: response.status,
-          message: result.message || '未知错误'
-        });
-        setErrorMessage(result.message || '获取任务详情失败');
-      }
-    } catch (error) {
-      console.error('💥 调试错误 - 获取任务详情时发生异常:', {
-        type: error instanceof Error ? error.name : typeof error,
-        message: error instanceof Error ? error.message : String(error),
-        stack: error instanceof Error ? error.stack : undefined
-      });
-      setErrorMessage('网络错误，请稍后重试');
-    } finally {
-      console.log('🏁 调试信息 - 获取任务详情流程结束');
-      setIsLoading(false);
-    }
-  };
-  
-  // 组件加载时获取数据
-  useEffect(() => {
-    console.log('⚡ 调试信息 - 组件挂载或taskId变化，触发数据获取');
-    fetchTaskDetail();
-  }, [taskId]);
-  
-  // 返回任务列表 - 优化返回逻辑
+  // 返回任务列表
   const handleBack = () => {
-    // 优先使用浏览器的返回功能，如果没有历史记录再跳转到任务列表
     if (window.history.length > 1) {
       router.back();
     } else {
       router.push('/commenter/tasks');
     }
   };
-  
-  if (isLoading) {
-    console.log('⏳ 调试信息 - 渲染加载状态界面');
-    return (
-      <div className="py-10 px-4">
-        <div className="text-center py-12">
-          <div className="animate-spin inline-block w-8 h-8 border-4 border-blue-300 border-t-blue-500 rounded-full mb-4"></div>
-          <div className="text-gray-500">加载中...</div>
-        </div>
-      </div>
-    );
-  }
-  
-  if (errorMessage) {
-    console.log('🚨 调试信息 - 渲染错误状态界面:', errorMessage);
-    return (
-      <div className="py-10 px-4">
-        <div className="bg-red-50 text-red-600 p-4 rounded-lg mb-4">
-          {errorMessage}
-        </div>
-        <button 
-          className="bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition-colors"
-          onClick={handleBack}
-        >
-          返回任务列表
-        </button>
-      </div>
-    );
-  }
-  
-  if (!taskDetail) {
-    console.log('🔍 调试信息 - 任务详情数据为空');
-    return (
-      <div className="py-10 px-4">
-        <div className="text-center py-12">
-          <div className="text-gray-500">任务不存在</div>
-        </div>
-        <button 
-          className="bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition-colors mx-auto block"
-          onClick={handleBack}
-        >
-          返回任务列表
-        </button>
-      </div>
-    );
-  }
-  
-  // 渲染任务详情界面
-  console.log('📱 调试信息 - 渲染任务详情界面，数据完整');
-  console.log('📊 调试信息 - 任务详情数据概览:', {
-    taskId: taskDetail.id,
-    taskType: taskDetail.taskType,
-    status: taskDetail.status,
-    hasCommentContent: !!taskDetail.commentContent,
-    hasScreenshot: !!taskDetail.screenshotUrl,
-    hasReviewNote: !!taskDetail.reviewNote
-  });
   
   return (
     <div className="py-10 px-4 pb-20">

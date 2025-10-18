@@ -150,28 +150,7 @@ export default function VideoSendPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
-      {/* 页面头部 */}
-      <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-4 py-6">
-        <div className="flex mb-4 items-center justify-center p-3 bg-white rounded-xl shadow-sm border border-gray-100 w-20 hover:shadow-md transition-all">
-          <button 
-            onClick={handleBack}
-            className="flex items-center justify-center w-full h-full text-blue-500 hover:text-blue-600 font-medium text-sm transition-colors"
-          >
-            ← 返回
-          </button>
-        </div>
-        <div className="flex items-center space-x-3 mb-4">
-          <h1 className="text-xl font-bold">视频发送任务</h1>
-        </div>
-        
-        {/* 页面描述 */}
-        <div className="bg-white bg-opacity-10 rounded-2xl p-4">
-          <p className="text-blue-100 text-sm">
-            以下是您的视频发送任务列表，您可以查看任务详情并跟踪任务进度。
-            所有任务均已通过验证，无需额外操作。
-          </p>
-        </div>
-      </div>
+
 
       {/* 任务列表 */}
       <div className="px-4 py-6 space-y-4">

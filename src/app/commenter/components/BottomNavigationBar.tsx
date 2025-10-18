@@ -25,7 +25,7 @@ export default function BottomNavigationBar({}: BottomNavigationBarProps) {
           <span className={`text-lg w-6 h-6 flex items-center justify-center ${isActive('/tasks') ? 'text-blue-500' : 'text-gray-500'}`}>
             <FileTextOutlined />
           </span>
-          <span className={`text-xs ${isActive('/tasks') ? 'text-blue-500' : 'text-gray-500'}`}>订单</span>
+          <span className={`text-xs ${isActive('/tasks') ? 'text-blue-500' : 'text-gray-500'}`}>评论进行</span>
         </Link>
         <Link
           href="/accountrental/account-rental-market?from=commenter-hall"
@@ -43,7 +43,7 @@ export default function BottomNavigationBar({}: BottomNavigationBarProps) {
           <span className={`text-lg w-6 h-6 flex items-center justify-center ${isActive('/hall') ? 'text-blue-500' : 'text-gray-500'}`}>
             <HomeOutlined />
           </span>
-          <span className={`text-xs ${isActive('/hall') ? 'text-blue-500' : 'text-gray-500'}`}>抢单大厅</span>
+          <span className={`text-xs ${isActive('/hall') ? 'text-blue-500' : 'text-gray-500'}`}>评论抢单</span>
         </Link>
         <Link
           href="/commenter/invite"
@@ -52,7 +52,7 @@ export default function BottomNavigationBar({}: BottomNavigationBarProps) {
           <span className={`text-lg w-6 h-6 flex items-center justify-center ${isActive('/invite') ? 'text-blue-500' : 'text-gray-500'}`}>
             <UserAddOutlined />
           </span>
-          <span className={`text-xs ${isActive('/invite') ? 'text-blue-500' : 'text-gray-500'}`}>邀请</span>
+          <span className={`text-xs ${isActive('/invite') ? 'text-blue-500' : 'text-gray-500'}`}>邀请分佣</span>
         </Link>
         <Link
           href="/commenter/profile"

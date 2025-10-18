@@ -118,12 +118,6 @@ const ProgressTasksTab: React.FC<ProgressTasksTabProps> = ({
         >
           提交订单
         </button>
-        <button 
-          className="flex-1 bg-blue-600 text-white py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
-          onClick={() => handleViewDetails(task.id)}
-        >
-          查看详情
-        </button>
       </div>
     );
   }
@@ -191,8 +185,22 @@ const ProgressTasksTab: React.FC<ProgressTasksTabProps> = ({
             要求：{task.requirements || '无特殊要求'}
           </div>
           
-
-          
+          {/* 推荐评论区域 - 所有任务都显示 */}
+        <div className="mb-4 bg-blue-50 p-3 rounded-lg border border-blue-100">
+          <div className="flex justify-between items-center mb-1">
+            <h4 className="text-sm font-medium text-blue-700"><EditOutlined className="inline-block mr-1" /> 推荐评论</h4>
+            <button 
+              className="text-xs bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 transition-colors"
+              onClick={() => handleCopyComment(task.id, task.recommendedComment)}
+            >
+              <CopyOutlined className="inline-block mr-1" /> 复制评论
+            </button>
+          </div>
+          <p className="text-sm text-black bg-white p-3 rounded border border-blue-100 overflow-hidden text-ellipsis whitespace-normal max-h-[72px] line-clamp-3">
+            {task.recommendedComment || '暂无推荐评论内容，请根据任务要求自行撰写。'}
+          </p>
+        </div>
+     
           {/* 打开视频按钮 */}
           {task.requiringVideoUrl && (
             <div className="mb-4 border border-blue-200 rounded-lg p-3 bg-blue-50">
@@ -212,21 +220,7 @@ const ProgressTasksTab: React.FC<ProgressTasksTabProps> = ({
           
           
           
-          {/* 推荐评论区域 - 所有任务都显示 */}
-      <div className="mb-4 bg-blue-50 p-3 rounded-lg border border-blue-100">
-        <div className="flex justify-between items-center mb-1">
-          <h4 className="text-sm font-medium text-blue-700"><EditOutlined className="inline-block mr-1" /> 推荐评论</h4>
-          <button 
-            className="text-xs bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 transition-colors"
-            onClick={() => handleCopyComment(task.id, task.recommendedComment)}
-          >
-            <CopyOutlined className="inline-block mr-1" /> 复制评论
-          </button>
-        </div>
-        <p className="text-sm text-black bg-white p-3 rounded border border-blue-100 overflow-hidden text-ellipsis whitespace-normal max-h-[72px] line-clamp-3">
-          {task.recommendedComment || '暂无推荐评论内容，请根据任务要求自行撰写。'}
-        </p>
-      </div>
+      
 
       {/* 评论链接输入框 - 新增 */}
       <div className="mb-4 border border-blue-200 rounded-lg p-3 bg-blue-50">

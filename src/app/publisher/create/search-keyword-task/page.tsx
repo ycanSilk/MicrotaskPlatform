@@ -256,35 +256,7 @@ export default function PublishSearchKeywordTaskPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
-      {/* 页面头部 */}
-      <div className="bg-blue-500 text-white px-4 py-6">
-        <div className="flex mb-4 items-center justify-center p-3 bg-white rounded-xl shadow-sm border border-gray-100 w-20 hover:shadow-md transition-all">
-          <button 
-            onClick={() => router.back()}
-            className="flex items-center justify-center w-full h-full text-blue-500 hover:text-blue-600 font-medium text-sm transition-colors"
-          >
-            ← 返回
-          </button>
-        </div>
-        <div className="flex items-center space-x-3 mb-4">
-          <h1 className="text-xl font-bold">发布{taskTitle}</h1>
-        </div>
-        
-        {/* 任务信息展示 */}
-        <div className="bg-white bg-opacity-10 rounded-2xl p-4">
-          <div className="flex items-center space-x-3 mb-3">
-            <div className="w-10 h-10 bg-white bg-opacity-20 rounded-xl flex items-center justify-center text-xl">
-              {taskIcon}
-            </div>
-            <div>
-              <h3 className="font-bold text-white">{taskTitle}</h3>
-              <p className="text-blue-100 text-sm">单价: ¥{taskPrice}/100次搜索</p>
-            </div>
-          </div>
-          <p className="text-red-700 text-sm mt-2">*提示：该项功能为概率出放大镜，不退单，若用户未在规定时间内完成任务，系统将自动取消任务。</p>
-          <p className="text-red-700 text-sm mt-2">*提示：抖音平台规则原因，本产品属于概率出放大镜，搜索词搜索次数越多，出现概率越大。</p>
-        </div>
-      </div>
+
 
       <div className="px-4 py-3 space-y-4">
         {/* 视频链接 */}

@@ -36,7 +36,6 @@ export interface Task {
 
 interface CompletedTasksTabProps {
   tasks: Task[];
-  handleViewDetails: (taskId: string) => void;
   handleViewImage: (imageUrl: string) => void;
   getTaskTypeName: (taskType?: string) => string;
   isLoading: boolean;
@@ -47,7 +46,6 @@ interface CompletedTasksTabProps {
 
 const CompletedTasksTab: React.FC<CompletedTasksTabProps> = ({
   tasks,
-  handleViewDetails,
   handleViewImage,
   getTaskTypeName,
   isLoading,
@@ -184,7 +182,7 @@ const CompletedTasksTab: React.FC<CompletedTasksTabProps> = ({
           <div className="flex space-x-2">
             <button 
               className="flex-1 bg-blue-600 text-white py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
-              onClick={() => handleViewDetails(task.id)}
+              onClick={() => router.push(`/commenter/task-detail`)}
             >
               查看详情
             </button>

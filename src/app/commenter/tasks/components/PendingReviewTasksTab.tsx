@@ -170,15 +170,7 @@ const PendingReviewTasksTab: React.FC<PendingReviewTasksTabProps> = ({
             </p>
           </div>
           
-          {/* 查看详情按钮 */}
-          <div className="flex space-x-2">
-            <button 
-              className="flex-1 bg-blue-600 text-white py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
-              onClick={() => handleViewDetails(task.id)}
-            >
-              查看详情
-            </button>
-          </div>
+          {/* 移除查看详情按钮 */}
         </div>
       ))}
     </div>

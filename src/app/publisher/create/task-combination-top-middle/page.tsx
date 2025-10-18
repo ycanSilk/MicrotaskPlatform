@@ -30,7 +30,7 @@ export default function PublishTaskPage() {
     
     // 上评评论模块 - 固定为1条
     topComment: {
-      content: '🔺上评评论，XXXXXXXXX',
+      content: '',
       image: null as File | null
     },
     
@@ -38,15 +38,15 @@ export default function PublishTaskPage() {
     middleQuantity: 3,
     middleComments: [
       {
-        content: '🔺中评评论1，XXXXXXXXX',
+        content: '',
         image: null as File | null
       },
       {
-        content: '🔺中评评论2，xxxxxxxxx',
+        content: '',
         image: null as File | null
       },
       {
-        content: '🔺中评评论3，xxxxxxxx',
+        content: '',
         image: null as File | null
       }
     ],
@@ -503,34 +503,7 @@ export default function PublishTaskPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
-      {/* 页面头部 */}
-      <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-4 py-6">
-        <div className="flex mb-4 items-center justify-center p-3 bg-white rounded-xl shadow-sm border border-gray-100 w-20 hover:shadow-md transition-all">
-          <button 
-            onClick={() => router.back()}
-            className="flex items-center justify-center w-full h-full text-blue-500 hover:text-blue-600 font-medium text-sm transition-colors"
-          >
-            ← 返回
-          </button>
-        </div>
-        <div className="flex items-center space-x-3 mb-4">
-          <h1 className="text-xl font-bold">发布{taskTitle}</h1>
-        </div>
-        
-        {/* 任务信息展示 */}
-        <div className="bg-white bg-opacity-10 rounded-2xl p-4">
-          <div className="flex items-center space-x-3 mb-3">
-            <div className="w-10 h-10 bg-white bg-opacity-20 rounded-xl flex items-center justify-center text-xl">
-              {taskIcon}
-            </div>
-            <div>
-              <h3 className="font-bold text-white">{taskTitle}</h3>
-              <p className="text-blue-100 text-sm">单价: ¥{taskPrice}</p>
-            </div>
-          </div>
-          <p className="text-blue-100 text-sm">{taskDescription}</p>
-        </div>
-      </div>
+
 
       <div className="px-4 py-3 space-y-4">
         {/* 视频链接 */}
@@ -663,7 +636,7 @@ export default function PublishTaskPage() {
                   <textarea
                     className="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
                     rows={3}
-                    placeholder={`请输入中评评论${index + 1}的内容`}
+                    placeholder={`默认最后一条评论带@功能`}
                     value={comment.content}
                     onChange={(e) => {
                       const newComments = [...formData.middleComments];
