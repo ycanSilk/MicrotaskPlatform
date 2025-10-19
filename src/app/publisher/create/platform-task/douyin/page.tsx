@@ -9,7 +9,7 @@ const TASK_TYPES = [
   {
     id: 'comment_top',
     title: '上评评论',
-    price: 3.0,
+    price: 4.0,
     description: '真人账号发布高质量评论',
     requirements: '真人评论，评论内容真实有效。',
     estimatedTime: '5分钟',
@@ -27,7 +27,7 @@ const TASK_TYPES = [
   {
     id: 'task_combination_top_middle',
     title: '上中评评论',
-    price: 9.0,
+    price: 10.0,
     description: '组合评论 - 1条上评评论 + 3条中评评论（数量可自定义选择，支持@功能）',
     requirements: '真人评论，评论内容真实有效。上评完成后需提交链接作为结算条件。',
     estimatedTime: '10分钟',

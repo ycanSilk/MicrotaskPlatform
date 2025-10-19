@@ -17,25 +17,17 @@ export default function PublishTaskPage() {
   const taskId = getSearchParam('taskId').trim();
   const taskTitle = getSearchParam('title').trim() || '中评任务发布页';
   const taskIcon = getSearchParam('icon').trim() || '📝';
-  const taskPrice = parseFloat(getSearchParam('price').trim() || '0');
+  const taskPrice = parseFloat(getSearchParam('price').trim() || '4');
   const taskDescription = getSearchParam('description').trim() || '任务描述';
   
   // 新的表单数据结构，包含评论和图片上传信息
   // 添加默认信息填充以模拟补单操作
   const [formData, setFormData] = useState({
     videoUrl: 'https://www.douyin.com/video/example', // 默认视频链接
-    quantity: 3, // 默认任务数量设为3
+    quantity: 1, // 默认任务数量设为1
     comments: [
       {
         content: '这款产品真的太好了，超出预期！质量做工都很棒，强烈推荐给大家！',
-        image: null as File | null
-      },
-      {
-        content: '绝对五星好评！使用体验非常棒，客服态度也很好，物流也很快，下次还会购买！',
-        image: null as File | null
-      },
-      {
-        content: '第一次购买就被惊艳到了，产品设计很人性化，功能也很实用，已经推荐给朋友们了！',
         image: null as File | null
       }
     ],

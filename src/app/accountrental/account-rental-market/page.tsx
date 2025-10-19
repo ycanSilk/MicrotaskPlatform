@@ -14,10 +14,6 @@ import { AccountRentalInfo } from '../types';
 
 // 筛选选项常量集合
 const FILTER_OPTIONS = {
-  platform: [
-    { value: 'all', label: '平台' },
-    { value: 'douyin', label: '抖音' }
-  ],
   publishTime: [
     { value: 'all', label: '发布时间' },
     { value: '1d', label: '1天内' },
@@ -44,7 +40,6 @@ export default function AccountRentalMarketPage({ searchParams }: { searchParams
     }
   };
   
-  const [selectedPlatform, setSelectedPlatform] = useState('all');
   const [publishTime, setPublishTime] = useState('all');
   const [loading, setLoading] = useState(true);
   const [displayedAccounts, setDisplayedAccounts] = useState<AccountRentalInfo[]>([]);
@@ -53,66 +48,113 @@ export default function AccountRentalMarketPage({ searchParams }: { searchParams
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
 
-  // 初始化数据
+  // 静态账号租赁数据
   useEffect(() => {
-    const fetchAccounts = async () => {
-      try {
-        setLoading(true);
-        
-        // 调用后端API路由获取数据，使用合适的查询参数
-        const response = await fetch(`/api/accountrental/market-lease-infos?page=0&size=20&sort=createTime&direction=DESC`);
-        
-        // 检查响应状态
-        if (!response.ok) {
-          console.error(`获取账号租赁市场数据失败: HTTP ${response.status}`);
-          setAccounts([]);
-          return;
+    setLoading(true);
+    
+    // 模拟延迟
+    setTimeout(() => {
+      const mockAccounts: AccountRentalInfo[] = [
+        {
+          id: '1',
+          rentalDescription: '抖音美食账号出租，专注餐厅探店和美食测评，互动率高',
+          price: 800,
+          publishTime: '2024-06-20T10:30:00Z',
+          orderNumber: 'ORD202406201030001',
+          orderStatus: '待确认',
+          rentalDays: 30,
+          images: [
+            'images/0e92a4599d02a7.jpg'      
+          ]
+        },
+        {
+          id: '2',
+          rentalDescription: '美妆博主账号，擅长口红试色和妆容教程，粉丝多为年轻女性',
+          price: 600,
+          publishTime: '2024-06-19T15:20:00Z',
+          orderNumber: 'ORD202406191520002',
+          orderStatus: '已确认',
+          rentalDays: 15,
+          images: [
+            'images/0e92a4599d02a7.jpg'      
+          ]
+        },
+        {
+          id: '3',
+          rentalDescription: '旅游博主账号，高质量旅行攻略和目的地推荐，内容专业',
+          price: 2000,
+          publishTime: '2024-06-18T09:15:00Z',
+          orderNumber: 'ORD202406180915003',
+          orderStatus: '进行中',
+          rentalDays: 7,
+          images: [
+            'images/0e92a4599d02a7.jpg'      
+          ]
+        },
+        {
+          id: '4',
+          rentalDescription: '搞笑视频账号，轻松幽默的内容，深受年轻用户喜爱',
+          price: 1200,
+          publishTime: '2024-06-21T14:30:00Z',
+          orderNumber: 'ORD202406211430004',
+          orderStatus: '已完成',
+          rentalDays: 30,
+          images: [
+            'images/0e92a4599d02a7.jpg'      
+          ]
+        },
+        {
+          id: '5',
+          rentalDescription: '游戏主播账号，技术出众，解说专业，粉丝活跃度高',
+          price: 1500,
+          publishTime: '2024-06-20T11:20:00Z',
+          orderNumber: 'ORD202406201120005',
+          orderStatus: '待确认',
+          rentalDays: 10,
+          images: [
+            'images/0e92a4599d02a7.jpg'      
+          ]
+        },
+        {
+          id: '6',
+          rentalDescription: '生活方式账号，涵盖家居装饰、穿搭和健康饮食内容',
+          price: 700,
+          publishTime: '2024-06-22T08:45:00Z',
+          orderNumber: 'ORD202406220845006',
+          orderStatus: '已取消',
+          rentalDays: 20,
+          images: [
+            'images/0e92a4599d02a7.jpg'      
+          ]
+        },
+        {
+          id: '7',
+          rentalDescription: '数码测评账号，专业产品评测，客观公正，用户信任度高',
+          price: 1100,
+          publishTime: '2024-06-17T16:10:00Z',
+          orderNumber: 'ORD202406171610007',
+          orderStatus: '进行中',
+          rentalDays: 30,
+          images: [
+            'images/0e92a4599d02a7.jpg'      
+          ]
         }
-        
-        // 尝试解析JSON，处理可能的非JSON响应
-        let result;
-        try {
-          result = await response.json();
-        } catch (e) {
-          console.error('解析API响应失败，可能返回了非JSON数据:', e);
-          setAccounts([]);
-          return;
-        }
-        
-        if (result.success && result.data) {
-          // 直接设置API返回的数据
-          setAccounts(result.data);
-        } else {
-          console.error('获取账号租赁市场数据失败:', result.message || '未知错误');
-          // API调用失败，清空账号列表以显示空状态
-          setAccounts([]);
-        }
-      } catch (error) {
-        console.error('获取账号租赁市场数据失败:', error);
-        // API调用异常，清空账号列表以显示空状态
-        setAccounts([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchAccounts();
+      ];
+      
+      setAccounts(mockAccounts);
+      setLoading(false);
+    }, 500);
   }, []);
 
   // 处理筛选条件变化时重置分页
   useEffect(() => {
     setPage(1);
     setDisplayedAccounts([]);
-  }, [selectedPlatform, publishTime]);
+  }, [publishTime]);
 
   // 使用useMemo优化筛选和排序操作，避免不必要的重复计算
   const filteredAccounts = useMemo(() => {
     let result = [...accounts];
-
-    // 平台筛选
-    if (selectedPlatform !== 'all') {
-      result = result.filter(account => account.platform === selectedPlatform);
-    }
 
     // 发布时间筛选
     if (publishTime !== 'all') {
@@ -145,7 +187,7 @@ export default function AccountRentalMarketPage({ searchParams }: { searchParams
     });
 
     return result;
-  }, [accounts, selectedPlatform, publishTime]);
+  }, [accounts, publishTime]);
 
   // 当筛选结果变化时，重新设置显示的账号
   useEffect(() => {
@@ -196,6 +238,42 @@ export default function AccountRentalMarketPage({ searchParams }: { searchParams
 
   // 已删除搜索相关功能
 
+  // 根据订单状态返回对应的样式类名
+  const getOrderStatusClass = (status: string): string => {
+    switch (status) {
+      case '待确认':
+        return 'bg-yellow-100 text-yellow-800';
+      case '已确认':
+        return 'bg-green-100 text-green-800';
+      case '进行中':
+        return 'bg-blue-100 text-blue-800';
+      case '已完成':
+        return 'bg-purple-100 text-purple-800';
+      case '已取消':
+        return 'bg-gray-100 text-gray-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  // 格式化发布时间
+  const formatPublishTime = (timeString: string): string => {
+    const date = new Date(timeString);
+    const now = new Date();
+    const diffTime = Math.abs(now.getTime() - date.getTime());
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 0) {
+      return '今天';
+    } else if (diffDays === 1) {
+      return '昨天';
+    } else if (diffDays < 7) {
+      return `${diffDays}天前`;
+    } else {
+      return date.toLocaleDateString('zh-CN');
+    }
+  };
+
   // 处理账号卡片点击
   const handleAccountClick = (accountId: string) => {
     router.push(`/accountrental/account-rental-market/market-detail?id=${accountId}`);
@@ -236,8 +314,7 @@ export default function AccountRentalMarketPage({ searchParams }: { searchParams
                 {/* 筛选选项组件 - 优化移动端选择器 */}
                 {
                   [
-                    { value: publishTime, onChange: setPublishTime, options: FILTER_OPTIONS.publishTime },
-                    { value: selectedPlatform, onChange: setSelectedPlatform, options: FILTER_OPTIONS.platform }
+                    { value: publishTime, onChange: setPublishTime, options: FILTER_OPTIONS.publishTime }
                   ].map((filter, index) => (
                   <div key={index} className="relative flex-1">
                     <select
@@ -260,8 +337,7 @@ export default function AccountRentalMarketPage({ searchParams }: { searchParams
                       ))}
                     </select>
               
-                    {/* 分隔线 */}
-                    {index < 1 && <div className="absolute right-0 top-1/2 transform -translate-y-1/2 h-6 w-px bg-gray-200"></div>}
+                    {/* 移除分隔线，因为只有一个筛选器 */}
                   </div>
                 ))
                 }
@@ -286,7 +362,6 @@ export default function AccountRentalMarketPage({ searchParams }: { searchParams
                     <p className="text-gray-600 mb-4">尝试调整筛选条件或搜索关键词</p>
                     <Button 
                 onClick={() => {
-                  setSelectedPlatform('all');
                   setPublishTime('all');
                 }}
                 className="bg-blue-500 hover:bg-blue-600 text-white"
@@ -297,11 +372,27 @@ export default function AccountRentalMarketPage({ searchParams }: { searchParams
                 ) : (
                   <div className="space-y-4">
                     {displayedAccounts.map(account => (
-                      <AccountCard 
+                      <div 
                         key={account.id} 
-                        account={account} 
-                        onAccountClick={handleAccountClick} 
-                      />
+                        className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 hover:shadow-md transition-shadow cursor-pointer"
+                        onClick={() => handleAccountClick(account.id)}
+                      >
+                        <div className="flex justify-between items-start mb-3">
+                          <div className="text-sm font-medium text-gray-500">订单号: {account.orderNumber}</div>
+                          <div className={`text-sm px-2 py-1 rounded-full ${getOrderStatusClass(account.orderStatus)}`}>
+                            {account.orderStatus}
+                          </div>
+                        </div>
+                        <h3 className="font-medium text-gray-800 mb-2 line-clamp-2">{account.rentalDescription}</h3>
+                        <div className="flex justify-between items-center text-sm text-gray-600 mb-2">
+                          <div>发布时间: {formatPublishTime(account.publishTime)}</div>
+                          <div>出租天数: {account.rentalDays}天</div>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <div className="text-xl font-bold text-red-600">¥{account.price}</div>
+                          <Button className="bg-blue-500 hover:bg-blue-600 text-white">查看详情</Button>
+                        </div>
+                      </div>
                     ))}
 
                     {/* 加载更多指示器 */}

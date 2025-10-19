@@ -481,7 +481,7 @@ export default function PublishTaskPage() {
   };
 
   // 价格计算：3元(1条上评) + 中评数量×2元
-  const totalCost = (3 + formData.middleQuantity * 2).toFixed(2);
+  const totalCost = (4 + formData.middleQuantity * 2).toFixed(2);
 
   // 如果没有找到任务类型，返回错误页面
   if (!taskId) {

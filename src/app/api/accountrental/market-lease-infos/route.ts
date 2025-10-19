@@ -3,50 +3,22 @@ import { AccountRentalInfo } from '@/app/accountrental/types';
 
 // 转换外部API数据为前端需要的格式
   const transformLeaseInfoToAccountRentalInfo = (leaseInfo: any): AccountRentalInfo => {
-    // 根据用户提供的API数据结构进行转换
-    // 平台映射
-    const platformMap: Record<string, string> = {
-      '抖音': 'douyin',
-    };
-    
     // 价格处理 - 使用pricePerDay作为价格
     const price = leaseInfo.pricePerDay || 0;
     
-    // 创建基本对象，不包含platformIcon字段（由前端处理）
-    const baseObject: Partial<AccountRentalInfo> = {
+    // 创建基本对象，只包含新接口所需的字段
+    const baseObject: AccountRentalInfo = {
       id: String(leaseInfo.id) || `lease-${Date.now()}`,
-      platform: platformMap[leaseInfo.accountType] || 'douyin',
-      accountTitle: leaseInfo.title || '账号出租',
-      followersRange: '0-0', // API中没有提供粉丝数信息
-      engagementRate: '0%', // API中没有提供互动率信息
-      contentCategory: 'other', // API中没有提供内容分类信息
-      region: 'national', // API中没有提供地区信息
-      accountAge: '0', // API中没有提供账号年龄信息
-      accountScore: 0, // API中没有提供账号评分信息
+      rentalDescription: leaseInfo.description || '抖音账号出租',
       price: price,
-      rentalDuration: leaseInfo.minLeaseDays || 1,
-      minimumRentalHours: 24 * (leaseInfo.minLeaseDays || 1), // 转换为小时
-      deliveryTime: 60, // 默认值
-      maxConcurrentUsers: 1, // 默认值
-      responseTime: 30, // 默认值
-      availableCount: 1, // 默认值
       publishTime: leaseInfo.createTime || new Date().toISOString(),
-      // 添加可能需要的额外字段
-      orderPrice: price,
-      includedFeatures: [],
-      description: leaseInfo.description || '',
-      advantages: [],
-      restrictions: [],
-      isVerified: false,
-      rating: 0,
-      rentalCount: 0,
-      status: leaseInfo.status === 'ACTIVE' ? 'active' : 'inactive',
-      images: [],
-      publisherName: leaseInfo.username || '未知发布者'
+      orderNumber: `ORD${Date.now()}${Math.floor(Math.random() * 1000)}`,
+      orderStatus: '待确认',
+      rentalDays: leaseInfo.minLeaseDays || 30,
+      images: leaseInfo.images || []
     };
     
-    // 返回符合AccountRentalInfo类型的对象
-    return baseObject as AccountRentalInfo;
+    return baseObject;
   };
 
 export async function GET(request: Request) {
