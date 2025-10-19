@@ -182,16 +182,18 @@ const EarningsDetails: React.FC<EarningsDetailsProps> = ({
     monthlyEarnings: 320.50
   };
 
-  // 根据查看模式过滤收益记录
-  const filteredEarnings = earningsToDisplay.filter(earning => {
-    if (viewMode === 'all') return true;
-    if (viewMode === 'task') return earning.type !== 'commission';
-    if (viewMode === 'commission') {
-      return earning.type === 'commission' || 
-             (earning.commissionInfo && earning.commissionInfo.hasCommission);
-    }
-    return true;
-  });
+  // 根据查看模式过滤收益记录，并只保留最新的10条
+  const filteredEarnings = earningsToDisplay
+    .filter(earning => {
+      if (viewMode === 'all') return true;
+      if (viewMode === 'task') return earning.type !== 'commission';
+      if (viewMode === 'commission') {
+        return earning.type === 'commission' || 
+               (earning.commissionInfo && earning.commissionInfo.hasCommission);
+      }
+      return true;
+    })
+    .slice(0, 10); // 只显示最新的10条记录
 
   // 获取任务类型标签信息
   const getTaskTypeInfo = (type?: string) => {
@@ -215,16 +217,14 @@ const EarningsDetails: React.FC<EarningsDetailsProps> = ({
     return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
   };
 
-  const [selectedEarning, setSelectedEarning] = useState<EarningRecord | null>(null);
-  const [showEarningDetails, setShowEarningDetails] = useState(false);
-
-  // 显示收益详情模态框
+  // 跳转到收益详情页面
   const handleViewEarningDetails = (earningId: string) => {
-    const earning = earningsToDisplay.find(e => e.id === earningId);
-    if (earning) {
-      setSelectedEarning(earning);
-      setShowEarningDetails(true);
-    }
+    router.push(`/commenter/earnings/order-earnings/earnings-detail/${earningId}`);
+  };
+
+  // 跳转到全部收益页面
+  const handleViewAllEarnings = () => {
+    router.push(`/commenter/earnings/order-earnings`);
   };
 
 
@@ -260,7 +260,7 @@ const EarningsDetails: React.FC<EarningsDetailsProps> = ({
               className={`py-2 px-3 rounded-md text-sm font-medium transition-colors ${viewMode === 'all' ? 'bg-blue-500 text-white' : 'bg-white border border-gray-300 text-gray-600 hover:bg-blue-50'}`}
               onClick={() => setViewMode('all')}
             >
-              全部收益
+              所有收益
             </button>
             <button
               className={`py-2 px-3 rounded-md text-sm font-medium transition-colors ${viewMode === 'task' ? 'bg-blue-500 text-white' : 'bg-white border border-gray-300 text-gray-600 hover:bg-blue-50'}`}
@@ -292,6 +292,15 @@ const EarningsDetails: React.FC<EarningsDetailsProps> = ({
 
       {/* 收益记录列表 */}
       <div className="bg-white rounded-lg shadow-sm">
+        {/* 查看全部收益按钮 */}
+        <div className="p-4 flex justify-end border-b">
+          <button
+            onClick={handleViewAllEarnings}
+            className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded transition-colors"
+          >
+            查看全部收益
+          </button>
+        </div>
         <div className="divide-y">
           {filteredEarnings.length > 0 ? (
             filteredEarnings.map((earning) => {
@@ -335,82 +344,11 @@ const EarningsDetails: React.FC<EarningsDetailsProps> = ({
             </div>
           )}
           
-          {/* 显示提现手续费记录 - 仅在全部收益视图中显示 */}
-          {viewMode === 'all' && withdrawalsToDisplay.filter(w => w.status === 'approved' && w.fee > 0).length > 0 && (
-            <div className="p-4 bg-gray-50">
-              <h4 className="font-medium text-gray-600 mb-2">提现手续费</h4>
-              {withdrawalsToDisplay
-                .filter(w => w.status === 'approved' && w.fee > 0)
-                .map((withdrawal) => {
-                  const date = formatDateTime(withdrawal.requestedAt);
-                  
-                  return (
-                    <div key={`fee-${withdrawal.id}`} className="p-2 flex justify-between items-center text-sm">
-                      <div className="text-gray-600">提现手续费 ({date})</div>
-                      <div className="text-red-500">-¥{withdrawal.fee.toFixed(2)}</div>
-                    </div>
-                  );
-                })
-              }
-            </div>
-          )}
+          {/* 提现手续费记录已移除 */}
         </div>
       </div>
 
-      {/* 收益详情模态框 */}
-      {showEarningDetails && selectedEarning && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-            <div className="mb-4">
-              <h3 className="font-bold text-gray-800 mb-4">收益详情</h3>
-              <div className="space-y-3">
-                <div className="flex justify-between">
-                  <span className="text-gray-500">任务名称</span>
-                  <span className="font-medium">{selectedEarning.taskName}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">收益金额</span>
-                  <span className="font-medium text-green-600">+¥{selectedEarning.amount.toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">任务类型</span>
-                  <span className={`px-2 py-0.5 rounded-full text-xs ${getTaskTypeInfo(selectedEarning.type).color}`}>
-                    {getTaskTypeInfo(selectedEarning.type).label}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">完成时间</span>
-                  <span className="font-medium">{formatDateTime(selectedEarning.createdAt)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">状态</span>
-                  <span className={`font-medium ${selectedEarning.status === 'completed' ? 'text-green-600' : 'text-yellow-600'}`}>
-                    {selectedEarning.status === 'completed' ? '已完成' : '处理中'}
-                  </span>
-                </div>
-                {selectedEarning.commissionInfo && selectedEarning.commissionInfo.hasCommission && (
-                  <div className="flex justify-between">
-                    <span className="text-gray-500">佣金信息</span>
-                    <span className="font-medium">含{selectedEarning.commissionInfo.commissionRate * 100}%佣金</span>
-                  </div>
-                )}
-                <div>
-                  <span className="text-gray-500 block mb-1">说明</span>
-                  <span className="font-medium block">{selectedEarning.description}</span>
-                </div>
-              </div>
-            </div>
-            <div className="flex justify-center">
-              <button
-                onClick={() => setShowEarningDetails(false)}
-                className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-md transition-colors"
-              >
-                关闭
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* 收益详情模态框已移除，改为跳转页面 */}
     </div>
   );
 };

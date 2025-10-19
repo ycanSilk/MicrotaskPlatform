@@ -23,7 +23,16 @@ interface DouyinAccountRentalForm {
     canIntroduction: boolean;
     canPostComments: boolean;
     canPostVideos: boolean;
+    canUnbanAccount: boolean;
   };
+  
+  // 登录方式 (多选)
+  loginMethods: string[]; // ['scan', 'phone_sms', 'no_login'] 支持多选
+  
+  // 联系方式
+  phone: string;
+  qq?: string;
+  email?: string;
 
 }
 
@@ -48,7 +57,16 @@ export default function DouyinAccountRentalPage() {
       canIntroduction: false,
       canPostComments: false,
       canPostVideos: false,
-    }
+      canUnbanAccount: false,
+    },
+    
+    // 登录方式
+    loginMethods: ['scan'], // 默认选择扫码登录
+    
+    // 联系方式
+    phone: '',
+    qq: '',
+    email: ''
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showAlertModal, setShowAlertModal] = useState(false);
@@ -92,6 +110,28 @@ export default function DouyinAccountRentalPage() {
       newErrors.rentalDuration = '租赁时长必须大于0';
     }
     
+    // 登录方式验证
+    if (formData.loginMethods.length === 0) {
+      newErrors.loginMethods = '请至少选择一种登录方式';
+    }
+    
+    // 联系方式验证
+    if (!formData.phone.trim()) {
+      newErrors.phone = '请输入手机号';
+    } else if (!/^1[3-9]\d{9}$/.test(formData.phone.trim())) {
+      newErrors.phone = '请输入有效的手机号';
+    }
+    
+    // QQ号验证（如果填写）
+    if (formData.qq && !/^[1-9]\d{4,10}$/.test(formData.qq.trim())) {
+      newErrors.qq = '请输入有效的QQ号';
+    }
+    
+    // 邮箱验证（如果填写）
+    if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) {
+      newErrors.email = '请输入有效的邮箱地址';
+    }
+    
 
     
     setErrors(newErrors);
@@ -113,6 +153,28 @@ export default function DouyinAccountRentalPage() {
         [field]: ''
       }));
     }
+  };
+  
+  // 处理登录方式多选框变化
+  const handleLoginMethodChange = (value: string) => {
+    setFormData(prev => {
+      const currentMethods = [...prev.loginMethods];
+      const index = currentMethods.indexOf(value);
+      
+      if (index === -1) {
+        // 添加选中的值
+        return {
+          ...prev,
+          loginMethods: [...currentMethods, value]
+        };
+      } else {
+        // 移除未选中的值
+        return {
+          ...prev,
+          loginMethods: currentMethods.filter(item => item !== value)
+        };
+      }
+    });
   };
   
   // 处理复选框变化
@@ -203,28 +265,23 @@ export default function DouyinAccountRentalPage() {
     };
 
     return (
-      <div className="min-h-screen bg-gray-50 pb-20">
-      <div className="px-4 py-6">
-        <div className="bg-blue-50 rounded-xl p-4">
-          <div className="flex items-start space-x-3">
-            <CheckCircleOutlined className="text-xl text-blue-600 mt-0.5" />
-            <div>
-              <h3 className="font-medium text-blue-900 mb-1">抖音账号租赁信息发布</h3>
-              <p className="text-blue-700 text-sm">填写抖音账号租赁的详细信息，完成发布。请确保信息真实有效，以便更快地匹配需求。</p>
-            </div>
-          </div>
+      <div className="min-h-screen bg-gray-50">
+      <div className="px-4 py-2">
+        <div className="bg-blue-50 border border-blue-200 p-2">
+              <div className="text-blue-700 text-sm mb-1">填写抖音账号租赁的详细信息，保信息真实有效，账号无异常,及时响应</div>
+              <div className="text-red-700 text-sm mb-1">风险提醒:涉及抖音平台规则，账号可能被平台封控，需要协助进行账号解封。</div>
         </div>
       </div>
 
       {/* 表单区域 */}
-      <div className="px-4 py-6">
+      <div className="px-4 py-2">
         {/* 表单内容 */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden p-5">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden py-5 px-3">
           {/* 基础信息 */}
-          <div className="space-y-6 mb-5">  
-            <div className="space-y-4">
+          <div className="space-y-1 mb-2">  
+            <div className="space-y-1">
               {/* 账号标题 - 修改为多行文本框 */}
-              <div className="space-y-2">
+              <div className="space-y-1">
                 <Label htmlFor="accountTitle" required>账号信息</Label>
                 <Textarea
                   id="accountTitle"
@@ -240,7 +297,7 @@ export default function DouyinAccountRentalPage() {
               </div>
               
               {/* 账号截图 - 修改为支持多张图片 */}
-              <div className="space-y-2">
+              <div className="space-y-1">
                 <Label required>上传账号截图</Label>
                 <div 
                   className={`rounded-lg p-3 border-2 transition-colors ${formData.accountImages.length >= 6 ? 'border-gray-200 bg-gray-50' : 'border-dashed border-gray-300 bg-white hover:border-blue-500'}`}
@@ -304,9 +361,9 @@ export default function DouyinAccountRentalPage() {
           
           {/* 商品信息 */}
           <div className="space-y-6 mb-10">
-            <div className="space-y-4">
+            <div className="space-y-1">
               {/* 价格 */}
-              <div className="space-y-2">
+              <div className="space-y-1">
                 <Label required>价格 (元/天)</Label>
                 <div className="relative">
                   <input
@@ -324,7 +381,7 @@ export default function DouyinAccountRentalPage() {
               </div>
               
               {/* 租赁时长 */}
-              <div className="space-y-2">
+              <div className="space-y-1">
                 <Label required>出租时长 (天)</Label>
                 <input
                   type="number"
@@ -343,9 +400,9 @@ export default function DouyinAccountRentalPage() {
             </div>
             
             {/* 账号要求 */}
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700 mb-2">账号要求</label>
-              <div className="space-y-2">
+            <div className="space-y-1">
+              <label className="block text-sm font-medium  mb-2">账号支持</label>
+              <div className="space-y-1">
                 <label className="flex items-center">
                   <input
                     type="checkbox"
@@ -353,7 +410,7 @@ export default function DouyinAccountRentalPage() {
                     onChange={() => handleCheckboxChange('accountRequirements', 'canChangeName')}
                     className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                   />
-                  <span className="ml-2 text-sm text-gray-700">修改抖音账号名称和头像</span>
+                  <span className="ml-2 text-sm ">修改抖音账号名称和头像</span>
                 </label>
                 <label className="flex items-center">
                   <input
@@ -362,7 +419,7 @@ export default function DouyinAccountRentalPage() {
                     onChange={() => handleCheckboxChange('accountRequirements', 'canIntroduction')}
                     className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                   />
-                  <span className="ml-2 text-sm text-gray-700">修改账号简介</span>
+                  <span className="ml-2 text-sm ">修改账号简介</span>
                 </label>
                 <label className="flex items-center">
                   <input
@@ -371,7 +428,7 @@ export default function DouyinAccountRentalPage() {
                     onChange={() => handleCheckboxChange('accountRequirements', 'canPostComments')}
                     className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                   />
-                  <span className="ml-2 text-sm text-gray-700">支持发布评论</span>
+                  <span className="ml-2 text-sm ">支持发布评论</span>
                 </label>
                 <label className="flex items-center">
                   <input
@@ -380,18 +437,124 @@ export default function DouyinAccountRentalPage() {
                     onChange={() => handleCheckboxChange('accountRequirements', 'canPostVideos')}
                     className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                   />
-                  <span className="ml-2 text-sm text-gray-700">支持发布视频</span>
+                  <span className="ml-2 text-sm ">支持发布视频</span>
                 </label>
+                <label className="flex items-center">
+                  <input
+                    type="checkbox"
+                    checked={formData.accountRequirements.canUnbanAccount}
+                    onChange={() => handleCheckboxChange('accountRequirements', 'canUnbanAccount')}
+                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                  />
+                  <span className="ml-2 text-sm ">支持账号解封</span>
+                </label>
+                <div className='text-sm text-gray-600'>支持勾选选项越多，出租概率越大。</div>
+              </div>
+            </div>
+            
+            {/* 登录方式 */}
+            <div className="space-y-1 mt-3">
+              <label className="block text-sm font-medium mb-2">登录方式（可多选）</label>
+              <div className="space-y-1">
+                <label className="flex items-center">
+                  <input
+                    type="checkbox"
+                    value="scan"
+                    checked={formData.loginMethods.includes('scan')}
+                    onChange={() => handleLoginMethodChange('scan')}
+                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                  />
+                  <span className="ml-2 text-sm">扫码登录</span>
+                </label>
+                <label className="flex items-center">
+                  <input
+                    type="checkbox"
+                    value="phone_sms"
+                    checked={formData.loginMethods.includes('phone_sms')}
+                    onChange={() => handleLoginMethodChange('phone_sms')}
+                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                  />
+                  <span className="ml-2 text-sm">手机号+短信验证登录</span>
+                </label>
+                <label className="flex items-center">
+                  <input
+                    type="checkbox"
+                    value="no_login"
+                    checked={formData.loginMethods.includes('no_login')}
+                    onChange={() => handleLoginMethodChange('no_login')}
+                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                  />
+                  <span className="ml-2 text-sm">不登录账号，按照承租方要求完成租赁</span>
+                </label>
+              </div>
+              <div className='text-sm text-gray-600'>请至少选择一种登录方式。支持多种登录方式可以提高账号出租概率。</div>
+            </div>
+            
+            {/* 联系方式 */}
+            <div className="space-y-1 mt-3">
+              {/* 手机号 */}
+              <div className="space-y-1">
+                <Label htmlFor="phone" required>手机号</Label>
+                <input
+                  id="phone"
+                  type="tel"
+                  value={formData.phone}
+                  onChange={(e) => handleInputChange('phone', e.target.value)}
+                  placeholder="请输入手机号"
+                  className={`input ${errors.phone ? 'border-red-500' : ''}`}
+                />
+                {errors.phone && (
+                  <p className="text-red-500 text-sm">{errors.phone}</p>
+                )}
+              </div>
+              
+              {/* QQ号 */}
+              <div className="space-y-1">
+                <Label htmlFor="qq">QQ号（选填）</Label>
+                <input
+                  id="qq"
+                  type="text"
+                  value={formData.qq}
+                  onChange={(e) => handleInputChange('qq', e.target.value)}
+                  placeholder="请输入QQ号"
+                  className={`input ${errors.qq ? 'border-red-500' : ''}`}
+                />
+                {errors.qq && (
+                  <p className="text-red-500 text-sm">{errors.qq}</p>
+                )}
+              </div>
+              
+              {/* 邮箱 */}
+              <div className="space-y-1">
+                <Label htmlFor="email">邮箱（选填）</Label>
+                <input
+                  id="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => handleInputChange('email', e.target.value)}
+                  placeholder="请输入邮箱地址"
+                  className={`input ${errors.email ? 'border-red-500' : ''}`}
+                />
+                {errors.email && (
+                  <p className="text-red-500 text-sm">{errors.email}</p>
+                )}
               </div>
             </div>
           </div>
           
           {/* 操作按钮 - 增加总价显示 */}
-          <div className="mt-6">
+          <div className="mt-3 flex justify-center space-x-3">
+            <Button 
+              onClick={() => router.push('/accountrental/account-rental-publish')}
+              variant="secondary"
+              className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2"
+            >
+              取消
+            </Button>
             <Button 
               onClick={handleSubmit}
               variant="primary"
-              className="bg-blue-500 hover:bg-blue-600 w-full" // 设置宽度为100%
+              className="bg-blue-500 hover:bg-blue-600 px-4 py-2"
             >
              立即发布（¥{calculateTotalPrice()}元）
             </Button>

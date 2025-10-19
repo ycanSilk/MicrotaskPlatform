@@ -11,7 +11,7 @@ interface EarningsOverviewProps {
     weeklyEarnings: number;
     monthlyEarnings: number;
   };
-  setActiveTab: (tab: 'overview' | 'details' | 'withdraw') => void;
+  setActiveTab: (tab: 'overview' | 'details') => void;
 }
 
 // 默认用户账户数据，确保组件始终有数据可显示
@@ -148,12 +148,7 @@ const EarningsOverview: React.FC<EarningsOverviewProps> = ({
             <div style={{  color: '#4A5568' }}>可提现余额</div>
             <div style={{ color: '#2F855A' }}>¥{accountData.availableBalance.toFixed(2)}</div>
           </div>
-          <button 
-            className="bg-green-500 text-white px-6 py-2 rounded font-medium hover:bg-green-600 transition-colors"
-            onClick={() => setActiveTab('withdraw')}
-          >
-            立即提现
-          </button>
+          {/* 提现功能已移除 */}
         </div>
       </div>
 
@@ -177,91 +172,8 @@ const EarningsOverview: React.FC<EarningsOverviewProps> = ({
           </div>
         </div>
       </div>
-
-      {/* 7天收益趋势 */}
-      <div className="mx-4 mt-6">
-        <div className="bg-white rounded-lg p-4 shadow-sm">
-          <h3 style={{ color: '#1A202C', marginBottom: '16px' }}>近7天收益趋势</h3>
-          <div className="h-80">
-            {/* 改进的柱状图展示 */}
-            <div className="h-full relative">
-            
-              {(() => {
-                // 计算数据中的最大值
-                const maxValue = Math.max(...earningsData.map(item => item.amount), 0);
-                // 动态计算Y轴刻度
-                const dynamicYAxisTicks = calculateYAxisTicks(maxValue);
-                // 获取Y轴的最大值
-                const yAxisMaxValue = dynamicYAxisTicks[0] || 100;
-                
-                return (
-                  <div className="h-full w-full">
-                    {/* 坐标轴背景 */}
-                    <div className="absolute left-16 top-0 right-0 bottom-4 border-l border-b border-gray-300"></div>
-                    
-                    {/* Y轴刻度线和标签 */}
-                    <div className="absolute left-0 top-0 bottom-4 w-16 flex flex-col justify-between">
-                      {dynamicYAxisTicks.map((tick, index) => (
-                        <div key={index} className="relative">
-                          {/* Y轴横向网格线 */}
-                          <div className="h-px bg-gray-200 absolute right-0 left-16 w-full"></div>
-                          <div style={{ color: '#718096' }}>¥{tick}</div>
-                        </div>
-                      ))}
-                    </div>
-                        
-                    {/* 柱状图主体 - 修正方向，确保金额越高柱子越高 */}
-                    <div className="ml-16 h-full flex justify-between items-end px-2 pt-0 pb-4">
-                      {earningsData.map((item, index) => {
-                        // 基于实际数据最大值计算柱状图高度百分比
-                        const heightPercentage = yAxisMaxValue > 0 ? 
-                          Math.min((item.amount / yAxisMaxValue) * 100, 100) : 0;
-                        const formattedDate = formatDateShort(item.date);
-                                
-                        return (
-                          <div key={index} className="flex flex-col items-center flex-1 h-full relative">
-                            {/* X轴纵向网格线 */}
-                            {index < earningsData.length - 1 && (
-                              <div className="absolute top-0 bottom-4 w-px bg-gray-200 right-0"></div>
-                            )}
-                            
-                            {/* 固定高度的容器，确保所有柱子从底部开始计算高度 */}
-                            <div className="w-full h-full flex flex-col justify-end items-center">
-                              {/* 柱状图 - 高度与金额成正比 */}
-                              <div 
-                                className="bg-blue-500 transition-all duration-300 hover:bg-blue-600 relative border border-blue-600"
-                                style={{ 
-                                  height: `${heightPercentage}%`, 
-                                  // 确保即使很小的值也有一个最小高度以便可视化
-                                  minHeight: heightPercentage > 0 ? '10px' : '0', 
-                                  width: '80%',
-                                  // 添加边框以便更好地可视化，包括右边框
-                                  borderTopLeftRadius: '4px',
-                                  borderTopRightRadius: '4px'
-                                }}
-                              >
-                                {/* 金额标注 */}
-                                <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 whitespace-nowrap font-medium">
-                                  <div className='text-green-600'>¥{item.amount.toFixed(0)}</div>
-                                </div>
-                              </div>
-                            </div>
-                            {/* 日期标签 */}
-                            <div style={{ marginTop: '4px' }}>{formattedDate}</div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )
-              })()}
-            </div>
-          </div>
-        </div>
-      </div>
-
     </>
-  );  
+  );
 };
 
 export default EarningsOverview;

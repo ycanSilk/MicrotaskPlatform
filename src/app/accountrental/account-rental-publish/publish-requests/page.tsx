@@ -10,6 +10,8 @@ const PublishForm = () => {
     description: '',
     duration: '1',
     phoneNumber: '',
+    email: '',
+    qq: '',
     platform: 'douyin',
     accountRequirements: {
       canChangeName: false,
@@ -58,12 +60,32 @@ const PublishForm = () => {
     return phoneRegex.test(phone);
   };
   
+  const validateEmail = (email: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+  
+  const validateQQ = (qq: string) => {
+    const qqRegex = /^[1-9]\d{4,10}$/;
+    return qqRegex.test(qq);
+  };
+  
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
     
     // 手机号变为非必填，但如果填写了则需要验证格式
     if (formData.phoneNumber.trim() && !validatePhoneNumber(formData.phoneNumber)) {
       newErrors.phoneNumber = '请输入有效的手机号';
+    }
+    
+    // 邮箱验证（如果填写）
+    if (formData.email.trim() && !validateEmail(formData.email)) {
+      newErrors.email = '请输入有效的邮箱地址';
+    }
+    
+    // QQ验证（如果填写）
+    if (formData.qq.trim() && !validateQQ(formData.qq)) {
+      newErrors.qq = '请输入有效的QQ号码';
     }
     
     setErrors(newErrors);
@@ -93,13 +115,12 @@ const PublishForm = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-3xl mx-auto px-4">
-        <h1 className="text-2xl font-semibold text-gray-800 mb-6">填写发布信息</h1>
-        
-        <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 space-y-6">
+    <div className="min-h-screen bg-gray-50 py-3">
+      <div className="max-w-3xl mx-auto px-1">
+        <h1 className="text-2xl font-semibold text-gray-800 mb-3">填写发布信息</h1>
+        <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-sm border border-gray-200 p-3 space-y-3">
           {/* 描述输入 */}
-          <div>
+          <div className="mb-1">
             <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
               租赁信息描述 <span className="text-red-500">*</span>
             </label>
@@ -118,7 +139,7 @@ const PublishForm = () => {
           </div>
 
            {/* 价格输入 */}
-          <div>
+          <div className="mb-1">
             <label htmlFor="price" className="block text-sm font-medium text-gray-700 mb-1">
               价格 (元/天) <span className="text-red-500">*</span>
             </label>
@@ -137,7 +158,7 @@ const PublishForm = () => {
           </div>
 
           {/* 租赁时长 */}
-          <div>
+          <div className="mb-1">
             <label htmlFor="duration" className="block text-sm font-medium text-gray-700 mb-1">
               租赁时长 (天)
             </label>
@@ -154,7 +175,7 @@ const PublishForm = () => {
           </div>
 
           {/* 手机号 */}
-          <div>
+          <div className="mb-1">
             <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-700 mb-1">
               联系电话（选填）
             </label>
@@ -172,8 +193,47 @@ const PublishForm = () => {
             )}
           </div>
           
+          {/* 邮箱 */}
+          <div className="mb-1">
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+              邮箱（选填）
+            </label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              value={formData.email}
+              onChange={handleInputChange}
+              className={`w-full px-4 py-2 border ${errors.email ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200`}
+              placeholder="请输入邮箱地址"
+            />
+            {errors.email && (
+              <p className="text-red-500 text-xs mt-1">{errors.email}</p>
+            )}
+          </div>
+          
+          {/* QQ */}
+          <div className="mb-1">
+            <label htmlFor="qq" className="block text-sm font-medium text-gray-700 mb-1">
+              QQ号码（选填）
+            </label>
+            <input
+              type="text"
+              id="qq"
+              name="qq"
+              value={formData.qq}
+              onChange={handleInputChange}
+              className={`w-full px-4 py-2 border ${errors.qq ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200`}
+              placeholder="请输入QQ号码"
+            />
+            {errors.qq && (
+              <p className="text-red-500 text-xs mt-1">{errors.qq}</p>
+            )}
+            <p className="text-blue-600 text-xs mt-1">如有需要添加客服QQ ： 88888888联系沟通</p>
+          </div>
+          
           {/* 平台选择 */}
-          <div>
+          <div className="mb-1">
             <label htmlFor="platform" className="block text-sm font-medium text-gray-700 mb-1">
               平台选择 <span className="text-red-500">*</span>
             </label>
@@ -190,11 +250,11 @@ const PublishForm = () => {
           </div>
           
           {/* 账号要求 */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+          <div className="mb-1">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
               账号要求
             </label>
-            <div className="space-y-2">
+            <div className="space-y-1">
               <label className="flex items-center">
                 <input
                   type="checkbox"
@@ -235,11 +295,11 @@ const PublishForm = () => {
           </div>
           
           {/* 登录方式 */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+          <div className="mb-1">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
               登录方式
             </label>
-            <div className="space-y-2">
+            <div className="space-y-1">
               <label className="flex items-center">
                 <input
                   type="checkbox"
@@ -247,7 +307,7 @@ const PublishForm = () => {
                   onChange={() => handleCheckboxChange('loginMethods', 'qrCode')}
                   className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                 />
-                <span className="ml-2 text-sm text-gray-700">扫描登录</span>
+                <span className="ml-2 text-sm text-gray-700">扫码登录</span>
               </label>
               <label className="flex items-center">
                 <input
@@ -271,7 +331,7 @@ const PublishForm = () => {
           </div>
 
           {/* 表单操作按钮 */}
-          <div className="flex justify-end space-x-4 pt-4 border-t border-gray-200">
+          <div className="flex justify-end space-x-4 pt-4 border-t border-gray-200 mb-1">
             <button
               type="button"
               className="px-6 py-2.5 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors duration-200"

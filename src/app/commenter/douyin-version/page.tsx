@@ -75,7 +75,7 @@ export default function DouyinVersionPage() {
             </button>
           </div>
         </div>
-
+        
         {/* 底部信息 */}
         <div className="mt-6 text-center text-white text-sm">
           © {new Date().getFullYear()} 抖音版本下载

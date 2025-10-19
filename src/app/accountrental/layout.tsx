@@ -101,7 +101,7 @@ const AccountRentalLayout = memo(({ children }: AccountRentalLayoutProps) => {
           <span className={`text-xl w-6 h-6 flex items-center justify-center rounded-full  ${isRequestsActive ? ' text-blue-500' : 'text-gray-500'}`}>
             <SearchOutlined />
           </span>
-          <span className={`text-xs ${isRequestsActive ? 'text-blue-500' : 'text-gray-500'}`}>求租信息</span>
+          <span className={`text-xs ${isRequestsActive ? 'text-blue-500' : 'text-gray-500'}`}>求租市场</span>
         </button>
         <button 
           onClick={handlePublishClick}
@@ -119,7 +119,7 @@ const AccountRentalLayout = memo(({ children }: AccountRentalLayoutProps) => {
           <span className={`text-xl w-6 h-6 flex items-center justify-center rounded-full  ${isMyActive ? ' text-blue-500' : 'text-gray-500'}`}>
             <UserOutlined />
           </span>
-          <span className={`text-xs ${isMyActive ? 'text-blue-500' : 'text-gray-500'}`}>我的</span>
+          <span className={`text-xs ${isMyActive ? 'text-blue-500' : 'text-gray-500'}`}>我的租赁</span>
         </button>
       </footer>
     </div>

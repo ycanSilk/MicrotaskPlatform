@@ -40,32 +40,25 @@ const MyAccountRentalPage = () => {
   // 所有菜单项列表
   const menuItems: MenuItem[] = [
     {
-      id: 'balance',
-      title: '账户余额',
-      icon: <WalletOutlined className="text-xl" />,
-      color: 'bg-yellow-100',
-      path: '/accountrental/my-account-rental/balance'
+      id: 'published-rent',
+      title: '我发布的出租',
+      icon: <ShopOutlined className="text-xl" />,
+      color: 'bg-green-100',
+      path: '/accountrental/my-account-rental/published-rent'
     },
     {
-      id: 'bills',
-      title: '交易账单',
-      icon: <CreditCardOutlined className="text-xl" />,
-      color: 'bg-purple-100',
-      path: '/accountrental/my-account-rental/bills'
-    },
-    {
-        id: 'published',
-          title: '已发布账号',
-          icon: <ShopOutlined className="text-xl" />,
-          color: 'bg-green-100',
-          path: '/accountrental/my-account-rental/published'
-    },
-    {
-      id: 'rented',
-      title: '已租赁账号',
+      id: 'published-request',
+      title: '我发布的求租',
       icon: <StarOutlined className="text-xl" />,
       color: 'bg-indigo-100',
-      path: '/accountrental/my-account-rental/rented'
+      path: '/accountrental/my-account-rental/published-request'
+    },
+    {
+      id: 'my-rental',
+      title: '我租赁的',
+      icon: <WalletOutlined className="text-xl" />,
+      color: 'bg-yellow-100',
+      path: '/accountrental/my-account-rental/my-rental'
     },
     {
       id: 'help-center',
@@ -74,8 +67,6 @@ const MyAccountRentalPage = () => {
       color: 'bg-red-100',
       path: '/accountrental/my-account-rental/help-center'
     }
- 
-
   ];
 
   // 处理菜单项点击

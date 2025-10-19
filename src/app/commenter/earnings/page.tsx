@@ -8,7 +8,6 @@ import { CommenterAuthStorage } from '@/auth/commenter/auth';
 import { FinanceModelAdapter } from '@/data/commenteruser/finance_model_adapter';
 import EarningsOverview from './components/EarningsOverview';
 import EarningsDetails from './components/EarningsDetails';
-import WithdrawalPage from './components/WithdrawalPage';
 
 // 定义类型接口
 export interface DailyEarning {
@@ -89,12 +88,7 @@ export default function CommenterEarningsPage() {
     weeklyEarnings: 0,
     monthlyEarnings: 0
   });
-  const [activeTab, setActiveTab] = useState<'overview' | 'details' | 'withdraw'>('overview');
-  const [withdrawalAmount, setWithdrawalAmount] = useState<string>('');
-  const [withdrawalMethod, setWithdrawalMethod] = useState<'wechat' | 'alipay' | 'bank'>('wechat');
-  const [withdrawalLoading, setWithdrawalLoading] = useState<boolean>(false);
-  const [withdrawalSuccess, setWithdrawalSuccess] = useState<boolean>(false);
-  const [withdrawalError, setWithdrawalError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'overview' | 'details'>('overview');
 
   // 初始化数据
   useEffect(() => {
@@ -154,7 +148,7 @@ export default function CommenterEarningsPage() {
   }, []);
 
   // 处理选项卡切换
-  const handleTabChange = (tab: 'overview' | 'details' | 'withdraw') => {
+  const handleTabChange = (tab: 'overview' | 'details') => {
     setActiveTab(tab);
     // 只更新URL哈希值而不进行完整的路由跳转，这样可以保持在当前页面并保留顶部栏
     window.location.hash = tab;
@@ -165,8 +159,6 @@ export default function CommenterEarningsPage() {
     const hash = window.location.hash;
     if (hash === '#details') {
       setActiveTab('details');
-    } else if (hash === '#withdraw') {
-      setActiveTab('withdraw');
     } else {
       setActiveTab('overview');
     }
@@ -178,8 +170,6 @@ export default function CommenterEarningsPage() {
       const hash = window.location.hash;
       if (hash === '#details') {
         setActiveTab('details');
-      } else if (hash === '#withdraw') {
-        setActiveTab('withdraw');
       } else {
         setActiveTab('overview');
       }
@@ -189,41 +179,7 @@ export default function CommenterEarningsPage() {
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
 
-  // 处理提现功能
-  const handleWithdrawal = async () => {
-    setWithdrawalLoading(true);
-    setWithdrawalError(null);
-    try {
-      // 模拟提现API请求
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // 验证金额
-      const amount = parseFloat(withdrawalAmount);
-      if (isNaN(amount) || amount <= 0) {
-        throw new Error('请输入有效的提现金额');
-      }
-      
-      if (currentUserAccount && amount > currentUserAccount.availableBalance) {
-        throw new Error('提现金额超过可提现余额');
-      }
-      
-      // 模拟提现成功
-      setWithdrawalSuccess(true);
-      setWithdrawalAmount('');
-      
-      // 更新账户余额
-      if (currentUserAccount) {
-        setCurrentUserAccount(prev => prev ? {
-          ...prev,
-          availableBalance: prev.availableBalance - amount
-        } : null);
-      }
-    } catch (err) {
-      setWithdrawalError(err instanceof Error ? err.message : '提现失败，请稍后重试');
-    } finally {
-      setWithdrawalLoading(false);
-    }
-  };
+
 
   // 格式化日期（月/日）
   const formatDateShort = (dateString: string) => {
@@ -246,7 +202,7 @@ export default function CommenterEarningsPage() {
     <div>
       <div className="">
         {/* 收益类型切换 */}
-        <div className="mx-4 mt-4 grid grid-cols-3 gap-2">
+        <div className="mx-4 mt-4 grid grid-cols-2 gap-2">
           <button 
             onClick={() => handleTabChange('overview')}
             className={`py-3 px-4 rounded font-medium transition-colors ${activeTab === 'overview' ? 'bg-blue-500 text-white shadow-md' : 'bg-white border border-gray-300 text-gray-600 hover:bg-blue-50'}`}
@@ -259,12 +215,7 @@ export default function CommenterEarningsPage() {
           >
             明细
           </button>
-          <button 
-            onClick={() => handleTabChange('withdraw')}
-            className={`py-3 px-4 rounded font-medium transition-colors ${activeTab === 'withdraw' ? 'bg-blue-500 text-white shadow-md' : 'bg-white border border-gray-300 text-gray-600 hover:bg-blue-50'}`}
-          >
-            提现
-          </button>
+
         </div>
       </div>
       
@@ -292,20 +243,7 @@ export default function CommenterEarningsPage() {
         />
       )}
       
-      {activeTab === 'withdraw' && (
-        <WithdrawalPage 
-          currentUserAccount={currentUserAccount}
-          currentWithdrawals={currentWithdrawals}
-          withdrawalAmount={withdrawalAmount}
-          setWithdrawalAmount={setWithdrawalAmount}
-          withdrawalMethod={withdrawalMethod}
-          setWithdrawalMethod={setWithdrawalMethod}
-          handleWithdrawal={handleWithdrawal}
-          withdrawalLoading={withdrawalLoading}
-          withdrawalSuccess={withdrawalSuccess}
-          withdrawalError={withdrawalError}
-        />
-      )}
+
     </div>
   );
 }
