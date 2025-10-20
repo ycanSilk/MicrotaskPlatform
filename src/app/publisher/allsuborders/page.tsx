@@ -39,6 +39,36 @@ export interface SubOrder {
   screenshots?: string[];
 }
 
+// 定义订单类型接口
+export interface Order {
+  id: string;
+  orderNumber: string;
+  title: string;
+  description: string;
+  status: 'pending' | 'processing' | 'reviewing' | 'completed' | 'rejected' | 'cancelled';
+  createdAt: string;
+  updatedAt: string;
+  budget: number;
+  assignedTo?: string;
+  completionTime?: string;
+  type: 'comment' | 'like' | 'share' | 'other';
+  subOrders: SubOrder[];
+  videoUrl?: string;
+}
+
+export interface SubOrder {
+  id: string;
+  orderId: string;
+  userId: string;
+  userName: string;
+  status: 'pending' | 'processing' | 'reviewing' | 'completed' | 'rejected' | 'cancelled';
+  submitTime?: string;
+  reviewTime?: string;
+  reward: number;
+  content?: string;
+  screenshots?: string[];
+}
+
 // 订单管理页面组件
 const PublisherOrdersPage: React.FC = () => {
   const router = useRouter();
@@ -49,31 +79,12 @@ const PublisherOrdersPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [dateRange, setDateRange] = useState<{ start: string; end: string } | null>(null);
-  const [showDatePicker, setShowDatePicker] = useState(false);
   const [sortBy, setSortBy] = useState<'createdAt' | 'budget' | 'status'>('createdAt');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const [currentPage, setCurrentPage] = useState(1);
   const [recordsPerPage] = useState(10);
-  const datePickerRef = useRef<HTMLDivElement>(null);
   
 
-
-  // 监听点击外部区域自动关闭日期选择器
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (showDatePicker && datePickerRef.current && !datePickerRef.current.contains(event.target as Node)) {
-        setShowDatePicker(false);
-      }
-    };
-
-    // 添加点击事件监听器
-    document.addEventListener('mousedown', handleClickOutside);
-    
-    // 清理函数
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [showDatePicker]);
 
   // 模拟获取订单数据
   useEffect(() => {
@@ -275,12 +286,15 @@ const PublisherOrdersPage: React.FC = () => {
     console.log('搜索关键词:', searchTerm);
   };
 
-  // 处理日期范围选择器显示/隐藏已在顶部定义
+  // 处理日期范围选择器显示/隐藏
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  // 日历组件点击外部关闭的引用
+  const calendarRef = useRef<HTMLDivElement>(null);
   
   // 点击外部关闭日历组件
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (showDatePicker && datePickerRef.current && !datePickerRef.current.contains(event.target as Node)) {
+      if (calendarRef.current && !calendarRef.current.contains(event.target as Node)) {
         setShowDatePicker(false);
       }
     };
@@ -397,6 +411,8 @@ const PublisherOrdersPage: React.FC = () => {
 
   // 复制订单号的状态管理
   const [copiedOrderNumber, setCopiedOrderNumber] = useState<string | null>(null);
+  const [showCopyTooltip, setShowCopyTooltip] = useState(false);
+  const [tooltipMessage, setTooltipMessage] = useState('');
   useEffect(() => {
     if (copiedOrderNumber) {
       const timer = setTimeout(() => {
@@ -411,10 +427,29 @@ const PublisherOrdersPage: React.FC = () => {
     router.push(`/publisher/orders/task-detail/${orderId}`);
   };
 
+  // 显示复制成功提示
+  const showCopySuccess = (message: string) => {
+    setTooltipMessage(message);
+    setShowCopyTooltip(true);
+    setTimeout(() => {
+      setShowCopyTooltip(false);
+    }, 2000);
+  };
+
   // 复制订单号并显示成功提示
   const copyOrderNumber = (orderNumber: string) => {
     navigator.clipboard.writeText(orderNumber).then(() => {
+      showCopySuccess('订单号已复制');
       setCopiedOrderNumber(orderNumber);
+    }).catch(err => {
+      console.error('复制失败:', err);
+    });
+  };
+
+  // 复制评论
+  const copyComment = (comment: string) => {
+    navigator.clipboard.writeText(comment).then(() => {
+      showCopySuccess('评论已复制');
     }).catch(err => {
       console.error('复制失败:', err);
     });
@@ -516,12 +551,42 @@ const PublisherOrdersPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <main className="flex-grow">
+        {/* 复制成功提示 */}
+        {showCopyTooltip && (
+          <div className="fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded shadow-lg z-50">
+            {tooltipMessage}
+          </div>
+        )}
         <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+          <div className="mb-3 items-center">
+            <div className="grid grid-cols-3 gap-3">
+              <button
+                onClick={() => router.push('/publisher/dashboard')}
+                className="inline-flex items-center justify-center h-9 px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md mb-2bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150 ease-in-out"
+              >
+                返回工作台
+              </button>
+              <button
+                onClick={() => router.push('/publisher/create')}
+                className="inline-flex items-center justify-center h-9 px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition duration-150 ease-in-out"
+              >
+                发布新任务
+              </button>
+              <button
+                onClick={handleExport}
+                className="inline-flex items-center justify-center h-9 px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150 ease-in-out"
+              >
+                <DownloadOutlined className="h-4 w-4 mr-2" />
+                导出
+              </button>
+            </div>
+          </div>
+
           {/* 操作栏 */}
           <div className="bg-white shadow-sm rounded-lg px-2 py-3 mb-3">
-            {/* 第一行：搜索框和搜索按钮 */}
-            <div className="flex items-center space-x-3 mb-3">
-              <div className="flex-grow">
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
+              {/* 搜索框和搜索按钮 - 已分离 */}
+              <div className="flex-grow max-w-md flex space-x-2">
                 <div className="relative w-full">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <SearchOutlined className="h-5 w-5 text-gray-400" />
@@ -535,213 +600,272 @@ const PublisherOrdersPage: React.FC = () => {
                     className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                   />
                 </div>
-              </div>
-              
-              <button 
-                onClick={handleSearch} 
-                className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md whitespace-nowrap"
-              >
-                搜索
-              </button>
-            </div>
-            
-            {/* 第二行：状态筛选和日期筛选 */}
-            <div className="flex flex-wrap items-center space-x-3">
-               {/* 日期筛选按钮和选择器 */}
-              <div className="relative">
                 <button
-                  type="button"
-                  onClick={() => setShowDatePicker(!showDatePicker)}
-                  className="px-4 py-2 border border-gray-300 text-sm font-medium rounded-md bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 whitespace-nowrap"
+                  onClick={handleSearch}
+                  className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 rounded-md whitespace-nowrap"
                 >
-                  <CalendarOutlined className="h-4 w-4 mr-2" />
-                  {dateRange ? `${dateRange.start.split('-')[1]}/${dateRange.start.split('-')[2]} 至 ${dateRange.end.split('-')[1]}/${dateRange.end.split('-')[2]}` : '日期'}
-                  <DownOutlined className={`h-4 w-4 ml-2 ${showDatePicker ? 'transform rotate-180' : ''}`} />
+                  搜索
                 </button>
-                
-                {/* 日期选择器弹窗 */}
-                {showDatePicker && (
-                  <div ref={datePickerRef} className="absolute z-10 mt-1 bg-white rounded-md shadow-lg p-2 border border-gray-200 w-[270px] w-max-[300px] left-0">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-1">开始日期</label>
-                        <input
-                          type="date"
-                          value={dateRange?.start || ''}
-                          onChange={(e) => setDateRange({ start: e.target.value, end: dateRange?.end || '' })}
-                          className="w-full p-2 border border-gray-300 rounded-md text-sm"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-1">结束日期</label>
-                        <input
-                          type="date"
-                          value={dateRange?.end || ''}
-                          onChange={(e) => setDateRange({ start: dateRange?.start || '', end: e.target.value })}
-                          className="w-full p-2 border border-gray-300 rounded-md text-sm"
-                        />
-                      </div>
-                    </div>
-                    <div className="flex justify-end mt-3 space-x-2">
-                      <button
-                        onClick={() => {
-                          setDateRange({ start: '', end: '' });
-                          setShowDatePicker(false);
-                        }}
-                        className="px-3 py-1 border border-gray-300 rounded-md text-xs text-gray-700 hover:bg-gray-50"
-                      >
-                        重置
-                      </button>
-                      <button
-                        onClick={() => setShowDatePicker(false)}
-                        className="px-3 py-1 bg-blue-600 text-white rounded-md text-xs hover:bg-blue-700"
-                      >
-                        确定
-                      </button>
-                    </div>
-                  </div>
-                )}
               </div>
 
+              {/* 筛选和操作按钮 */}
+              <div className="grid grid-cols-5 gap-2 w-full">
+                {/* 状态筛选 */}
+                <div className="relative col-span-2">
+                  <select
+                    value={statusFilter}
+                    onChange={(e) => setStatusFilter(e.target.value)}
+                    className="block w-full pl-3 pr-10 py-2 text-base border border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md appearance-none"
+                  >
+                    <option value="all">全部状态</option>
+                    <option value="pending">待领取</option>
+                    <option value="processing">进行中</option>
+                    <option value="reviewing">审核中</option>
+                    <option value="completed">已完成</option>
+                  </select>
+                </div>
 
-              {/* 状态筛选 */}
-              <select 
-                 value={statusFilter} 
-                 onChange={(e) => setStatusFilter(e.target.value)} 
-                 className="px-3 py-2 pr-8 border border-gray-300 text-sm rounded-md whitespace-nowrap appearance-none bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-               >
-                <option value="all">全部状态</option>
-                <option value="pending">待领取</option>
-                <option value="processing">进行中</option>
-                <option value="reviewing">审核中</option>
-                <option value="completed">已完成</option>
-              </select>
-              
-             
+                {/* 日期筛选 */}
+                <div className="relative col-span-3" ref={calendarRef}>
+                  <button
+                    type="button"
+                    onClick={() => setShowDatePicker(!showDatePicker)}
+                    className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md mb-2 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 w-full"
+                  >
+                    <CalendarOutlined className="h-4 w-4 mr-2" />
+                    {dateRange ? (
+                      `${dateRange.start.split('-')[1]}/${dateRange.start.split('-')[2]} 至 ${dateRange.end.split('-')[1]}/${dateRange.end.split('-')[2]}`
+                    ) : '日期'}
+                    <DownOutlined className={`h-4 w-4 ml-2 transition-transform ${showDatePicker ? 'transform rotate-180' : ''}`} />
+                  </button>
+                  
+                  {/* 改进的日期日历组件 */}
+                  {showDatePicker && (
+                    <div 
+                      className="fixed inset-0 z-50 flex items-start justify-center pt-[20%] bg-black bg-opacity-25"
+                      onClick={() => setShowDatePicker(false)}
+                    >
+                      <div 
+                        className="w-80 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 overflow-hidden"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <div className="p-4">
+                          <div className="flex items-center justify-between mb-4">
+                            <h3 className="text-lg font-medium text-gray-900">日期</h3>
+                            <button
+                              className="text-gray-400 hover:text-gray-600 focus:outline-none"
+                              onClick={() => setShowDatePicker(false)}
+                              aria-label="关闭"
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                              </svg>
+                            </button>
+                          </div>
+                          
+                          <div className="space-y-4">
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-2">开始日期</label>
+                              <div className="relative">
+                                <input
+                                  type="date"
+                                  value={dateRange?.start || ''}
+                                  onChange={(e) => setDateRange(prev => ({ start: e.target.value, end: prev?.end || '' }))}
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                                />
+                              </div>
+                            </div>
+                            
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-2">结束日期</label>
+                              <div className="relative">
+                                <input
+                                  type="date"
+                                  value={dateRange?.end || ''}
+                                  onChange={(e) => setDateRange(prev => ({ start: prev?.start || '', end: e.target.value }))}
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                                />
+                              </div>
+                            </div>
+                            
+                            <div className="flex justify-between pt-4 border-t border-gray-200">
+                              <button
+                                onClick={() => {
+                                  setDateRange(null);
+                                  setShowDatePicker(false);
+                                }}
+                                className="px-4 py-2 text-sm border border-gray-300 rounded-md bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                              >
+                                清除
+                              </button>
+                              <button
+                                onClick={() => setShowDatePicker(false)}
+                                className="px-4 py-2 text-sm border border-transparent rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                              >
+                                确认
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                
+              </div>
             </div>
           </div>
-          
-          {/* 订单列表 */}
-          {loading ? (
-            <div className="flex justify-center items-center py-10">
-              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-            </div>
-          ) : error ? (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md mb-4">
-              <p className="font-medium">加载失败</p>
-              <p className="text-sm">{error}</p>
-            </div>
-          ) : (
-            <div className="bg-white shadow-sm rounded-lg p-4">
-              {filteredOrders.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-10 text-gray-500">
-                  <p>暂无订单数据</p>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {filteredOrders.map((order) => (
-                    <div key={order.id} className="p-4 border border-gray-200 rounded-lg hover:shadow-md transition-shadow">
-                      {/* 订单号和复制按钮 */}
-                      <div className="flex justify-between items-start mb-3">
-                        <div className="flex-1">
-                          <div className="flex items-center">
-                            <span className="font-medium mr-2">订单号：</span>
-                            <span>{order.orderNumber}</span>
+
+          {/* 订单列表 - 移动优先的响应式卡片布局，适配全尺寸屏幕 */}
+          <div className="overflow-hidden ">
+            {/* 响应式布局：移动端单列，平板双列，桌面多列 */}
+              {getCurrentOrders().length > 0 ? (
+                <div className="grid grid-cols-1  lg:grid-cols-2 gap-4 ">
+                  {getCurrentOrders().map((order) => (
+                    <div key={order.id} className="bg-white rounded-lg shadow-sm p-4 border border-gray-100">
+                      <div className="flex justify-between items-start mb-4">
+                        <div>
+                          <h3 className="text-lg font-semibold text-gray-900 mb-1">{order.title}</h3>
+                          <div className="flex items-center text-sm text-gray-500 space-x-4">
+                            <span>订单号: {order.orderNumber}</span>
+                            <button 
+                              onClick={() => copyOrderNumber(order.orderNumber)}
+                              className="text-blue-500 hover:text-blue-700 transition-colors"
+                              title="复制订单号"
+                            >
+                              复制
+                            </button>
                           </div>
-                          <div className="text-sm text-gray-500 mt-1">创建时间：{formatDate(order.createdAt)}</div>
                         </div>
-                        <div className="relative">
+                        <div className="flex space-x-2">
                           <button 
-                            onClick={() => copyOrderNumber(order.orderNumber)}
-                            className="text-blue-600 hover:text-blue-800 text-sm flex items-center"
+                            onClick={() => {
+                              console.log('Reordering order:', order.id);
+                              // 这里可以添加实际的补单逻辑，比如调用API或导航到补单页面
+                            }}
+                            className="px-3 py-1 bg-blue-50 text-blue-600 rounded text-sm hover:bg-blue-100 transition-colors"
                           >
-                            <CopyOutlined className="h-4 w-4 mr-1" />
-                            复制订单号
+                            重新发布
                           </button>
-                          {copiedOrderNumber === order.orderNumber && (
-                            <div className="absolute -top-8 right-0 bg-green-600 text-white text-xs px-2 py-1 rounded shadow">
-                              复制成功
-                            </div>
-                          )}
+                          <button 
+                            onClick={() => viewOrderDetails(order.id)}
+                            className="px-3 py-1 bg-gray-50 text-gray-600 rounded text-sm hover:bg-gray-100 transition-colors"
+                          >
+                            查看详情
+                          </button>
                         </div>
                       </div>
-                      
-                      {/* 订单标题和状态 */}
-                      <div className="flex justify-between items-center mb-3">
-                        <h3 className="font-semibold text-lg">{order.title}</h3>
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusInfo(order.status).className}`}>
-                          {getStatusInfo(order.status).text}
-                        </span>
-                      </div>
-                      
-                      {/* 订单描述 */}
-                      <div className="text-sm text-gray-600 mb-3 line-clamp-2">
-                        {order.description}
-                      </div>
-                      
-                      {/* 任务类型和预算 */}
-                      <div className="flex justify-between items-center mb-4">
-                        <div className="flex items-center">
-                          <span className="mr-2">任务类型：</span>
-                          {getTypeIcon(order.type)}
+                      <div className="grid grid-cols-4 gap-4 mb-4">
+                        <div className="text-center">
+                          <div className="text-sm text-gray-500 mb-1">总金额</div>
+                          <div className="text-xl font-semibold text-green-600">¥{order.budget.toFixed(2)}</div>
                         </div>
-                        <div className="font-medium">
-                          总预算：¥{order.budget}
+                        <div className="text-center">
+                          <div className="text-sm text-gray-500 mb-1">状态</div>
+                          <div className="text-lg font-semibold text-blue-600">
+                            {order.status === 'completed' ? '已完成' : 
+                             order.status === 'processing' ? '进行中' : 
+                             order.status === 'pending' ? '待开始' : 
+                             order.status === 'reviewing' ? '审核中' : '已取消'}
+                          </div>
                         </div>
-                      </div>
-                      
-                      {/* 子订单统计 */}
-                      <div className="bg-gray-50 p-3 rounded-md mb-3">
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="text-sm font-medium">子订单状态统计：</span>
-                          <span className="text-xs text-gray-500">共 {getSubOrderStats(order.subOrders).total} 个子订单</span>
+                        <div className="text-center">
+                          <div className="text-sm text-gray-500 mb-1">子订单</div>
+                          <div className="text-lg font-semibold">{order.subOrders.length}</div>
                         </div>
-                        <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 text-xs">
-                          <div className="flex items-center">
-                            <span className="w-2 h-2 rounded-full bg-yellow-500 mr-1"></span>
-                            待处理：{getSubOrderStats(order.subOrders).pending}
-                          </div>
-                          <div className="flex items-center">
-                            <span className="w-2 h-2 rounded-full bg-blue-500 mr-1"></span>
-                            进行中：{getSubOrderStats(order.subOrders).processing}
-                          </div>
-                          <div className="flex items-center">
-                            <span className="w-2 h-2 rounded-full bg-purple-500 mr-1"></span>
-                            审核中：{getSubOrderStats(order.subOrders).reviewing}
-                          </div>
-                          <div className="flex items-center">
-                            <span className="w-2 h-2 rounded-full bg-green-500 mr-1"></span>
-                            已完成：{getSubOrderStats(order.subOrders).completed}
-                          </div>
-                          <div className="flex items-center">
-                            <span className="w-2 h-2 rounded-full bg-red-500 mr-1"></span>
-                            已拒绝：{getSubOrderStats(order.subOrders).rejected}
+                        <div className="text-center">
+                          <div className="text-sm text-gray-500 mb-1">类型</div>
+                          <div className="text-lg font-semibold text-gray-700">
+                            {order.type === 'comment' ? '评论' : 
+                             order.type === 'share' ? '分享' : 
+                             order.type === 'like' ? '点赞' : '其他'}
                           </div>
                         </div>
                       </div>
-                      
-                      {/* 操作按钮 */}
-                      <div className="flex justify-end space-x-2">
-                        <button
-                          onClick={() => viewOrderDetails(order.id)}
-                          className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors"
+                      <div className="flex justify-between items-center text-sm text-gray-500">
+                        <span>创建时间: {formatDate(order.createdAt)}</span>
+                        <button 
+                          onClick={() => copyComment(order.description)}
+                          className="text-blue-500 hover:text-blue-700 transition-colors"
+                          title="复制评论"
                         >
-                          查看详情
+                          复制评论
                         </button>
-                        {isOrderFullyCompleted(order) && (
-                          <button
-                            className="px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-md hover:bg-green-700 transition-colors"
-                          >
-                            再次下单
-                          </button>
-                        )}
                       </div>
                     </div>
                   ))}
                 </div>
+              ) : (
+                <div className="p-6 text-center">
+                  <p className="text-sm text-gray-500">没有找到匹配的订单</p>
+                </div>
               )}
-            </div>
-          )}
+
+            {/* 分页控制 */}
+            {totalPages > 1 && (
+              <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+                <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                  <div>
+                    <p className="text-sm text-gray-700">
+                      显示第 <span className="font-medium">{(currentPage - 1) * recordsPerPage + 1}</span> 到 
+                      <span className="font-medium"> {Math.min(currentPage * recordsPerPage, filteredOrders.length)} </span>
+                      条，共 <span className="font-medium">{filteredOrders.length}</span> 条记录
+                    </p>
+                  </div>
+                  <div>
+                    <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                      <button
+                        onClick={() => handlePageChange(currentPage - 1)}
+                        disabled={currentPage === 1}
+                        className={`relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 ${currentPage === 1 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      >
+                        <span className="sr-only">上一页</span>
+                        <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                          <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                      </button>
+                      
+                      {/* 页码按钮 */}
+                      {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+                        let pageNumber;
+                        if (totalPages <= 5) {
+                          pageNumber = i + 1;
+                        } else if (currentPage <= 3) {
+                          pageNumber = i + 1;
+                        } else if (currentPage >= totalPages - 2) {
+                          pageNumber = totalPages - 4 + i;
+                        } else {
+                          pageNumber = currentPage - 2 + i;
+                        }
+                        
+                        return (
+                          <button
+                            key={pageNumber}
+                            onClick={() => handlePageChange(pageNumber)}
+                            className={`relative inline-flex items-center px-4 py-2 border ${currentPage === pageNumber ? 'z-10 bg-blue-50 border-blue-500 text-blue-600' : 'border-gray-300 bg-white text-gray-500 hover:bg-gray-50'} text-sm font-medium`}
+                          >
+                            {pageNumber}
+                          </button>
+                        );
+                      })}
+                      
+                      <button
+                        onClick={() => handlePageChange(currentPage + 1)}
+                        disabled={currentPage === totalPages}
+                        className={`relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 ${currentPage === totalPages ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      >
+                        <span className="sr-only">下一页</span>
+                        <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                          <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                        </svg>
+                      </button>
+                    </nav>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </main>
     </div>

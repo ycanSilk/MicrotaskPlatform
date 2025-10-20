@@ -298,7 +298,7 @@ export default function CommenterTasksPage() {
     navigator.clipboard.writeText(comment).then(() => {
       // 保存到commentContent状态
       setCommentContent(prev => ({ ...prev, [taskId]: comment }));
-          setModalMessage('评论已复制到剪贴板');
+          setModalMessage('复制评论成功');
           setShowModal(true);
     }).catch(err => {
       console.error('复制失败:', err);
