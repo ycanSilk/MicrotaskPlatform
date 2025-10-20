@@ -265,7 +265,7 @@ export default function DouyinAccountRentalPage() {
     };
 
     return (
-      <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50">
       <div className="px-4 py-2">
         <div className="bg-blue-50 border border-blue-200 p-2">
               <div className="text-blue-700 text-sm mb-1">填写抖音账号租赁的详细信息，保信息真实有效，账号无异常,及时响应</div>
@@ -287,7 +287,7 @@ export default function DouyinAccountRentalPage() {
                   id="accountTitle"
                   value={formData.accountTitle}
                   onChange={(e) => handleInputChange('accountTitle', e.target.value)}
-                  placeholder="请输入账号的信息"
+                  placeholder="填写抖音账号出租的详细信息，保信息真实有效，账号无异常,及时响应"
                   className={`${errors.accountTitle ? 'border-red-500' : ''} resize-none`}
                   style={{ height: 150,width: '100%' }}
                 />

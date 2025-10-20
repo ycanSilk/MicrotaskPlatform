@@ -26,7 +26,7 @@ export default function TopNavigationBar({ user }: TopNavigationBarProps) {
         <div className="flex items-center space-x-1">
         </div>
       </div>
-      <div className="flex items-center  space-x-1">
+      <div className="flex items-center  space-x-3">
         
         <CustomerServiceButton 
           buttonText="联系客服" 
@@ -34,26 +34,7 @@ export default function TopNavigationBar({ user }: TopNavigationBarProps) {
           userId={user?.id || 'guest'}
           className="text-white"
         />
-        <SearchBar 
-          placeholder="搜索任务、订单" 
-          customModules={[
-            {
-              keywords: ['任务', '抢单', '订单', 'hall'],
-              urlPath: '/commenter/hall',
-              exactMatch: false
-            },
-            {
-              keywords: ['我的任务', '任务列表', '进行中'],
-              urlPath: '/commenter/tasks',
-              exactMatch: false
-            },
-            {
-              keywords: ['余额', '提现', '收入'],
-              urlPath: '/commenter/account',
-              exactMatch: false
-            }
-          ]}
-        />
+        
         <button onClick={handleLogout} className="text-sm">
           <UserOutlined />
         </button>

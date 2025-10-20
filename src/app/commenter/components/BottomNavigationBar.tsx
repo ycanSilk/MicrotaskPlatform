@@ -34,7 +34,7 @@ export default function BottomNavigationBar({}: BottomNavigationBarProps) {
           <span className={`text-lg w-6 h-6 flex items-center justify-center ${isActive('/accountrental') ? 'text-blue-500' : 'text-gray-500'}`}>
             <PropertySafetyOutlined />
           </span>
-          <span className={`text-xs ${isActive('/accountrental') ? 'text-blue-500' : 'text-gray-500'}`}>账号租赁</span>
+          <span className={`text-xs ${isActive('/accountrental') ? 'text-blue-500' : 'text-gray-500'}`}>租赁市场</span>
         </Link>
          <Link
           href="/commenter/hall"

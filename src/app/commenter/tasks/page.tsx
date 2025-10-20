@@ -284,7 +284,7 @@ export default function CommenterTasksPage() {
   // 获取按钮样式
   const getTabButtonStyle = (status: TaskStatus) => {
     const isActive = activeTab === status;
-    return `flex-1 py-4 px-3 rounded-lg text-sm transition-colors ${isActive ? 'bg-blue-500 text-white shadow-md' : 'bg-white border text-gray-600 hover:bg-blue-50'}`;
+    return `flex-1 p-2 rounded-lg text-sm transition-colors ${isActive ? 'bg-blue-500 text-white shadow-md' : 'bg-white border text-gray-600 hover:bg-blue-50'}`;
   };
 
   // 复制推荐评论功能

@@ -118,6 +118,14 @@ const PublishForm = () => {
     <div className="min-h-screen bg-gray-50 py-3">
       <div className="max-w-3xl mx-auto px-1">
         <h1 className="text-2xl font-semibold text-gray-800 mb-3">填写发布信息</h1>
+        
+        <div className="px-4 py-2">
+        <div className="bg-blue-50 border border-blue-200 p-2">
+              <div className="text-blue-700 text-sm mb-1">填写抖音账号租赁的详细信息，保信息真实有效，账号无异常,及时响应</div>
+              <div className="text-red-700 text-sm mb-1">风险提醒:涉及抖音平台规则，账号可能被平台封控，需要协助进行账号解封。</div>
+        </div>
+      </div>
+
         <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-sm border border-gray-200 p-3 space-y-3">
           {/* 描述输入 */}
           <div className="mb-1">
@@ -130,7 +138,7 @@ const PublishForm = () => {
               value={formData.description}
               onChange={handleInputChange}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
-              placeholder="请输入详细描述"
+              placeholder="填写抖音账号求租的详细信息，保信息真实有效，账号无异常,及时响应"
               rows={4}
               maxLength={150}
               required

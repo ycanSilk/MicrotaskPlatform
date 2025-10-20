@@ -1,6 +1,6 @@
 'use client';
-import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import React from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { BackButton } from '@/components/button/ReturnToPreviousPage';
 import SettingOutlined from '@ant-design/icons/SettingOutlined';
 import SearchBar from '@/components/button/SearchBar';
@@ -17,8 +17,31 @@ interface HeaderProps {
 const Header: React.FC<HeaderProps> = ({ customBackHandler, user }) => {
   const router = useRouter();
 
+  const searchParams = useSearchParams();
+  
   const handleDashboardClick = () => {
-    router.push('/publisher/dashboard');
+    // 获取 URL 中的 from 参数 - 安全处理可能为 null 的情况
+    const fromSource = searchParams?.get('from');
+    
+    console.log('来源参数:', fromSource); // 调试信息
+    
+    // 优先根据来源参数决定跳转目标
+    if (fromSource === 'commenter-hall') {
+      // 来自接单模块，返回接单模块
+      router.push('/commenter/hall');
+    } else if (fromSource === 'publisher-dashboard') {
+      // 来自派单模块，返回派单模块
+      router.push('/publisher/dashboard');
+    } else if (user?.role === 'commenter') {
+      // 评论员角色跳转到接单模块
+      router.push('/commenter/hall');
+    } else if (user?.role === 'publisher') {
+      // 发布者角色跳转到派单模块
+      router.push('/publisher/dashboard');
+    } else {
+      // 默认跳转到首页
+      router.push('/');
+    }
   };
 
   // 账号租赁相关的搜索模块配置
@@ -66,17 +89,12 @@ const Header: React.FC<HeaderProps> = ({ customBackHandler, user }) => {
         </div>
       )}
 
-      {/* 管理后台按钮 - 修改为符号样式 */}
+      {/* 退出账号租赁系统按钮 */}
       <button
         onClick={handleDashboardClick}
-        className="ml-1 w-[36px] h-[36px] flex items-center justify-center bg-transparent border-none cursor-pointer text-white rounded-full transition-colors relative group"
+        className="ml-1 px-3 py-1.5 bg-transparent border-none cursor-pointer text-white rounded-full transition-colors hover:bg-blue-600 text-sm font-medium"
       >
-        {/* 使用@ant-design/icons中的设置图标 */}
-          <SettingOutlined className="text-xl" />
-        {/* 悬停时显示中文提示 */}
-        <span className="absolute right-full mr-2 top-1/2 transform -translate-y-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all pointer-events-none">
-          返回
-        </span>
+        退出
       </button>
     </header>
   );
