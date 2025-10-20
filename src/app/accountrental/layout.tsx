@@ -92,7 +92,7 @@ const AccountRentalLayout = memo(({ children }: AccountRentalLayoutProps) => {
           <span className={`text-xl w-6 h-6 flex items-center justify-center rounded-full  ${isMarketActive ? ' text-blue-500' : 'text-gray-500'}`}>
             <ShopOutlined />
           </span>
-          <span className={`text-xs ${isMarketActive ? 'text-blue-500' : 'text-gray-500'}`}>租赁市场</span>
+          <span className={`text-xs ${isMarketActive ? 'text-blue-500' : 'text-gray-500'}`}>出租市场</span>
         </button>
         <button 
           onClick={handleRequestsClick}

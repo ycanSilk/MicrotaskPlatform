@@ -343,7 +343,7 @@ const PublishForm = () => {
               type="submit"
               className="px-6 py-2.5 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors duration-200 font-medium"
             >
-              发布
+              发布求租
             </button>
           </div>
         </form>

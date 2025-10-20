@@ -442,7 +442,7 @@ export default function ActiveTabPage() {
         setSortBy={setSortBy}
         sortOptions={sortOptions}
         viewAllUrl="/publisher/orders/active"
-        onViewAllClick={() => router.push('/publisher/tasks/active' as any)}
+        onViewAllClick={() => router.push('/publisher/orders' as any)}
       />
       
       {/* 任务列表 */}

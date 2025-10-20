@@ -14,12 +14,10 @@ export default function CommenterHallPage() {
       <TopNavigationBar user={currentUser} />
       
       {/* 主内容区域，添加padding-top避免被固定导航栏遮挡 */}
-      <div className="pt-16">
+      <div className="pt-5">
         {/* 页面标题区域 */}
-        <div className="bg-white shadow-sm">
-          <div className="px-4 py-3">
-            <h1 className="text-lg font-bold text-gray-800">抢单大厅</h1>
-          </div>
+        <div className="px-4 py-3">
+            <h1 className="text-sm text-red-500 p-3 bg-white">重要提示!：请在“我的”找到抖音版本下载，便可以使用抖音视频链接进行任务（不影响抖音正常使用）</h1>
         </div>
         
         {/* 引入抢单内容页面 */}

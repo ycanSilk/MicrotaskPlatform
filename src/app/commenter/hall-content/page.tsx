@@ -305,7 +305,7 @@ export default function CommenterHallContentPage() {
             className={`flex items-center space-x-1 px-3 py-2 rounded-lg text-sm ${sortBy === 'time' ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-600'}`}
           >
             <span>
-                <ClockCircleOutlined className="text-gray-500" />
+                <ClockCircleOutlined className="" />
               </span>
             <span>发布时间</span>
             {sortBy === 'time' && (
@@ -326,7 +326,7 @@ export default function CommenterHallContentPage() {
             className={`flex items-center space-x-1 px-3 py-2 rounded-lg text-sm ${sortBy === 'price' ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-600'}`}
           >
             <span>
-                <DollarOutlined className="text-gray-500" />
+                <DollarOutlined className="" />
               </span>
             <span>单价</span>
             {sortBy === 'price' && (
@@ -398,13 +398,13 @@ export default function CommenterHallContentPage() {
       {/* 任务提示 */}
       <div className="mx-4 mt-6 bg-blue-50 rounded-lg p-4">
         <div className="flex items-start space-x-3">
-          <span className="text-blue-500 text-xl">
+          <span className="text-red-600 text-xl">
             <BulbOutlined />
           </span>
           <div>
-            <h4 className="font-medium text-blue-800 mb-1">接单小贴士</h4>
-            <p className="text-sm text-blue-600">
-              新任务每日上午10点和下午3点更新，高价值任务数量有限，建议及时关注并抢单。
+            <h4 className="font-medium text-red-600 mb-1">接单小贴士</h4>
+            <p className="text-sm text-red-600">
+              请按照要求及时完成任务，高价值任务数量有限，建议关注抢单。如果遇到问题联系客服解决。
             </p>
           </div>
         </div>

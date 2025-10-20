@@ -12,18 +12,6 @@ import AccountCard from '../components/AccountCard';
 import AccountRentalLayout from '../layout';
 import { AccountRentalInfo } from '../types';
 
-// 筛选选项常量集合
-const FILTER_OPTIONS = {
-  publishTime: [
-    { value: 'all', label: '发布时间' },
-    { value: '1d', label: '1天内' },
-    { value: '3d', label: '3天内' },
-    { value: '7d', label: '7天内' }
-  ]
-};
-
-
-
 export default function AccountRentalMarketPage({ searchParams }: { searchParams?: { [key: string]: string | string[] | undefined } }) {
   const router = useRouter();
   const [accounts, setAccounts] = useState<AccountRentalInfo[]>([]);
@@ -40,7 +28,6 @@ export default function AccountRentalMarketPage({ searchParams }: { searchParams
     }
   };
   
-  const [publishTime, setPublishTime] = useState('all');
   const [loading, setLoading] = useState(true);
   const [displayedAccounts, setDisplayedAccounts] = useState<AccountRentalInfo[]>([]);
   const [page, setPage] = useState(1);
@@ -146,40 +133,9 @@ export default function AccountRentalMarketPage({ searchParams }: { searchParams
     }, 500);
   }, []);
 
-  // 处理筛选条件变化时重置分页
-  useEffect(() => {
-    setPage(1);
-    setDisplayedAccounts([]);
-  }, [publishTime]);
-
-  // 使用useMemo优化筛选和排序操作，避免不必要的重复计算
+  // 使用useMemo优化排序操作，避免不必要的重复计算
   const filteredAccounts = useMemo(() => {
     let result = [...accounts];
-
-    // 发布时间筛选
-    if (publishTime !== 'all') {
-      const now = new Date();
-      let timeThreshold = new Date();
-      
-      switch (publishTime) {
-        case '1d':
-          timeThreshold.setDate(now.getDate() - 1);
-          break;
-        case '3d':
-          timeThreshold.setDate(now.getDate() - 3);
-          break;
-        case '7d':
-          timeThreshold.setDate(now.getDate() - 7);
-          break;
-        default:
-          break;
-      }
-      
-      result = result.filter(account => {
-        if (!account.publishTime) return false;
-        return new Date(account.publishTime) >= timeThreshold;
-      });
-    }
 
     // 按发布时间降序排序
     result.sort((a, b) => {
@@ -187,9 +143,9 @@ export default function AccountRentalMarketPage({ searchParams }: { searchParams
     });
 
     return result;
-  }, [accounts, publishTime]);
+  }, [accounts]);
 
-  // 当筛选结果变化时，重新设置显示的账号
+  // 当账号列表变化时，重新设置显示的账号
   useEffect(() => {
     if (filteredAccounts.length > 0) {
       const initialBatch = filteredAccounts.slice(0, itemsPerPage);
@@ -307,45 +263,9 @@ export default function AccountRentalMarketPage({ searchParams }: { searchParams
 
       {/* 筛选和搜索区域 - 优化移动端体验 */}
       <div className="px-4">
-        <div className="bg-white rounded-xl">
-          {/* 横向筛选栏 - 2个元素固定一行显示，优化移动端体验 */}
-          <div className="bg-white border border-gray-200 shadow-sm mb-3 overflow-hidden">
-              <div className="flex items-center space-x-0">
-                {/* 筛选选项组件 - 优化移动端选择器 */}
-                {
-                  [
-                    { value: publishTime, onChange: setPublishTime, options: FILTER_OPTIONS.publishTime }
-                  ].map((filter, index) => (
-                  <div key={index} className="relative flex-1">
-                    <select
-                      value={filter.value}
-                      onChange={(e) => filter.onChange(e.target.value)}
-                      className="appearance-none w-full bg-transparent text-gray-700 border border-transparent focus:outline-none focus:border-blue-300 pr-8 py-2 text-center text-sm md:text-base"
-                      style={{
-                        // 增大移动端触摸区域
-                        minHeight: '44px',
-                        // 优化iOS选择器外观
-                        WebkitAppearance: 'none',
-                        // 优化移动端字体大小
-                        fontSize: '14px'
-                      }}
-                    >
-                      {filter.options.map(option => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </select>
-              
-                    {/* 移除分隔线，因为只有一个筛选器 */}
-                  </div>
-                ))
-                }
-              </div>
-
+          <div className="bg-white rounded-xl">
           </div>
         </div>
-      </div>
 
               {/* 账号列表 - 添加滚动容器引用 */}
               <div 
@@ -357,18 +277,10 @@ export default function AccountRentalMarketPage({ searchParams }: { searchParams
               >
                 {displayedAccounts.length === 0 && !loading ? (
                   <div className="bg-white rounded-xl p-8 text-center">
-                    <div className="text-4xl mb-4">📱</div>
-                    <h3 className="text-lg font-medium text-gray-800 mb-2">暂无符合条件的账号</h3>
-                    <p className="text-gray-600 mb-4">尝试调整筛选条件或搜索关键词</p>
-                    <Button 
-                onClick={() => {
-                  setPublishTime('all');
-                }}
-                className="bg-blue-500 hover:bg-blue-600 text-white"
-              >
-                重置筛选条件
-              </Button>
-                  </div>
+                      <div className="text-4xl mb-4">📱</div>
+                      <h3 className="text-lg font-medium text-gray-800 mb-2">暂无账号</h3>
+                      <p className="text-gray-600 mb-4">目前市场上没有可租赁的账号</p>
+                    </div>
                 ) : (
                   <div className="space-y-4">
                     {displayedAccounts.map(account => (

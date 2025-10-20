@@ -18,24 +18,27 @@ const SubOrderDetailPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [copySuccess, setCopySuccess] = useState(false);
 
-  // 模拟获取子订单详情数据
+  // 模拟获取子订单详情数据 - 使用固定的静态数据
   useEffect(() => {
     const fetchSubOrderDetail = async () => {
       setLoading(true);
       setError(null);
       try {
-        // 模拟数据
+        // 固定的静态数据，状态为"进行中"
         const mockSubOrder: SubOrder = {
-          id: subOrderId || `suborder-${Date.now()}-0`,
-          orderId: orderId,
-          userId: 'user-1',
-          userName: '用户1',
-          status: 'pending',
-          submitTime: new Date().toISOString(),
-          reviewTime: new Date().toISOString(),
-          reward: 51,
-          content: '这是用户提交的详细内容示例。内容必须符合平台规范，真实有效。',
-          screenshots: ['https://picsum.photos/400/300?random=0', 'https://picsum.photos/400/301?random=0']
+          id: 'fixed-suborder-001', // 固定ID，不随时间或参数变化
+          orderId: 'fixed-order-001', // 固定订单ID
+          userId: 'user-001',
+          userName: '测试用户',
+          status: 'processing', // 固定状态为"进行中"
+          submitTime: '2024-01-15T10:30:00.000Z', // 固定日期时间
+          reviewTime: '2024-01-15T14:45:00.000Z',
+          reward: 50,
+          content: '这是一个固定的测试子订单内容。用户正在处理该任务，已经提交了初步的工作成果。',
+          screenshots: [
+            'https://picsum.photos/id/237/400/300', // 使用固定ID的图片，避免随机变化
+            'https://picsum.photos/id/239/400/300'
+          ]
         };
 
         setSubOrder(mockSubOrder);
@@ -47,10 +50,9 @@ const SubOrderDetailPage: React.FC = () => {
       }
     };
 
-    if (orderId && subOrderId) {
-      fetchSubOrderDetail();
-    }
-  }, [orderId, subOrderId]);
+    // 只要组件挂载就加载数据，不再依赖orderId和subOrderId参数
+    fetchSubOrderDetail();
+  }, []);
 
   // 处理返回按钮点击
   const handleBack = () => {

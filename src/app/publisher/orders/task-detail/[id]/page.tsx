@@ -312,7 +312,7 @@ const OrderDetailPage: React.FC = () => {
             {/* 订单统计 - 同一行均等宽度 */}
             <div className="grid grid-cols-3 gap-4">
               <div className="bg-blue-50 border border-blue-100 rounded-lg p-4 text-center">
-                <div className="text-sm font-medium text-blue-500 mb-1">总单价</div>
+                <div className="text-sm font-medium text-blue-500 mb-1">总价</div>
                 <div className="text-sm font-bold text-gray-900">¥{order.budget.toFixed(2)}</div>
               </div>
               <div className="bg-green-50 border border-green-100 rounded-lg p-4 text-center">
@@ -320,7 +320,7 @@ const OrderDetailPage: React.FC = () => {
                 <div className="text-sm font-bold text-gray-900">¥{(order.budget / stats.total).toFixed(2)}</div>
               </div>
               <div className="bg-purple-50 border border-purple-100 rounded-lg p-4 text-center">
-                <div className="text-sm font-medium text-purple-500 mb-1">订单总数</div>
+                <div className="text-sm font-medium text-purple-500 mb-1">总数</div>
                 <div className="text-sm font-bold text-gray-900">{stats.total}</div>
               </div>
             </div>

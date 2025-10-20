@@ -137,7 +137,15 @@ const RentalRequestsPage = () => {
       
       {/* 主内容区域 */}
       <div className="max-w-7xl mx-auto px-2 py-6">
-        <h1 className="text-2xl mb-6">求租信息列表</h1>
+        {/* 发布求租信息按钮 */}
+        <div className="mb-6">
+          <Button 
+            onClick={() => router.push('/accountrental/account-rental-request-publish')}
+            className="bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg text-lg font-medium shadow-md transition-all min-h-12 active:scale-95"
+          >
+            发布求租信息
+          </Button>
+        </div>
 
         {loading ? (
           <div className="flex justify-center items-center py-10">

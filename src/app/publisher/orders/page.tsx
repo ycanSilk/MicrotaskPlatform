@@ -438,25 +438,35 @@ const PublisherOrdersPage: React.FC = () => {
     return statusMap[status] || { text: status, className: 'bg-gray-100 text-gray-800' };
   };
 
-  // 获取任务类型对应的图标
+  // 获取任务类型对应的评论类型文本
   const getTypeIcon = (type: string) => {
+    // 假设这里根据类型返回评论类型，实际实现可能需要根据具体数据结构调整
+    // 由于需要显示"上评评论""中评评论""上中评评论""中下评评论"，这里使用模拟逻辑
+    // 实际应用中应根据订单的具体评论类型字段返回对应的文本
     switch (type) {
+      case 'comment_positive':
+        return <span className="text-blue-500">上评评论</span>;
+      case 'comment_medium':
+        return <span className="text-blue-500">中评评论</span>;
+      case 'comment_positive_medium':
+        return <span className="text-blue-500">上中评评论</span>;
+      case 'comment_medium_negative':
+        return <span className="text-blue-500">中下评评论</span>;
       case 'comment':
-        return <span className="text-blue-500">💬</span>;
       case 'like':
-        return <span className="text-red-500">❤️</span>;
       case 'share':
-        return <span className="text-green-500">🔗</span>;
+        // 对于现有的任务类型，返回默认评论类型
+        return <span className="text-blue-500">上评评论</span>;
       default:
-        return <span className="text-gray-500">📋</span>;
+        return <span className="text-blue-500">上评评论</span>;
     }
   };
 
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex flex-col">
-        <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-          <div className="bg-white shadow-sm rounded-lg p-4">
+        <div className="max-w-7xl mx-auto py-4 px-2">
+          <div className="bg-white shadow-sm rounded-lg p-2">
             <div className="animate-pulse space-y-4">
               <div className="h-10 bg-gray-200 rounded-md"></div>
               <div className="h-6 bg-gray-200 rounded w-1/4"></div>
@@ -476,8 +486,8 @@ const PublisherOrdersPage: React.FC = () => {
   if (error) {
     return (
       <div className="min-h-screen bg-gray-50 flex flex-col">
-        <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-          <div className="bg-white shadow-sm rounded-lg p-6">
+        <div className="max-w-7xl mx-auto py-4 px-2">
+          <div className="bg-white shadow-sm rounded-lg p-2">
             <div className="flex flex-col items-center justify-center space-y-4">
               <ExclamationCircleOutlined className="h-12 w-12 text-red-500" />
               <p className="mb-2text-lg font-medium">{error}</p>
@@ -516,11 +526,11 @@ const PublisherOrdersPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <main className="flex-grow">
-        <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+        <div className="">
           {/* 操作栏 */}
-          <div className="bg-white shadow-sm rounded-lg px-2 py-3 mb-3">
+          <div className="bg-white shadow-sm rounded-lg mb-3">
             {/* 第一行：搜索框和搜索按钮 */}
-            <div className="flex items-center space-x-3 mb-3">
+            <div className="flex items-center space-x-3 mb-3 p-2">
               <div className="flex-grow">
                 <div className="relative w-full">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -546,7 +556,7 @@ const PublisherOrdersPage: React.FC = () => {
             </div>
             
             {/* 第二行：状态筛选和日期筛选 */}
-            <div className="flex flex-wrap items-center space-x-3">
+            <div className="flex flex-wrap items-center space-x-3 p-2">
                {/* 日期筛选按钮和选择器 */}
               <div className="relative">
                 <button
@@ -632,7 +642,7 @@ const PublisherOrdersPage: React.FC = () => {
               <p className="text-sm">{error}</p>
             </div>
           ) : (
-            <div className="bg-white shadow-sm rounded-lg p-4">
+            <div className="bg-white shadow-sm rounded-lg p-2">
               {filteredOrders.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-10 text-gray-500">
                   <p>暂无订单数据</p>
@@ -640,12 +650,12 @@ const PublisherOrdersPage: React.FC = () => {
               ) : (
                 <div className="space-y-4">
                   {filteredOrders.map((order) => (
-                    <div key={order.id} className="p-4 border border-gray-200 rounded-lg hover:shadow-md transition-shadow">
+                    <div key={order.id} className="p-2 border border-gray-200 rounded-sm hover:shadow-md transition-shadow">
                       {/* 订单号和复制按钮 */}
                       <div className="flex justify-between items-start mb-3">
                         <div className="flex-1">
                           <div className="flex items-center">
-                            <span className="font-medium mr-2">订单号：</span>
+                            <span className="font-medium">订单号：</span>
                             <span>{order.orderNumber}</span>
                           </div>
                           <div className="text-sm text-gray-500 mt-1">创建时间：{formatDate(order.createdAt)}</div>
@@ -656,7 +666,7 @@ const PublisherOrdersPage: React.FC = () => {
                             className="text-blue-600 hover:text-blue-800 text-sm flex items-center"
                           >
                             <CopyOutlined className="h-4 w-4 mr-1" />
-                            复制订单号
+                            复制
                           </button>
                           {copiedOrderNumber === order.orderNumber && (
                             <div className="absolute -top-8 right-0 bg-green-600 text-white text-xs px-2 py-1 rounded shadow">
@@ -667,61 +677,65 @@ const PublisherOrdersPage: React.FC = () => {
                       </div>
                       
                       {/* 订单标题和状态 */}
-                      <div className="flex justify-between items-center mb-3">
-                        <h3 className="font-semibold text-lg">{order.title}</h3>
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusInfo(order.status).className}`}>
-                          {getStatusInfo(order.status).text}
-                        </span>
-                      </div>
-                      
-                      {/* 订单描述 */}
-                      <div className="text-sm text-gray-600 mb-3 line-clamp-2">
-                        {order.description}
-                      </div>
-                      
-                      {/* 任务类型和预算 */}
-                      <div className="flex justify-between items-center mb-4">
-                        <div className="flex items-center">
-                          <span className="mr-2">任务类型：</span>
-                          {getTypeIcon(order.type)}
+                      <div className="mb-1">
+                        <h3 className="font-semibold text-lg mb-1">订单描述</h3>
+                        <div className="flex items-center justify-between">
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusInfo(order.status).className} mb-1 block`}>
+                            {getStatusInfo(order.status).text}
+                          </span>
+                          <div className="flex items-center">
+                            {getTypeIcon(order.type)}
+                          </div>
                         </div>
+                      </div>
+                        
+                      {/* 预算信息 */}
+                      <div className="mb-1">
                         <div className="font-medium">
                           总预算：¥{order.budget}
                         </div>
                       </div>
-                      
+                        
                       {/* 子订单统计 */}
-                      <div className="bg-gray-50 p-3 rounded-md mb-3">
-                        <div className="flex items-center justify-between mb-2">
+                      <div className="bg-gray-50 p-2 rounded-md mb-1 text-center">
+                        <div className="flex items-center justify-between mb-1">
                           <span className="text-sm font-medium">子订单状态统计：</span>
                           <span className="text-xs text-gray-500">共 {getSubOrderStats(order.subOrders).total} 个子订单</span>
                         </div>
-                        <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 text-xs">
-                          <div className="flex items-center">
-                            <span className="w-2 h-2 rounded-full bg-yellow-500 mr-1"></span>
-                            待处理：{getSubOrderStats(order.subOrders).pending}
+                        <div className="grid grid-cols-4 gap-2 text-xs">
+                          <div className="flex flex-col items-center">
+                            <div className="flex items-center">
+                              <div className="w-2 h-2 rounded-full bg-yellow-500 mr-1"></div>
+                              待处理：
+                            </div>
+                            <div className='text-center'>{getSubOrderStats(order.subOrders).pending}</div>
                           </div>
-                          <div className="flex items-center">
-                            <span className="w-2 h-2 rounded-full bg-blue-500 mr-1"></span>
-                            进行中：{getSubOrderStats(order.subOrders).processing}
+                          <div className="flex flex-col items-center">
+                            <div className="flex items-center">
+                              <div className="w-2 h-2 rounded-full bg-blue-500 mr-1"></div>
+                              进行中：
+                            </div>
+                            <div className='text-center'>{getSubOrderStats(order.subOrders).processing}</div>
                           </div>
-                          <div className="flex items-center">
-                            <span className="w-2 h-2 rounded-full bg-purple-500 mr-1"></span>
-                            审核中：{getSubOrderStats(order.subOrders).reviewing}
+                          <div className="flex flex-col items-center">
+                            <div className="flex items-center">
+                              <div className="w-2 h-2 rounded-full bg-purple-500 mr-1"></div>
+                              审核中：
+                            </div>
+                            <div className='text-center'>{getSubOrderStats(order.subOrders).reviewing}</div>
                           </div>
-                          <div className="flex items-center">
-                            <span className="w-2 h-2 rounded-full bg-green-500 mr-1"></span>
-                            已完成：{getSubOrderStats(order.subOrders).completed}
-                          </div>
-                          <div className="flex items-center">
-                            <span className="w-2 h-2 rounded-full bg-red-500 mr-1"></span>
-                            已拒绝：{getSubOrderStats(order.subOrders).rejected}
+                          <div className="flex flex-col items-center">
+                            <div className="flex items-center">
+                              <div className="w-2 h-2 rounded-full bg-green-500 mr-1"></div>
+                              已完成：
+                            </div>
+                            <div className='text-center'>{getSubOrderStats(order.subOrders).completed}</div>
                           </div>
                         </div>
                       </div>
                       
                       {/* 操作按钮 */}
-                      <div className="flex justify-end space-x-2">
+                      <div className="flex justify-end space-x-2 mt-2">
                         <button
                           onClick={() => viewOrderDetails(order.id)}
                           className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors"

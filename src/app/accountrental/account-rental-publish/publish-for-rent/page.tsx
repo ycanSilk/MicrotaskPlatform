@@ -556,7 +556,7 @@ export default function DouyinAccountRentalPage() {
               variant="primary"
               className="bg-blue-500 hover:bg-blue-600 px-4 py-2"
             >
-             立即发布（¥{calculateTotalPrice()}元）
+             发布出租{calculateTotalPrice()}元）
             </Button>
           </div>
         </div>
