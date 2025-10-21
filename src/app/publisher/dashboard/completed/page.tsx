@@ -184,7 +184,7 @@ export default function CompletedTabPage() {
   if (loading) {
     return (
       <div className="pb-20 flex items-center justify-center h-64">
-        <div className="text-gray-500">加载中...</div>
+        <div className="">加载中...</div>
       </div>
     );
   }
@@ -305,10 +305,10 @@ export default function CompletedTabPage() {
     };
 
     return (
-      <div className="p-4 bg-white rounded-lg shadow-sm hover:shadow-md transition-all mb-3">
+      <div className="p-4 bg-white rounded-lg shadow-sm hover:shadow-md transition-all mb-1">
         {/* 订单号和复制按钮 */}
-        <div className="flex justify-between items-center mb-3">
-          <div className="text-sm font-medium text-gray-700">
+        <div className="flex justify-between items-center mb-1">
+          <div className="text-sm font-medium  truncate w-2/3">
             订单号：{order.orderNumber}
           </div>
           <div className="relative">
@@ -322,60 +322,65 @@ export default function CompletedTabPage() {
         </div>
 
         {/* 创建时间 */}
-        <div className="text-sm text-gray-500 mb-2">
+        <div className="text-sm  mb-1">
           创建时间：{formatDate(order.publishTime)}
         </div>
-
-        {/* 标题和状态 */}
-        <div className="flex justify-between items-center mb-2">
-          <h3 className="text-base font-semibold text-gray-900 line-clamp-1">
-            {order.title}
-          </h3>
-          <span className={`text-xs px-2 py-1 rounded-full ${getStatusStyle(order.status)}`}>
-            {order.status === 'completed' ? '已完成' : '进行中'}
-          </span>
+        <div className="text-sm  mb-1">
+          完成时间：{formatDate(order.deadline)}
         </div>
 
+        
+
         {/* 描述 */}
-        <div className="text-sm text-gray-600 mb-3 line-clamp-2">
+        <div className="text-sm mb-1 line-clamp-2">
           {order.description}
         </div>
 
-        {/* 任务类型和预算 */}
-        <div className="flex justify-between items-center mb-3">
-          <div className="flex items-center text-sm text-gray-700">
-            <span className="mr-1">{getTaskTypeIcon(order.type)}</span>
-            {order.type === 'comment' ? '评论任务' : order.type === 'share' ? '分享任务' : '其他任务'}
-          </div>
-          <div className="text-sm font-medium text-gray-900">
-            订单单价：¥{order.price.toFixed(2)}
-          </div>
+        <div className="mb-1 bg-blue-50 border border-blue-500 py-2 px-3 rounded-lg">
+          <p className='mb-1 text-sm text-blue-600'>任务视频点击进入：</p>
+          <a 
+            href="http://localhost:3000/publisher/dashboard?tab=active" 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            className="bg-blue-600 text-white px-3 py-1.5 rounded-md text-sm  inline-flex items-center"
+            onClick={(e) => {
+              e.preventDefault();
+              // 在实际应用中，这里应该跳转到抖音视频页面
+              window.open('https://www.douyin.com', '_blank');
+            }}
+          >
+            <span className="mr-1">⦿</span> 打开视频
+          </a>
+          
         </div>
 
-        {/* 子订单状态统计 */}
-        <div className="flex flex-wrap gap-2 mb-4">
-          <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
-            已完成：{subOrderStats.completed || 0}
-          </span>
-          <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
-            进行中：{subOrderStats.processing || 0}
-          </span>
-          <span className="text-xs bg-gray-100 text-gray-800 px-2 py-1 rounded-full">
-            待领取：{subOrderStats.pending || 0}
-          </span>
+        {/* 任务类型和预算 */}
+        <div className="flex items-center mb-1 gap-2">
+            <div className={`text-xs px-2 py-1 rounded-full ${getStatusStyle(order.status)}`}>
+              {order.status === 'completed' ? '已完成' : '进行中'}
+            </div>
+            <div className="text-sm font-medium text-gray-900">
+              子订单数：{order.subOrders.length}
+            </div>
+            <div className="text-sm font-medium text-gray-900">
+              价格：¥{order.price.toFixed(2)}
+            </div>
         </div>
+
+
+
 
         {/* 操作按钮 */}
-        <div className="flex gap-2">
+        <div className="flex gap-2 justify-end">
           <button
-            onClick={() => handleTaskAction(order.id, '查看详情')}
-            className="flex-1 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 transition-colors"
+            onClick={() => router.push(`/publisher/orders/task-detail/${order.id}`)}
+            className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 transition-colors"
           >
             查看详情
           </button>
           <button
             onClick={() => handleTaskAction(order.id, '再次下单')}
-            className="flex-1 py-2 bg-gray-600 text-white rounded-md text-sm font-medium hover:bg-gray-700 transition-colors"
+            className="px-4 py-2 bg-orange-500 text-white rounded-md text-sm font-medium hover:bg-orange-600 transition-colors"
           >
             再次下单
           </button>
@@ -402,8 +407,8 @@ export default function CompletedTabPage() {
         handleSearch={handleSearch}
         sortBy={sortBy}
         setSortBy={setSortBy}
-        viewAllUrl="/publisher/tasks/completed"
-        onViewAllClick={() => router.push('/publisher/tasks/completed' as any)}
+        viewAllUrl="/publisher/orders"
+        onViewAllClick={() => router.push('/publisher/orders')}
       />
       
       {/* 任务列表 */}
@@ -421,7 +426,7 @@ export default function CompletedTabPage() {
           })
         ) : (
           <div className="text-center py-8 bg-white rounded-lg shadow-sm">
-            <p className="text-gray-500">暂无相关任务</p>
+            <p className="">暂无相关任务</p>
           </div>
         )}
       </div>

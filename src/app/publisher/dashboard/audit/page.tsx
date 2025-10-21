@@ -25,9 +25,17 @@ export default function AuditTabPage() {
   const [sortBy, setSortBy] = useState('time');
   const [loading, setLoading] = useState(true);
   const [pendingOrders, setPendingOrders] = useState<PendingOrder[]>([]);
-    // 显示复制成功提示
+  // 显示复制成功提示
   const [showCopyTooltip, setShowCopyTooltip] = useState(false);
   const [tooltipMessage, setTooltipMessage] = useState('');
+  // 模态框状态
+  const [showApproveModal, setShowApproveModal] = useState(false);
+  const [showRejectModal, setShowRejectModal] = useState(false);
+  const [rejectReason, setRejectReason] = useState('');
+  const [currentOrderId, setCurrentOrderId] = useState('');
+  // 图片查看器状态
+  const [showImageViewer, setShowImageViewer] = useState(false);
+  const [currentImageUrl, setCurrentImageUrl] = useState('');
 
   // 模拟订单数据
   const mockOrders: PendingOrder[] = [
@@ -80,12 +88,47 @@ export default function AuditTabPage() {
 
   // 处理订单审核
   const handleOrderReview = (orderId: string, action: string) => {
-    // 这里可以添加具体的审核逻辑
+    setCurrentOrderId(orderId);
+    if (action === 'approve') {
+      setShowApproveModal(true);
+    } else if (action === 'reject') {
+      setRejectReason('');
+      setShowRejectModal(true);
+    }
+  };
+
+  // 确认审核通过
+  const confirmApprove = () => {
+    // 这里添加审核通过的逻辑
+    console.log(`订单 ${currentOrderId} 已审核通过`);
+    showCopySuccess('订单已审核通过');
+    setShowApproveModal(false);
+    // 在实际应用中，这里应该更新订单状态
+  };
+
+  // 确认驳回
+  const confirmReject = () => {
+    if (!rejectReason.trim()) {
+      alert('请输入驳回理由');
+      return;
+    }
+    // 这里添加驳回的逻辑
+    console.log(`订单 ${currentOrderId} 已驳回，理由：${rejectReason}`);
+    showCopySuccess('订单已驳回');
+    setShowRejectModal(false);
+    // 在实际应用中，这里应该更新订单状态
   };
 
   // 打开图片查看器
   const openImageViewer = (imageUrl: string) => {
-    // 这里可以添加图片查看器逻辑
+    setCurrentImageUrl(imageUrl);
+    setShowImageViewer(true);
+  };
+
+  // 关闭图片查看器
+  const closeImageViewer = () => {
+    setShowImageViewer(false);
+    setCurrentImageUrl('');
   };
 
   // 过滤最近订单
@@ -186,9 +229,9 @@ export default function AuditTabPage() {
       
       {/* 子订单列表 - 内联实现AuditOrderCard功能 */}
       {filteredOrders.map((order, index) => (
-        <div key={`pending-${order.id}-${index}`} className="p-3 rounded-lg shadow-sm hover:shadow-md transition-shadow mb-2 bg-white">
+        <div key={`pending-${order.id}-${index}`} className="p-3 rounded-lg shadow-sm hover:shadow-md transition-shadow mb-1 bg-white">
           {/* 订单号 */}
-          <div className="flex items-center mb-2 overflow-hidden">
+          <div className="flex items-center mb-1 overflow-hidden">
             <div className="flex-1 mr-2 whitespace-nowrap overflow-hidden text-truncate">
               订单号：{order.orderNumber || order.id}
             </div>
@@ -203,7 +246,7 @@ export default function AuditTabPage() {
           </div>
           
           {/* 订单状态和任务类型 - 同一行且独立占一行 */}
-          <div className="flex items-center mb-2 space-x-4">
+          <div className="flex items-center mb-1 space-x-4">
             <div className="px-2 py-0.5 bg-yellow-100 text-yellow-800 rounded text-xs">
               待审核
             </div>
@@ -213,46 +256,46 @@ export default function AuditTabPage() {
           </div>
           
           {/* 价格和状态信息 */}
-          <div className="mb-3">
+          <div className="mb-1">
             <div className="flex items-center mb-1">
-              <span className="text-sm text-black font-medium">订单单价：</span>
+              <span className="text-sm text-black font-medium">价格：</span>
               <span className="text-sm text-black">¥6.00</span>
             </div>
           </div>
           
           {/* 时间信息 - 各自独占一行 */}
-          <div className="text-sm text-black mb-2">
+          <div className="text-sm text-black mb-1">
             发布时间：2025-10-15 12:00:00
           </div>
-          <div className="text-sm text-black mb-2">
+          <div className="text-sm text-black mb-1">
             提交时间：2025-10-15 14:00:00
           </div>
           
           {/* 领取用户信息展示 */}
-          <div className="text-black text-sm mb-2 w-full rounded-lg">
+          <div className="text-black text-sm mb-1 w-full rounded-lg">
               要求：组合任务，中下评评论
           </div>
 
-          <div className="text-sm text-red-500 mb-2">温馨提示：审核过程中如目标视频丢失，将以接单员完成任务截图为准给予审核结算</div>
+          <div className="text-sm text-red-500 mb-1">温馨提示：审核过程中如目标视频丢失，将以接单员完成任务截图为准给予审核结算</div>
           
           {/* 评论展示和复制功能 */}
           {order.content && (
-            <div className="mb-3 p-2 border border-gray-200 rounded-lg bg-gray-50">
+            <div className="mb-3 p-2 border border-gray-200 rounded-lg bg-blue-50">
               <div className="flex items-start justify-between mb-1">
-                <span className="text-sm font-medium text-gray-700">提交的评论：</span>
+                <span className="text-sm font-medium text-blue-700">提交的评论：</span>
                 <button
-                  className="text-blue-600 hover:text-blue-800 text-xs flex items-center"
+                  className="text-blue-600 hover:text-blue-700 text-xs flex items-center"
                   onClick={() => handleCopyComment(order.content || '')}
                 >
                   <span className="mr-1">⧉</span> 复制评论
                 </button>
               </div>
-              <p className="text-sm text-gray-800 whitespace-pre-wrap">{order.content}</p>
+              <p className="text-sm text-blue-700 whitespace-pre-wrap">{order.content}</p>
             </div>
           )}
 
-          <div className="mb-2 bg-blue-50 border border-blue-500 py-2 px-3 rounded-lg">
-            <p className='mb-2  text-sm text-blue-600'>已完成评论点击进入：</p>
+          <div className="mb-1 bg-blue-50 border border-blue-500 py-2 px-3 rounded-lg">
+            <p className='mb-1  text-sm text-blue-600'>已完成评论点击进入：</p>
             <a 
               href="http://localhost:3000/publisher/dashboard?tab=active" 
               target="_blank" 
@@ -276,7 +319,7 @@ export default function AuditTabPage() {
                 {order.images.map((imageUrl: string, imgIndex: number) => (
                   <div 
                     key={imgIndex}
-                    className="w-full h-[100px] relative cursor-pointer overflow-hidden rounded-lg border border-gray-300 bg-gray-50 transition-colors hover:border-blue-400 hover:shadow-md flex items-center justify-center"
+                    className="w-[90px] h-[90px] relative cursor-pointer overflow-hidden rounded-lg border border-gray-300 bg-gray-50 transition-colors hover:border-blue-400 hover:shadow-md flex items-center justify-center"
                     onClick={() => openImageViewer(imageUrl)}
                   >
                     <img 
@@ -304,15 +347,15 @@ export default function AuditTabPage() {
           </div>
 
           {/* 按钮区域 */}
-            <div className="mt-4 flex gap-2">
+            <div className="mt-4 flex gap-2 justify-end">
               <button 
-                className="flex-1 py-2 bg-green-600 text-white rounded-md text-sm font-medium hover:bg-green-700 transition-colors"
+                className="py-2 px-4 bg-green-600 text-white rounded-md text-sm font-medium hover:bg-green-700 transition-colors"
                 onClick={() => handleOrderReview(order.id, 'approve')}
               >
                 审核通过
               </button>
               <button 
-                className="flex-1 py-2 bg-red-600 text-white rounded-md text-sm font-medium hover:bg-red-700 transition-colors"
+                className="py-2 px-4 bg-red-600 text-white rounded-md text-sm font-medium hover:bg-red-700 transition-colors"
                 onClick={() => handleOrderReview(order.id, 'reject')}
               >
                 驳回订单
@@ -320,6 +363,78 @@ export default function AuditTabPage() {
             </div>
         </div>
       ))}
+    
+    {/* 审核通过确认模态框 */}
+    {showApproveModal && (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="bg-white rounded-lg p-5 w-full max-w-md">
+          <h3 className="text-lg font-medium mb-3">确认审核通过</h3>
+          <p className="text-gray-600 mb-4">您确定要审核通过这个订单吗？</p>
+          <div className="flex justify-end gap-3">
+            <button 
+              className="px-4 py-2 border border-gray-300 rounded-md text-sm hover:bg-gray-50 transition-colors"
+              onClick={() => setShowApproveModal(false)}
+            >
+              取消
+            </button>
+            <button 
+              className="px-4 py-2 bg-green-600 text-white rounded-md text-sm hover:bg-green-700 transition-colors"
+              onClick={confirmApprove}
+            >
+              确定
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+    
+    {/* 驳回订单模态框 */}
+    {showRejectModal && (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="bg-white rounded-lg p-5 w-full max-w-md">
+          <h3 className="text-lg font-medium mb-3">驳回订单</h3>
+          <p className="text-gray-600 mb-1">请输入驳回理由：</p>
+          <textarea 
+            className="w-full border border-gray-300 rounded-md p-2 mb-4 min-h-[100px]"
+            value={rejectReason}
+            onChange={(e) => setRejectReason(e.target.value)}
+            placeholder="请输入驳回原因..."
+          />
+          <div className="flex justify-end gap-3">
+            <button 
+              className="px-4 py-2 border border-gray-300 rounded-md text-sm hover:bg-gray-50 transition-colors"
+              onClick={() => setShowRejectModal(false)}
+            >
+              取消
+            </button>
+            <button 
+              className="px-4 py-2 bg-red-600 text-white rounded-md text-sm hover:bg-red-700 transition-colors"
+              onClick={confirmReject}
+            >
+              确定驳回
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+    
+    {/* 图片查看器 */}
+    {showImageViewer && (
+      <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50">
+        <button 
+          className="absolute top-4 right-4 text-white text-2xl"
+          onClick={closeImageViewer}
+        >
+          ×
+        </button>
+        <img 
+          src={currentImageUrl} 
+          alt="大图查看" 
+          className="max-w-[90%] max-h-[90%] object-contain"
+        />
+      </div>
+    )}
+    
     </div>
   );
 }

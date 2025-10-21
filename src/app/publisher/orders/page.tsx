@@ -528,9 +528,9 @@ const PublisherOrdersPage: React.FC = () => {
       <main className="flex-grow">
         <div className="">
           {/* 操作栏 */}
-          <div className="bg-white shadow-sm rounded-lg mb-3">
+          <div className="bg-white shadow-sm mb-1">
             {/* 第一行：搜索框和搜索按钮 */}
-            <div className="flex items-center space-x-3 mb-3 p-2">
+            <div className="flex items-center space-x-3 mb-1 p-2">
               <div className="flex-grow">
                 <div className="relative w-full">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">

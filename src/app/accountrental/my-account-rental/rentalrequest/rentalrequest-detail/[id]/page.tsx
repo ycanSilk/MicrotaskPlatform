@@ -266,7 +266,6 @@ const RentalRequestDetailPage = () => {
             </div>
           </Descriptions.Item>
           <Descriptions.Item label="账号要求">{requestDetail.accountDescription}</Descriptions.Item>
-          <Descriptions.Item label="粉丝要求">{requestDetail.requiredFollowers}</Descriptions.Item>
           <Descriptions.Item label="租赁时长">{requestDetail.rentalDays} 天</Descriptions.Item>
           <Descriptions.Item label="预算">¥{requestDetail.budget}</Descriptions.Item>
           <Descriptions.Item label="发布时间">{requestDetail.createTime}</Descriptions.Item>
@@ -281,7 +280,6 @@ const RentalRequestDetailPage = () => {
             <Descriptions size="small" column={1} bordered>
               <Descriptions.Item label="匹配账号名称">{requestDetail.matchedAccount.accountName}</Descriptions.Item>
               <Descriptions.Item label="账号所有者">{requestDetail.matchedAccount.accountOwner}</Descriptions.Item>
-              <Descriptions.Item label="粉丝数量">{requestDetail.matchedAccount.followers}</Descriptions.Item>
               <Descriptions.Item label="租赁开始时间">{requestDetail.matchedAccount.startDate}</Descriptions.Item>
               <Descriptions.Item label="租赁结束时间">{requestDetail.matchedAccount.endDate}</Descriptions.Item>
             </Descriptions>
@@ -360,10 +358,6 @@ const RentalRequestDetailPage = () => {
           >
             <Select placeholder="请选择账号类型">
               <Select.Option value="抖音">抖音</Select.Option>
-              <Select.Option value="小红书">小红书</Select.Option>
-              <Select.Option value="微博">微博</Select.Option>
-              <Select.Option value="快手">快手</Select.Option>
-              <Select.Option value="其他">其他</Select.Option>
             </Select>
           </Form.Item>
           
@@ -373,15 +367,7 @@ const RentalRequestDetailPage = () => {
             rules={[{ required: true, message: '请填写账号要求详情' }]}
           >
             <Input.TextArea rows={4} placeholder="请详细描述您对账号的要求" />
-          </Form.Item>
-          
-          <Form.Item
-            name="requiredFollowers"
-            label="粉丝要求"
-            rules={[{ required: true, message: '请填写粉丝要求' }]}
-          >
-            <Input placeholder="例如：10万以上" />
-          </Form.Item>
+          </Form.Item> 
           
           <Form.Item
             name="rentalDays"

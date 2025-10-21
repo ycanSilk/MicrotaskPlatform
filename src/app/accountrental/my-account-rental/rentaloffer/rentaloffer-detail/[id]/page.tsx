@@ -2,10 +2,9 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Card, Button, Space, Avatar, Descriptions, Divider, Tabs, Modal, Form, Input, InputNumber, Select, message, Image, Badge, List } from 'antd';
-import { ArrowLeftOutlined, PhoneOutlined, EditOutlined, DeleteOutlined, CheckCircleOutlined, ExclamationCircleOutlined, UploadOutlined } from '@ant-design/icons';
+import { Card, Button, Space, Descriptions, Divider, Modal, message } from 'antd';
+import { ArrowLeftOutlined, PhoneOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
-import type { TabsProps } from 'antd';
 
 // 出租信息状态类型
 type RentalOfferStatus = '待审核' | '已上架' | '已租出' | '已下架' | '审核不通过';
@@ -18,7 +17,6 @@ interface RentalOffer {
   userId: string;
   accountType: string;
   accountName: string;
-  followersCount: string;
   accountDescription: string;
   rentalPrice: number;
   rentalUnit: string;
@@ -58,7 +56,7 @@ const RentalOfferDetailPage = () => {
   const [offerDetail, setOfferDetail] = useState<RentalOffer | null>(null);
   const [editModalVisible, setEditModalVisible] = useState<boolean>(false);
   const [offShelfModalVisible, setOffShelfModalVisible] = useState<boolean>(false);
-  const [form] = Form.useForm();
+  // 删除不再使用的表单实例
   
   // 模拟从API获取出租详情
   useEffect(() => {
@@ -71,7 +69,6 @@ const RentalOfferDetailPage = () => {
         userId: 'USER123456',
         accountType: '抖音',
         accountName: '美食达人小C',
-        followersCount: '12.5万',
         accountDescription: '专注美食领域，以制作精致的餐厅探店和美食测评视频为主，互动率高，粉丝粘性强。主要内容包括热门餐厅探店、美食制作教程、特色小吃推荐等。账号粉丝主要为20-35岁的年轻人群，对美食有较高的热情和消费能力。',
         rentalPrice: 800,
         rentalUnit: '天',
@@ -79,9 +76,8 @@ const RentalOfferDetailPage = () => {
         status: '已上架',
         imageUrl: '/images/douyin-logo.png',
         dataImages: [
-          '/images/data-chart1.png',
-          '/images/data-chart2.png',
-          '/images/data-chart3.png'
+          '/images/1758384598887_578.jpg',
+          '/images/1758380776810_96.jpg'
         ]
       },
       {
@@ -89,15 +85,14 @@ const RentalOfferDetailPage = () => {
         offerNo: 'OFFER20240619002',
         userName: '李四',
         userId: 'USER234567',
-        accountType: '小红书',
+        accountType: '抖音',
         accountName: '美妆博主小D',
-        followersCount: '8.3万',
         accountDescription: '专业美妆博主，擅长口红试色和妆容教程，粉丝多为年轻女性，互动积极。主要分享美妆技巧、产品测评、妆容教程等内容，内容风格清新自然，推荐产品性价比高，深受粉丝信赖。',
         rentalPrice: 600,
         rentalUnit: '天',
         createTime: '2024-06-19 15:20:00',
         status: '已租出',
-        imageUrl: '/images/xiaohongshu-logo.png',
+        imageUrl: '/images/douyin-logo.png',
         rentalInfo: {
           rentalOrderNo: 'RENT20240621001',
           tenantName: '王五',
@@ -106,45 +101,9 @@ const RentalOfferDetailPage = () => {
           amount: 2400
         },
         dataImages: [
-          '/images/data-chart1.png',
-          '/images/data-chart2.png'
+         '/images/1758384598887_578.jpg',
+          '/images/1758380776810_96.jpg'
         ]
-      },
-      {
-        id: '3',
-        offerNo: 'OFFER20240618003',
-        userName: '王五',
-        userId: 'USER345678',
-        accountType: '微博',
-        accountName: '旅行家李明',
-        followersCount: '62.3万',
-        accountDescription: '知名旅游博主，以高质量旅行攻略和目的地推荐著称，内容专业详实。曾获旅游行业多项大奖，多篇攻略被官方旅游局转载推荐。粉丝群体覆盖广泛，以25-45岁中高收入人群为主。',
-        rentalPrice: 2000,
-        rentalUnit: '天',
-        createTime: '2024-06-18 09:15:00',
-        status: '已上架',
-        imageUrl: '/images/0e92a4599d02a7.jpg',
-        dataImages: [
-          '/images/data-chart1.png',
-          '/images/data-chart2.png',
-          '/images/data-chart3.png',
-          '/images/data-chart4.png'
-        ]
-      },
-      {
-        id: '4',
-        offerNo: 'OFFER20240617004',
-        userName: '赵六',
-        userId: 'USER456789',
-        accountType: '快手',
-        accountName: '搞笑视频创作者小王',
-        followersCount: '35.7万',
-        accountDescription: '擅长制作轻松幽默的短视频内容，搞笑段子和生活喜剧为主，深受年轻用户喜爱。内容风格轻松活泼，传播性强，平均每条视频播放量超过50万。',
-        rentalPrice: 1200,
-        rentalUnit: '天',
-        createTime: '2024-06-17 14:30:00',
-        status: '待审核',
-        imageUrl: '/images/kuaishou-logo.png'
       },
       {
         id: '5',
@@ -153,31 +112,37 @@ const RentalOfferDetailPage = () => {
         userId: 'USER567890',
         accountType: '抖音',
         accountName: '游戏主播阿强',
-        followersCount: '42.1万',
         accountDescription: '人气游戏主播，技术出众，解说专业，擅长多款热门游戏，粉丝活跃度高。每天固定直播时间4小时以上，直播间互动热烈，打赏收入稳定。',
         rentalPrice: 1500,
         rentalUnit: '小时',
         createTime: '2024-06-16 11:20:00',
         status: '审核不通过',
         imageUrl: '/images/douyin-logo.png',
-        rejectReason: '请提供账号所有权证明文件和近期直播数据截图。账号信息需与实名认证信息一致。'
+        rejectReason: '请提供账号所有权证明文件和近期直播数据截图。账号信息需与实名认证信息一致。',
+        rentalInfo: {
+          rentalOrderNo: 'RENT20240621001',
+          tenantName: '王五',
+          startDate: '2024-06-25',
+          endDate: '2024-06-28',
+          amount: 2400
+        },
+        dataImages: [
+         '/images/1758384598887_578.jpg',
+          '/images/1758380776810_96.jpg'
+        ]
       }
     ];
 
     // 查找匹配的出租信息
     const foundOffer = mockOffers.find(offer => offer.id === offerId) || mockOffers[0];
-    setOfferDetail(foundOffer);
-    
-    // 初始化表单数据
-    form.setFieldsValue({
-      accountType: foundOffer.accountType,
-      accountName: foundOffer.accountName,
-      followersCount: foundOffer.followersCount,
-      accountDescription: foundOffer.accountDescription,
-      rentalPrice: foundOffer.rentalPrice,
-      rentalUnit: foundOffer.rentalUnit
-    });
-  }, [offerId, form]);
+    // 确保账号类型为抖音
+    const offerWithDouyinType = {
+      ...foundOffer,
+      accountType: '抖音',
+      imageUrl: '/images/douyin-logo.png'
+    };
+    setOfferDetail(offerWithDouyinType);
+  }, [offerId]);
 
   // 处理返回列表
   const handleBackToList = () => {
@@ -197,19 +162,9 @@ const RentalOfferDetailPage = () => {
 
   // 处理保存编辑
   const handleSaveEdit = () => {
-    form.validateFields().then(values => {
-      console.log('保存编辑:', values);
-      setEditModalVisible(false);
-      // 更新本地状态模拟编辑成功
-      if (offerDetail) {
-        const updatedOffer = {
-          ...offerDetail,
-          ...values
-        };
-        setOfferDetail(updatedOffer);
-        message.success('出租信息已更新');
-      }
-    });
+    // 由于表单组件已删除，简化处理逻辑
+    setEditModalVisible(false);
+    message.success('出租信息已更新');
   };
 
   // 处理下架
@@ -305,7 +260,6 @@ const RentalOfferDetailPage = () => {
             </div>
           </Descriptions.Item>
           <Descriptions.Item label="账号名称">{offerDetail.accountName}</Descriptions.Item>
-          <Descriptions.Item label="粉丝数量">{offerDetail.followersCount}</Descriptions.Item>
           <Descriptions.Item label="账号描述">{offerDetail.accountDescription}</Descriptions.Item>
           <Descriptions.Item label="租赁价格">{offerDetail.rentalPrice} 元/{offerDetail.rentalUnit}</Descriptions.Item>
           <Descriptions.Item label="发布时间">{offerDetail.createTime}</Descriptions.Item>
@@ -345,20 +299,17 @@ const RentalOfferDetailPage = () => {
             <Divider orientation="left" orientationMargin={0} className="my-4">
               <span className="text-base">账号数据展示</span>
             </Divider>
-            <List
-              grid={{ gutter: 16, column: 2 }}
-              dataSource={offerDetail.dataImages}
-              renderItem={(src) => (
-                <List.Item>
-                  <Image
-                    width={200}
-                    height={120}
-                    src={src}
-                    alt="账号数据"
+            <div className="account-data-images">
+              {offerDetail.dataImages.map((src, index) => (
+                <div key={index} className="data-image-item">
+                  <img 
+                    src={src} 
+                    alt={`账号数据截图 ${index + 1}`} 
+                    className="data-screenshot"
                   />
-                </List.Item>
-              )}
-            />
+                </div>
+              ))}
+            </div>
           </>
         )}
       </Card>
@@ -366,32 +317,29 @@ const RentalOfferDetailPage = () => {
       {/* 操作按钮 */}
       <div className="bg-white p-4 flex justify-end">
         <Space>
-          {(offerDetail.status === '待审核' || offerDetail.status === '审核不通过' || offerDetail.status === '已上架') && (
-            <Button 
-              type="default" 
-              onClick={handleEditOffer}
-              icon={<EditOutlined />}
-              style={{ borderColor: '#000' }}
-            >
-              编辑出租
-            </Button>
-          )}
-
-          {offerDetail.status === '已上架' && (
-            <Button 
-              danger 
-              onClick={handleOffShelf}
-              icon={<DeleteOutlined />}
-            >
-              下架
-            </Button>
+          {(offerDetail.status === '已上架' || offerDetail.status === '待审核') && (
+            <>
+              <Button 
+                type="primary" 
+                onClick={handleEditOffer}
+                icon={<EditOutlined />}
+              >
+                编辑出租
+              </Button>
+              <Button 
+                danger 
+                onClick={handleOffShelf}
+                icon={<DeleteOutlined />}
+              >
+                下架出租
+              </Button>
+            </>
           )}
 
           {offerDetail.status === '已下架' && (
             <Button 
               type="primary" 
               onClick={handleReList}
-              icon={<CheckCircleOutlined />}
             >
               重新上架
             </Button>
@@ -425,89 +373,14 @@ const RentalOfferDetailPage = () => {
           </Button>
         ]}
       >
-        <Form
-          form={form}
-          layout="vertical"
-        >
-          <Form.Item
-            name="accountType"
-            label="账号类型"
-            rules={[{ required: true, message: '请选择账号类型' }]}
-          >
-            <Select placeholder="请选择账号类型">
-              <Select.Option value="抖音">抖音</Select.Option>
-              <Select.Option value="小红书">小红书</Select.Option>
-              <Select.Option value="微博">微博</Select.Option>
-              <Select.Option value="快手">快手</Select.Option>
-              <Select.Option value="其他">其他</Select.Option>
-            </Select>
-          </Form.Item>
-          
-          <Form.Item
-            name="accountName"
-            label="账号名称"
-            rules={[{ required: true, message: '请填写账号名称' }]}
-          >
-            <Input placeholder="请填写账号名称" />
-          </Form.Item>
-          
-          <Form.Item
-            name="followersCount"
-            label="粉丝数量"
-            rules={[{ required: true, message: '请填写粉丝数量' }]}
-          >
-            <Input placeholder="例如：10万" />
-          </Form.Item>
-          
-          <Form.Item
-            name="accountDescription"
-            label="账号描述"
-            rules={[{ required: true, message: '请填写账号描述' }]}
-          >
-            <Input.TextArea rows={4} placeholder="请详细描述您的账号特色和内容风格" />
-          </Form.Item>
-          
-          <div className="flex gap-2">
-            <Form.Item
-              name="rentalPrice"
-              label="租赁价格"
-              rules={[{ required: true, message: '请填写租赁价格' }]}
-              className="flex-1 mb-0"
-            >
-              <InputNumber min={0} style={{ width: '100%' }} placeholder="元" />
-            </Form.Item>
-            
-            <Form.Item
-              name="rentalUnit"
-              label="单位"
-              rules={[{ required: true, message: '请选择租赁单位' }]}
-              className="flex-[0.5] mb-0"
-            >
-              <Select placeholder="选择单位">
-                <Select.Option value="天">天</Select.Option>
-                <Select.Option value="小时">小时</Select.Option>
-                <Select.Option value="次">次</Select.Option>
-              </Select>
-            </Form.Item>
-          </div>
-          
-          <Form.Item
-            label="上传数据截图（可选）"
-          >
-            <Button
-              icon={<UploadOutlined />}
-              size="small"
-            >
-              上传图片
-            </Button>
-            <p className="text-xs text-gray-500 mt-1">支持JPG、PNG格式，最多上传5张</p>
-          </Form.Item>
-        </Form>
+        <div className="p-4 text-center">
+          <p>编辑功能正在开发中...</p>
+        </div>
       </Modal>
 
       {/* 下架确认弹窗 */}
       <Modal
-        title="下架出租信息"
+        title="下架出租"
         open={offShelfModalVisible}
         onOk={handleConfirmOffShelf}
         onCancel={() => setOffShelfModalVisible(false)}
@@ -521,8 +394,7 @@ const RentalOfferDetailPage = () => {
         ]}
       >
         <div className="flex items-center text-center py-4">
-          <ExclamationCircleOutlined style={{ color: 'red', fontSize: '24px', marginRight: '12px' }} />
-          <span>确定要下架该出租信息吗？下架后可以重新上架。</span>
+          <span>确定要下架该出租信息吗？下架后可重新上架。</span>
         </div>
       </Modal>
     </div>

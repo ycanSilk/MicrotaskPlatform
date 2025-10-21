@@ -1,12 +1,14 @@
 'use client';
-import React, { memo, useState, useEffect } from 'react';
+import React, { memo, useState, useEffect, lazy, Suspense } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import Header from './components/Header';
 import ShopOutlined from '@ant-design/icons/ShopOutlined';
 import FileTextOutlined from '@ant-design/icons/FileTextOutlined';
 import UserOutlined from '@ant-design/icons/UserOutlined';
 import SearchOutlined from '@ant-design/icons/SearchOutlined';
 import { User } from '@/types';
+
+// 动态导入客户端Header组件 - 仅使用ClientHeader
+const ClientHeader = lazy(() => import('./components/ClientHeader'));
 
 interface AccountRentalLayoutProps {
   children: React.ReactNode;
@@ -28,7 +30,7 @@ const AccountRentalLayout = memo(({ children }: AccountRentalLayoutProps) => {
         const defaultUser: User = {
           id: '3',
           username: 'test_user',
-          role: 'commenter', // 假设为commenter角色
+          role: 'commenter',
           phone: '13800138000',
           balance: 1000.00,
           status: 'active',
@@ -75,8 +77,10 @@ const AccountRentalLayout = memo(({ children }: AccountRentalLayoutProps) => {
 
   return (
     <div className="flex flex-col h-screen bg-gray-50">
-      {/* 顶部区域 - 使用Header组件，传递用户信息 */}
-      <Header user={user} />
+      {/* 顶部区域 - 使用动态导入的客户端Header组件，避免hydration错误 */}
+      <Suspense fallback={<div style={{ height: '60px' }} />}>
+        <ClientHeader user={user} />
+      </Suspense>
 
       {/* 主内容区域 */}
       <main className="flex-1 px-2 py-4 overflow-y-auto">

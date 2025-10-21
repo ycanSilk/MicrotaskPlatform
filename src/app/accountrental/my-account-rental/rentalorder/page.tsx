@@ -179,7 +179,7 @@ const RentalOrderPage = () => {
         {/* 左侧选项按钮区域 - 90%宽度，支持左右滑动 */}
         <div className="w-[90%] p-2">
           <div 
-            className="flex overflow-x-auto whitespace-nowrap pb-2" 
+            className="flex overflow-x-auto whitespace-nowrap pb-2 custom-tabs-container"
             style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
             onWheel={(e) => {
               if (e.deltaY !== 0) {
@@ -188,8 +188,8 @@ const RentalOrderPage = () => {
               }
             }}
           >
-            <style jsx global>{`
-              .custom-tabs-container::-webkit-scrollbar {
+            <style jsx global>{
+              `.custom-tabs-container::-webkit-scrollbar {
                 display: none;
               }
             `}</style>
@@ -197,12 +197,13 @@ const RentalOrderPage = () => {
               <button
                 key={item.key}
                 onClick={() => handleTabChange(item.key)}
-                className={`px-2 py-1 mr-2 text-sm transition-all ${item.key === activeTab
+                className={`px-2 py-1 mr-2 text-sm transition-all whitespace-nowrap ${item.key === activeTab
                   ? 'bg-[#ffebeb] border border-[#ff8080]'
                   : 'bg-white border border-transparent hover:border-gray-200'}`}
                 style={{
                   fontSize: '14px',
-                  outline: 'none'
+                  outline: 'none',
+                  minWidth: '60px', // 确保按钮在小屏幕上有足够的宽度
                 }}
               >
                 {item.label}
@@ -212,10 +213,10 @@ const RentalOrderPage = () => {
         </div>
         
         {/* 右侧筛选按钮区域 - 10%宽度，垂直居中 */}
-        <div className="w-[10%] flex">
+        <div className="w-[10%] flex items-center justify-center">
           <button 
             onClick={handleFilterClick} 
-            className="text-sm text-blue-500 text-center p-1 pb-2"
+            className="text-sm text-blue-500 text-center p-1 pb-2 whitespace-nowrap"
             style={{
               fontSize: '14px',
               outline: 'none'
@@ -229,12 +230,12 @@ const RentalOrderPage = () => {
       {/* 订单列表 */}
       <div className="">
         {filteredOrders.map((order) => (
-            <Link href={`/accountrental/my-account-rental/rentalorder/rentalorder-detail?id=${order.id}`} key={order.id}>
-              <Card className="border-0 rounded-none mb-3 cursor-pointer hover:shadow-md transition-shadow">
+            <Link href={`/accountrental/my-account-rental/rentalorder/rentalorder-detail/${order.id}`} key={order.id} className="block">
+                <Card className="border-0 rounded-none mb-3 cursor-pointer hover:shadow-md transition-shadow">
                 {/* 订单头部信息 */}
-                <div className="flex justify-between items-center py-3 px-2">
+                <div className="flex justify-between items-center p-0">
                   <div className="flex items-center">
-                    <span className="text-sm text-black">订单编号：{order.orderNo}</span>
+                    <span className="text-sm text-black whitespace-nowrap overflow-hidden text-ellipsis">订单编号：{order.orderNo}</span>
                     <Button 
                       type="text" 
                       onClick={(e) => {
@@ -253,11 +254,11 @@ const RentalOrderPage = () => {
                   </span>
                 </div>
 
-                {/* 订单详细信息 - 左右结构，同一行显示，垂直居中 */}
-                <div className="flex flex-row gap-2 py-2 px-1 items-center">
-                  {/* 左侧图片区域 */}
+                {/* 订单详细信息 - 左右结构，响应式布局 */}
+                <div className="flex flex-row gap-2 p-0 items-center">
+                  {/* 左侧图片区域 - 在移动设备上调整尺寸 */}
                   <div className="flex-shrink-0">
-                    <div className="w-20 h-20 bg-gray-100 overflow-hidden">
+                    <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gray-100 overflow-hidden">
                       {order.imageUrl ? (
                         <img 
                           src={order.imageUrl} 
@@ -266,7 +267,7 @@ const RentalOrderPage = () => {
                         />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center bg-gray-200">
-                          <Avatar size={40}>{order.accountInfo.charAt(0)}</Avatar>
+                          <Avatar size={32}>{order.accountInfo.charAt(0)}</Avatar>
                         </div>
                       )}
                     </div>
@@ -282,12 +283,12 @@ const RentalOrderPage = () => {
                     {/* 第三行：租赁时长和价格，同一行显示 */}
                     <div className="flex justify-between items-center mb-4">
                       <p className="text-sm text-black">租赁时长：{order.rentalDays} 天</p>
-                      <p className="text-sm text-black">￥{order.totalAmount.toFixed(2)}</p>
+                      <p className="text-sm font-medium text-black">￥{order.totalAmount.toFixed(2)}</p>
                     </div> 
                   </div>
                 </div>
-                {/* 按钮区域 */}
-                <div className="flex justify-between items-center mt-2 py-3 px-2">
+                {/* 按钮区域 - 响应式布局，在小屏幕上按钮自动换行 */}
+                <div className="flex flex-wrap justify-between items-center mt-2 p-0 gap-2">
                   <Button
                     type="default"
                     icon={<PhoneOutlined />}
@@ -297,12 +298,13 @@ const RentalOrderPage = () => {
                       handleContactService(order.id);
                     }}
                     size="small"
-                    style={{ borderColor: '#000' }}
+                    style={{ borderColor: '#000', minWidth: '60px' }}
+                    className="whitespace-nowrap"
                   >
                     客服
                   </Button>
 
-                  <Space>
+                  <Space className="flex-wrap">
                     {/* 根据订单状态显示不同按钮 */}
                     {order.status === '待付款' && (
                       <>
@@ -314,20 +316,9 @@ const RentalOrderPage = () => {
                             handleOrderAction(order.id, '立即付款');
                           }} 
                           size="small"
+                          className="whitespace-nowrap"
                         >
                           立即付款
-                        </Button>
-                        <Button 
-                          type="default" 
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            handleOrderAction(order.id, '查看详情');
-                          }} 
-                          size="small"
-                          style={{ borderColor: '#000' }}
-                        >
-                          查看详情
                         </Button>
                         <Button
                           danger
@@ -340,28 +331,15 @@ const RentalOrderPage = () => {
                           }}
                           size="small"
                           style={{ borderColor: '#000' }}
+                          className="whitespace-nowrap"
                         >
                           取消订单
                         </Button>
                       </>
                     )}
 
-
-
                     {order.status === '租赁中' && (
                       <>
-                        <Button 
-                          type="default" 
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            handleOrderAction(order.id, '查看详情');
-                          }} 
-                          size="small"
-                          style={{ borderColor: '#000' }}
-                        >
-                          查看详情
-                        </Button>
                         <Button 
                           type="default" 
                           onClick={(e) => {
@@ -371,6 +349,7 @@ const RentalOrderPage = () => {
                           }} 
                           size="small"
                           style={{ borderColor: '#000' }}
+                          className="whitespace-nowrap"
                         >
                           延长租期
                         </Button>
@@ -384,41 +363,15 @@ const RentalOrderPage = () => {
                           onClick={(e) => {
                             e.preventDefault();
                             e.stopPropagation();
-                            handleOrderAction(order.id, '查看详情');
-                          }} 
-                          size="small"
-                          style={{ borderColor: '#000' }}
-                        >
-                          查看详情
-                        </Button>
-                        <Button 
-                          type="default" 
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
                             handleOrderAction(order.id, '评价');
                           }} 
                           size="small"
                           style={{ borderColor: '#000' }}
+                          className="whitespace-nowrap"
                         >
                           评价
                         </Button>
                       </>
-                    )}
-
-                    {order.status === '已取消' && (
-                      <Button 
-                        type="default" 
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          handleOrderAction(order.id, '查看详情');
-                        }} 
-                        size="small"
-                        style={{ borderColor: '#000' }}
-                      >
-                        查看详情
-                      </Button>
                     )}
                   </Space>
                 </div>
@@ -434,7 +387,7 @@ const RentalOrderPage = () => {
         )}
       </div>
 
-      {/* 筛选弹窗 */}
+      {/* 筛选弹窗 - 设置宽度适应移动端 */}
       <Modal
         title="订单筛选"
         open={filterModalVisible}
@@ -448,6 +401,8 @@ const RentalOrderPage = () => {
             确定
           </Button>
         ]}
+        width={320} // 移动端弹窗宽度
+        centered
       >
         <ConfigProvider locale={zhCN}>
           <div>
@@ -462,10 +417,10 @@ const RentalOrderPage = () => {
               </Radio.Group>
             </div>
             
-            <div className="flex items-center gap-4">
-              <DatePicker className="flex-1" placeholder="起始时间" />
+            <div className="flex items-center gap-2 mt-4">
+              <DatePicker className="flex-1" placeholder="起始时间" size="small" />
               <span>-</span>
-              <DatePicker className="flex-1" placeholder="终止时间" />
+              <DatePicker className="flex-1" placeholder="终止时间" size="small" />
             </div>
           </div>
         </ConfigProvider>

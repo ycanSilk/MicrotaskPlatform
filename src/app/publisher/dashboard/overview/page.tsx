@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 // 根据图片要求定义新的数据类型
 interface DashboardData {
@@ -26,6 +27,7 @@ interface TaskOrder {
 }
 
 export default function OverviewTabPage() {
+  const router = useRouter();
   // 时间范围状态
   const [timeRange, setTimeRange] = useState<'today' | 'yesterday' | 'beforeYesterday'>('today');
   
@@ -73,13 +75,13 @@ export default function OverviewTabPage() {
   const getStatusInfo = (status: TaskOrder['status']) => {
     switch(status) {
       case 'pending':
-        return { text: '待领取', className: 'bg-yellow-100 text-yellow-600', buttonText: '等待领取' };
+        return { text: '待领取', className: 'bg-yellow-100 text-yellow-600', buttonText: '查看详情' };
       case 'inProgress':
-        return { text: '进行中', className: 'bg-blue-100 text-blue-600', buttonText: '查看进度' };
+        return { text: '进行中', className: 'bg-blue-100 text-blue-600', buttonText: '查看详情' };
       case 'completed':
         return { text: '已完成', className: 'bg-green-100 text-green-600', buttonText: '查看详情' };
       case 'pendingReview':
-        return { text: '待审核', className: 'bg-orange-100 text-orange-600', buttonText: '审核中' };
+        return { text: '待审核', className: 'bg-orange-100 text-orange-600', buttonText: '查看详情' };
       default:
         return { text: '未知状态', className: 'bg-gray-100 text-gray-600', buttonText: '查看详情' };
     }
@@ -174,7 +176,10 @@ export default function OverviewTabPage() {
       <div className='bg-white p-3 rounded-md shadow-md'>
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-md">最近派发的任务订单</h2>
-          <button className="text-sm text-blue-500 hover:text-blue-600">
+          <button 
+            className="text-sm text-blue-500 hover:text-blue-600"
+            onClick={() => router.push('/publisher/orders')}
+          >
             查看全部
           </button>
         </div>
@@ -204,7 +209,10 @@ export default function OverviewTabPage() {
                         <span className={`text-xs px-2 py-1 rounded ${statusInfo.className}`}>
                           {statusInfo.text}
                         </span>
-                        <button className="text-xs px-3 py-1 bg-blue-100 text-blue-600 rounded hover:bg-blue-200 transition-colors">
+                        <button 
+                          className="text-xs px-3 py-1 bg-blue-100 text-blue-600 rounded hover:bg-blue-200 transition-colors"
+                          onClick={() => router.push(`/publisher/orders/task-detail/${order.id}`)}
+                        >
                           {statusInfo.buttonText}
                         </button>
                       </div>

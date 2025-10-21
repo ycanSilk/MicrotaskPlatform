@@ -30,25 +30,25 @@ export default function PublisherDashboardPage() {
       <div className="mx-4 mt-4 grid grid-cols-4 gap-1">
         <button
           onClick={() => handleTabChange('overview')}
-          className={`py-3 px-2 rounded text-sm font-medium transition-colors ${activeTab === 'overview' ? 'bg-green-500 text-white shadow-md' : 'bg-white border border-gray-300 text-gray-600 hover:bg-green-50'}`}
+          className={`py-3 px-2 rounded text-sm font-medium transition-colors ${activeTab === 'overview' ? 'bg-blue-500 text-white shadow-md' : 'bg-white border border-gray-300 text-gray-600 hover:bg-blue-50'}`}
         >
           概览
         </button>
         <button
           onClick={() => handleTabChange('active')}
-          className={`py-3 px-2 rounded text-sm font-medium transition-colors ${activeTab === 'active' ? 'bg-green-500 text-white shadow-md' : 'bg-white border border-gray-300 text-gray-600 hover:bg-green-50'}`}
+          className={`py-3 px-2 rounded text-sm font-medium transition-colors ${activeTab === 'active' ? 'bg-blue-500 text-white shadow-md' : 'bg-white border border-gray-300 text-gray-600 hover:bg-blue-50'}`}
         >
           进行中
         </button>
         <button
           onClick={() => handleTabChange('audit')}
-          className={`py-3 px-2 rounded text-sm font-medium transition-colors ${activeTab === 'audit' ? 'bg-green-500 text-white shadow-md' : 'bg-white border border-gray-300 text-gray-600 hover:bg-green-50'}`}
+          className={`py-3 px-2 rounded text-sm font-medium transition-colors ${activeTab === 'audit' ? 'bg-blue-500 text-white shadow-md' : 'bg-white border border-gray-300 text-gray-600 hover:bg-blue-50'}`}
         >
           待审核
         </button>
         <button
           onClick={() => handleTabChange('completed')}
-          className={`py-3 px-2 rounded text-sm font-medium transition-colors ${activeTab === 'completed' ? 'bg-green-500 text-white shadow-md' : 'bg-white border border-gray-300 text-gray-600 hover:bg-green-50'}`}
+          className={`py-3 px-2 rounded text-sm font-medium transition-colors ${activeTab === 'completed' ? 'bg-blue-500 text-white shadow-md' : 'bg-white border border-gray-300 text-gray-600 hover:bg-blue-50'}`}
         >
           已完成
         </button>

@@ -229,7 +229,7 @@ const RentalRequestPage = () => {
       {/* 求租列表 */}
       <div className="">
         {filteredRequests.map((request) => (
-            <Link href={`/accountrental/my-account-rental/rentalrequest/rentalrequest-detail?id=${request.id}`} key={request.id}>
+            <Link href={`/accountrental/my-account-rental/rentalrequest/rentalrequest-detail/${request.id}`} key={request.id}>
               <Card className="border-0 rounded-none mb-3 cursor-pointer hover:shadow-md transition-shadow">
                 {/* 求租头部信息 */}
                 <div className="flex justify-between items-center py-3 px-2">

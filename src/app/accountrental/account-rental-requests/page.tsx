@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { SearchOutlined } from '@ant-design/icons';
+import { SearchOutlined, CopyOutlined, EyeOutlined, CloseOutlined } from '@ant-design/icons';
 import { Button } from '@/components/ui/Button';
 
 // 引入简化的账号租赁信息接口
@@ -49,6 +49,8 @@ const RentalRequestsPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
   const [rentalRequests, setRentalRequests] = useState<AccountRentalInfo[]>([]);
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [copySuccess, setCopySuccess] = useState<string | null>(null);
 
   // 模拟获取求租信息数据
   useEffect(() => {
@@ -132,6 +134,32 @@ const RentalRequestsPage = () => {
     router.push(`/accountrental/account-rental-requests/request-detail?id=${requestId}`);
   };
 
+  // 处理图片点击，显示大图预览
+  const handleImageClick = (event: React.MouseEvent, imageUrl: string) => {
+    event.stopPropagation();
+    setPreviewImage(imageUrl);
+  };
+
+  // 关闭图片预览
+  const handleClosePreview = () => {
+    setPreviewImage(null);
+  };
+
+  // 复制订单号
+  const copyOrderNumber = (event: React.MouseEvent, orderNumber: string) => {
+    event.stopPropagation();
+    navigator.clipboard.writeText(orderNumber)
+      .then(() => {
+        setCopySuccess(orderNumber);
+        setTimeout(() => {
+          setCopySuccess(null);
+        }, 2000);
+      })
+      .catch(err => {
+        console.error('复制失败:', err);
+      });
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       
@@ -164,8 +192,40 @@ const RentalRequestsPage = () => {
                 className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 hover:shadow-md transition-shadow cursor-pointer"
                 onClick={() => handleViewDetail(request.id)}
               >
+                {/* 图片缩略图区域 */}
+                {request.images && request.images.length > 0 && (
+                  <div className="mb-3">
+                    <div 
+                      className="w-full h-40 bg-gray-100 rounded-lg overflow-hidden relative cursor-pointer hover:opacity-90 transition-opacity"
+                      onClick={(e) => handleImageClick(e, request.images![0])}
+                    >
+                      <img 
+                        src={`/${request.images[0]}`} 
+                        alt="账号缩略图" 
+                        className="w-full h-full object-cover"
+                      />
+                      <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity bg-black bg-opacity-30">
+                        <EyeOutlined className="text-white text-2xl" />
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
                 <div className="flex justify-between items-start mb-3">
-                  <div className="text-sm font-medium text-gray-500">订单号: {request.orderNumber}</div>
+                  <div className="flex items-center text-sm font-medium text-gray-500">
+                    <span>订单号: {request.orderNumber}</span>
+                    <button 
+                      className="ml-2 text-gray-400 hover:text-blue-500 transition-colors"
+                      onClick={(e) => copyOrderNumber(e, request.orderNumber)}
+                      title="复制订单号"
+                    >
+                      {copySuccess === request.orderNumber ? (
+                        <span className="text-green-500 text-xs">已复制</span>
+                      ) : (
+                        <CopyOutlined />
+                      )}
+                    </button>
+                  </div>
                   <div className={`text-sm px-2 py-1 rounded-full ${getOrderStatusClass(request.orderStatus)}`}>
                     {request.orderStatus}
                   </div>
@@ -184,6 +244,24 @@ const RentalRequestsPage = () => {
           </div>
         )}
       </div>
+      {/* 图片预览模态框 */}
+      {previewImage && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80">
+          <div className="relative max-w-4xl max-h-[90vh] p-4">
+            <button 
+              className="absolute top-4 right-4 text-white bg-black bg-opacity-50 rounded-full p-2 z-10"
+              onClick={handleClosePreview}
+            >
+              <CloseOutlined className="text-xl" />
+            </button>
+            <img 
+              src={`/${previewImage}`} 
+              alt="预览图片" 
+              className="max-w-full max-h-[85vh] object-contain" 
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 };

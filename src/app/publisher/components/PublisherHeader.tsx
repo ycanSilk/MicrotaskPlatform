@@ -46,34 +46,7 @@ export const PublisherHeader: React.FC<PublisherHeaderProps> = ({ user }) => {
         
        
         
-        <div className="flex items-center">
-            <div className="flex-1 max-w-md mr-1 text-lg">
-                <SearchBar 
-                  placeholder="搜索任务、用户或关键词"
-                  customModules={[
-                    {
-                      keywords: ['任务', '发布', '完成', '进行中'],
-                      urlPath: '/publisher/tasks',
-                      exactMatch: false
-                    },
-                    {
-                      keywords: ['订单', '交易', '历史'],
-                      urlPath: '/publisher/orders',
-                      exactMatch: false
-                    },
-                    {
-                      keywords: ['余额', '账户', '资金'],
-                      urlPath: '/publisher/account',
-                      exactMatch: false
-                    },
-                    {
-                      keywords: ['银行卡', '支付', '提现'],
-                      urlPath: '/publisher/bankcards',
-                      exactMatch: false
-                    }
-                  ]}
-                />
-            </div>  
+        <div className="flex items-center"> 
             <CustomerServiceButton className="font-bold text-xl mr-3" />
             <button onClick={handleLogout} className="text-lg">
               <span className="ml-1">登出</span>

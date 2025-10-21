@@ -111,7 +111,7 @@ export default function CreateTask() {
             <div>
               <h3 className="font-medium text-blue-900 mb-1">平台选择说明</h3>
               <p className="text-blue-700 text-sm leading-relaxed">
-                请选择您需要发布任务的平台，目前支持抖音、小红书、快手等主流社交媒体平台。选择平台后，您将进入该平台的任务类型选择页面，可以选择具体的任务类型进行发布。
+                请选择您需要发布任务的平台，目前只支持抖音平台。选择平台后，您将进入该平台的任务类型选择页面，可以选择具体的任务类型进行发布。
               </p>
             </div>
           </div>

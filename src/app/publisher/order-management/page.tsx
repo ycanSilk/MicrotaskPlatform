@@ -15,12 +15,12 @@ const OrderManagementPage: React.FC = () => {
 
   const handleAccountRentalOrderClick = () => {
     // 导航到账号租赁相关页面
-    router.push('/accountrental');
+    router.push('/accountrental/my-account-rental/forrentorder');
   };
 
   const handleCommentOrderClick = () => {
     // 导航到评论订单页面
-    router.push('/publisher/dashboard');
+    router.push('/publisher/orders');
   };
 
   return (

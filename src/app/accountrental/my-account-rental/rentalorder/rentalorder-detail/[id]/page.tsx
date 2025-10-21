@@ -12,7 +12,7 @@ const RentalOrderDetailPage = () => {
     id: 'ORD202410010001',
     status: '已完成',
     statusText: '订单已完成',
-    accountInfo: '抖音账号 - 美食达人',
+    accountInfo: '租赁账号描速介绍租赁账号描速介绍租赁账号描速介绍租赁账号描速介绍租赁账号描速介绍',
     imageUrl: '/images/1758380776810_96.jpg',
     totalAmount: 199.00,
     orderNumber: '339942699275',
@@ -63,19 +63,11 @@ const RentalOrderDetailPage = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* 顶部导航栏 */}
-      <div className="flex items-center justify-between p-4 bg-white border-b">
-        <Button onClick={handleBackToList} type="text">
-          &lt; 返回
-        </Button>
-        <h1 className="text-lg font-medium">订单详情</h1>
-        <div className="w-8"></div>
-      </div>
+
 
       {/* 订单状态标题 */}
       <div className={`p-6 bg-white mb-2 ${getStatusStyle(orderDetail.status)}`}>
         <h2 className="text-xl font-medium mb-1">{orderDetail.statusText}</h2>
-        <p className="text-sm opacity-80">订单已送达，请厉行节约，拒绝浪费，期待能再次光临</p>
       </div>
 
       {/* 内容区域 */}
@@ -88,9 +80,7 @@ const RentalOrderDetailPage = () => {
               <h3 className="text-base font-medium mb-2">{orderDetail.accountInfo}</h3>
               <div className="grid grid-cols-2 gap-4 text-sm text-gray-600">
                 <div>账号类型：{orderDetail.accountType}</div>
-                <div>粉丝数量：{orderDetail.followers.toLocaleString()}</div>
                 <div>租赁时长：{orderDetail.rentalDays} 天</div>
-                <div>平均点赞：{orderDetail.avgLikes.toLocaleString()}</div>
               </div>
             </div>
 

@@ -203,7 +203,7 @@ const RentalOfferPage = () => {
       {/* 出租列表 */}
       <div className="">
         {filteredOffers.map((offer) => (
-            <Link href={`/accountrental/my-account-rental/rentaloffer/rentaloffer-detail?id=${offer.id}`} key={offer.id}>
+            <Link href={`/accountrental/my-account-rental/rentaloffer/rentaloffer-detail/${offer.id}`} key={offer.id}>
               <Card className="border-0 rounded-none mb-3 cursor-pointer hover:shadow-md transition-shadow">
                 {/* 出租头部信息 */}
                 <div className="flex justify-between items-center py-3 px-2">
