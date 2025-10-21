@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, Button, Space, Avatar, Tabs, Modal, Radio, DatePicker, message } from 'antd';
 import Link from 'next/link';
-import { PhoneOutlined, SearchOutlined, CopyOutlined } from '@ant-design/icons';
+import { SearchOutlined, CopyOutlined } from '@ant-design/icons';
 import { ConfigProvider } from 'antd';
 import zhCN from 'antd/locale/zh_CN';
 import dayjs from 'dayjs';
@@ -232,7 +232,7 @@ const RentalRequestPage = () => {
             <Link href={`/accountrental/my-account-rental/rentalrequest/rentalrequest-detail/${request.id}`} key={request.id}>
               <Card className="border-0 rounded-none mb-3 cursor-pointer hover:shadow-md transition-shadow">
                 {/* 求租头部信息 */}
-                <div className="flex justify-between items-center py-3 px-2">
+                <div className="flex justify-between items-center">
                   <div className="flex items-center">
                     <span className="text-sm text-black">求租编号：{request.requestNo}</span>
                     <Button 
@@ -248,7 +248,9 @@ const RentalRequestPage = () => {
                       复制
                     </Button>
                   </div>
-                  <span className="text-sm text-red-500">
+                </div>
+                <div className="mb-1">
+                  <span className="text-sm text-red-500 border border-red-500 px-2 rounded-md bg-red-50">
                     {request.status}
                   </span>
                 </div>
@@ -274,36 +276,28 @@ const RentalRequestPage = () => {
 
                   {/* 右侧信息区域 */}
                   <div className="flex-1">
-                    {/* 第二行：账号描述 - 显示2行，超出部分隐藏 */}
-                    <div className="mb-1">
                       <div className="text-sm text-gray-600 line-clamp-2">{request.accountDescription}</div>
-                    </div>
-
-                    {/* 第三行：粉丝要求、租赁时长和预算，同一行显示 */}
-                    <div className="flex flex-wrap justify-between items-center mb-2 text-xs text-gray-500">
-                      <span>求租时长：{request.rentalDays} 天</span>
-                      <span>预算：¥{request.budget}</span>
-                    </div>
+                      <div>求租时长：{request.rentalDays} 天</div>
+                      <div>预算：¥{request.budget}</div>
                   </div>
                 </div>
                 
                 {/* 按钮区域 */}
-                <div className="flex justify-between items-center mt-2 py-3 px-2">
-                  <Button
-                    type="default"
-                    icon={<PhoneOutlined />}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      handleContactService(request.id);
-                    }}
-                    size="small"
-                    style={{ borderColor: '#000' }}
-                  >
-                    客服
-                  </Button>
-
+                <div className="flex justify-end items-center mt-2 py-3 px-2">
                   <Space>
+                    <Button
+                      type="default"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleContactService(request.id);
+                      }}
+                      size="small"
+                      style={{ borderColor: '#000' }}
+                    >
+                      客服
+                    </Button>
+                    
                     {/* 根据状态显示不同按钮 */}
                     {request.status === '待匹配' && (
                       <>
@@ -317,18 +311,6 @@ const RentalRequestPage = () => {
                           size="small"
                         >
                           编辑求租
-                        </Button>
-                        <Button 
-                          type="default" 
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            handleRequestAction(request.id, '查看详情');
-                          }} 
-                          size="small"
-                          style={{ borderColor: '#000' }}
-                        >
-                          查看详情
                         </Button>
                         <Button
                           danger
@@ -354,18 +336,6 @@ const RentalRequestPage = () => {
                           onClick={(e) => {
                             e.preventDefault();
                             e.stopPropagation();
-                            handleRequestAction(request.id, '查看详情');
-                          }} 
-                          size="small"
-                          style={{ borderColor: '#000' }}
-                        >
-                          查看详情
-                        </Button>
-                        <Button 
-                          type="default" 
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
                             handleRequestAction(request.id, '查看匹配账号');
                           }} 
                           size="small"
@@ -374,50 +344,6 @@ const RentalRequestPage = () => {
                           查看匹配账号
                         </Button>
                       </>
-                    )}
-
-                    {request.status === '已完成' && (
-                      <>
-                        <Button 
-                          type="default" 
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            handleRequestAction(request.id, '查看详情');
-                          }} 
-                          size="small"
-                          style={{ borderColor: '#000' }}
-                        >
-                          查看详情
-                        </Button>
-                        <Button 
-                          type="default" 
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            handleRequestAction(request.id, '评价服务');
-                          }} 
-                          size="small"
-                          style={{ borderColor: '#000' }}
-                        >
-                          评价服务
-                        </Button>
-                      </>
-                    )}
-
-                    {request.status === '已取消' && (
-                      <Button 
-                        type="default" 
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          handleRequestAction(request.id, '查看详情');
-                        }} 
-                        size="small"
-                        style={{ borderColor: '#000' }}
-                      >
-                        查看详情
-                      </Button>
                     )}
                   </Space>
                 </div>

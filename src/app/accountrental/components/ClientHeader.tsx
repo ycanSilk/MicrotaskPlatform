@@ -2,9 +2,8 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { usePathname,useRouter, useSearchParams } from 'next/navigation';
-import { BackButton } from '../../../components/button/ReturnToPreviousPage';
 import { CustomerServiceButton } from '../../../components/button/CustomerServiceButton';
-import { UserOutlined } from '@ant-design/icons';
+import { UserOutlined, LeftOutlined } from '@ant-design/icons';
 
 interface User {
   id: string;
@@ -38,6 +37,7 @@ const ClientHeader: React.FC<ClientHeaderProps> = ({ user }) => {
     '/accountrental/my-account-rental': '我的租赁',
     '/accountrental/account-rental-market/market-detail': '出租账号详情',
     '/accountrental/account-rental-requests/request-detail': '求租信息详情',
+    '/accountrental/account-rental-requests/requests-detail': '求租信息详情',
     '/accountrental/account-rental-publish/publish-for-rent': '发布出租信息',
     '/accountrental/account-rental-publish/publish-requests': '发布求租信息',
     '/accountrental/my-account-rental/forrentorder': '出租订单',
@@ -48,6 +48,76 @@ const ClientHeader: React.FC<ClientHeaderProps> = ({ user }) => {
     '/accountrental/my-account-rental/rentaloffer/rentaloffer-detail/[id]': '出租信息详情',
     '/accountrental/my-account-rental/forrentorder/forrentorder-detail/[id]': '出租订单详情',
     '/accountrental/my-account-rental/rentalorder/rentalorder-detail/[id]': '租用订单详情'
+  };
+
+  // 定义账号租赁模块的一级页面
+  const firstLevelPages = [
+    '/accountrental',
+    '/accountrental/account-rental-market',
+    '/accountrental/account-rental-requests',
+    '/accountrental/account-rental-publish',
+    '/accountrental/my-account-rental'
+  ];
+
+  // 处理返回按钮点击事件
+  const handleBack = () => {
+    if (!pathname) return;
+
+    // 检查当前页面是否为一级页面
+    if (firstLevelPages.includes(pathname)) {
+      // 如果是一级页面，返回账户租赁主页
+      router.push('/accountrental');
+      return;
+    }
+
+    // 定义动态路由到列表页面的映射关系
+    const dynamicRouteMap: Record<string, string> = {
+      '/accountrental/account-rental-market/market-detail': '/accountrental/account-rental-market',
+      '/accountrental/account-rental-requests/requests-detail': '/accountrental/account-rental-requests',
+      '/accountrental/my-account-rental/forrentorder/forrentorder-detail': '/accountrental/my-account-rental/forrentorder',
+      '/accountrental/my-account-rental/rentalorder/rentalorder-detail': '/accountrental/my-account-rental/rentalorder',
+      '/accountrental/my-account-rental/rentaloffer/rentaloffer-detail': '/accountrental/my-account-rental/rentaloffer',
+      '/accountrental/my-account-rental/rentalrequest/rentalrequest-detail': '/accountrental/my-account-rental/rentalrequest',
+      '/accountrental/my-account-rental/rented/rented-detail': '/accountrental/my-account-rental/rented'
+    };
+
+    // 检查当前路径是否匹配动态路由模式
+    for (const [routePattern, targetPath] of Object.entries(dynamicRouteMap)) {
+      if (pathname.includes(routePattern)) {
+        // 对于动态路由，返回到对应的列表页面
+        router.push(targetPath);
+        return;
+      }
+    }
+
+    // 不是一级页面和动态路由页面，提取上一级路由路径
+    const pathParts = pathname.split('/').filter(Boolean);
+    if (pathParts.length > 0) {
+      // 检查是否为多层级路径
+      if (pathParts.length > 1) {
+        // 对于账号租赁模块的特殊处理
+        if (pathParts[0] === 'accountrental') {
+          // 检查是否为accountrental的二级页面
+          const secondLevelPath = '/' + pathParts.slice(0, 2).join('/');
+          if (firstLevelPages.includes(secondLevelPath)) {
+            router.push(secondLevelPath);
+            return;
+          }
+        }
+      }
+      const parentPath = '/' + pathParts.slice(0, -1).join('/');
+      router.push(parentPath);
+    } else {
+      // 如果已经是根路径，则返回首页
+      router.push('/');
+    }
+  };
+
+  // 检查是否显示返回按钮
+  const shouldShowBackButton = () => {
+    if (!pathname) return false;
+    // 在首页不显示，在其他页面显示
+    return pathname !== '/accountrental';
   };
 
   useEffect(() => {
@@ -69,8 +139,13 @@ const ClientHeader: React.FC<ClientHeaderProps> = ({ user }) => {
       }
 
       // 尝试匹配包含特定路径段的路由
-      for (const [route, title] of Object.entries(routeTitleMap)) {
-        if (pathWithoutQuery.includes(route)) {
+      // 优先匹配更长的路由模式，以避免匹配到更短的通用路径
+      const sortedRoutes = Object.entries(routeTitleMap).sort(([a], [b]) => b.length - a.length);
+      
+      for (const [route, title] of sortedRoutes) {
+        // 对于动态路由，检查路径是否以该路由开头或者包含该路由后跟斜杠或结尾
+        const routePattern = new RegExp(`^${route}(/.*)?$`);
+        if (pathWithoutQuery.includes(route) || routePattern.test(pathWithoutQuery)) {
           setPageTitle(title);
           return;
         }
@@ -110,7 +185,15 @@ const ClientHeader: React.FC<ClientHeaderProps> = ({ user }) => {
   return (
     <div ref={headerRef} className="bg-[#008cffff] border-b border-[#9bcfffff] px-4 py-3 flex items-center justify-between h-[60px] box-border">
       <div className="flex items-center flex-1">
-        {isClient && <BackButton className="text-white" />}
+        {isClient && shouldShowBackButton() && (
+          <button 
+            onClick={handleBack}
+            className="p-2 rounded-full transition-colors text-white"
+            aria-label="返回上一页"
+          >
+            <LeftOutlined size={20} className="text-white" />
+          </button>
+        )}
         <h1 className="text-md text-white ml-1">
           {pageTitle}
         </h1>
@@ -121,22 +204,29 @@ const ClientHeader: React.FC<ClientHeaderProps> = ({ user }) => {
             buttonText="联系客服" 
             modalTitle="在线客服" 
             userId={user?.id || 'guest'} 
-            className="text-white mr-1 font-bold text-lg"
+            className="text-white mr-1 font-bold text-lg mr-2"
           />
         )}
         
         {isClient && user && user.username && (
-            <div className="relative mr-1">
+            <div className="relative mr-2">
               <button
                 onClick={handleUserAvatarClick}
                 onMouseEnter={() => setShowUserName(true)}
                 onMouseLeave={() => {
                   setTimeout(() => setShowUserName(false), 300);
                 }}
-                className="w-[36px] h-[36px] cursor-pointer flex items-center justify-center text-lg text-white transition-all duration-300 ease"
+                className="w-[20px] h-[20px] cursor-pointer flex items-center justify-center text-white transition-all duration-300 ease"
                 aria-label="用户信息"
               >
-                <UserOutlined />
+                {/* 图片头像显示 */}
+                <div className="">
+                  <img 
+                    src="/images/0e92a4599d02a7.jpg" 
+                    alt="用户头像" 
+                    className="w-[20px] h-[20px] rounded-full object-cover"
+                  />
+                </div>
               </button>
               {showUserName && (
                 <div

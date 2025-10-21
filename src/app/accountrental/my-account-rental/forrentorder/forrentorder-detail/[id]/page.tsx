@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Card, Button, Space, Avatar, message } from 'antd';
+import { Card, Button, Space, Avatar, message, Modal } from 'antd';
 import { PhoneOutlined, CopyOutlined } from '@ant-design/icons';
 import { useRouter } from 'next/navigation';
 import type { RentalOrderDetail } from '@/types';
@@ -24,6 +24,17 @@ const RentalOrderDetailPage = () => {
     followers: 125000,
     avgLikes: 5000
   });
+  
+  // 图片列表状态 - 模拟多个图片
+  const [imageList] = useState<string[]>([
+    '/images/1758380776810_96.jpg',
+    '/images/1758384598887_578.jpg',
+    '/images/1758596791656_544.jpg'
+  ]);
+  
+  // 图片预览状态
+  const [previewVisible, setPreviewVisible] = useState<boolean>(false);
+  const [previewImage, setPreviewImage] = useState<string>('');
 
   // 获取订单状态样式
   const getStatusStyle = (status: string) => {
@@ -60,6 +71,12 @@ const RentalOrderDetailPage = () => {
   const handleBackToList = () => {
     router.push('/accountrental/my-account-rental/rentalorder');
   };
+  
+  // 处理图片点击查看大图
+  const handleImageClick = (imageUrl: string) => {
+    setPreviewImage(imageUrl);
+    setPreviewVisible(true);
+  };
 
   return (
     <div className="min-h-screen bg-gray-50"> 
@@ -85,18 +102,21 @@ const RentalOrderDetailPage = () => {
             {/* 图片展示区域 */}
             <div>
               <h4 className="text-sm text-gray-500 mb-2">账号预览</h4>
-              <div className="w-full aspect-video bg-gray-100 overflow-hidden rounded-md">
-                {orderDetail.imageUrl ? (
-                  <img 
-                    src={orderDetail.imageUrl} 
-                    alt={orderDetail.accountInfo} 
-                    className="w-full h-full object-cover" 
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-gray-200">
-                    <Avatar size={60}>{orderDetail.accountInfo.charAt(0)}</Avatar>
+              <div className="flex flex-wrap gap-3">
+                {imageList.map((imageUrl, index) => (
+                  <div 
+                    key={index} 
+                    className="w-20 h-20 bg-gray-100 overflow-hidden rounded-md cursor-pointer hover:opacity-90 transition-opacity"
+                    onClick={() => handleImageClick(imageUrl)}
+                  >
+                    <img 
+                      src={imageUrl} 
+                      alt={`账号预览图 ${index + 1}`} 
+                      className="w-full h-full object-cover" 
+                      style={{ width: '85px', height: '85px' }}
+                    />
                   </div>
-                )}
+                ))}
               </div>
             </div>
           </div>
@@ -154,6 +174,21 @@ const RentalOrderDetailPage = () => {
           </Button>
         </div>
       </div>
+      
+      {/* 图片预览Modal */}
+      <Modal
+        title="图片预览"
+        open={previewVisible}
+        footer={null}
+        onCancel={() => setPreviewVisible(false)}
+        width={800}
+      >
+        <img 
+          src={previewImage} 
+          alt="预览图片" 
+          className="w-full h-auto max-h-[70vh] object-contain" 
+        />
+      </Modal>
     </div>
   );
 };

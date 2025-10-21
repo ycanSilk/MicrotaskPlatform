@@ -2,11 +2,35 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { SearchOutlined, CopyOutlined, EyeOutlined, CloseOutlined } from '@ant-design/icons';
+import { SearchOutlined, CopyOutlined } from '@ant-design/icons';
 import { Button } from '@/components/ui/Button';
 
-// 引入简化的账号租赁信息接口
-import { AccountRentalInfo } from '../types';
+// 账号租赁信息接口
+type AccountRequirements = {
+  modifyNameAvatar: boolean;
+  modifyBio: boolean;
+  canComment: boolean;
+  canPostVideo: boolean;
+};
+
+type LoginMethod = {
+  scanCode: boolean;
+  phoneVerification: boolean;
+  noLogin: boolean;
+};
+
+type AccountRentalInfo = {
+  id: string;
+  rentalDescription: string;
+  price: number;
+  publishTime: string;
+  orderNumber: string;
+  orderStatus: string;
+  rentalDays: number;
+  images: string[];
+  accountRequirements?: AccountRequirements;
+  loginMethod?: LoginMethod;
+};
 
 // 格式化发布时间
 const formatPublishTime = (timeString: string): string => {
@@ -49,7 +73,7 @@ const RentalRequestsPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
   const [rentalRequests, setRentalRequests] = useState<AccountRentalInfo[]>([]);
-  const [previewImage, setPreviewImage] = useState<string | null>(null);
+
   const [copySuccess, setCopySuccess] = useState<string | null>(null);
 
   // 模拟获取求租信息数据
@@ -60,7 +84,7 @@ const RentalRequestsPage = () => {
         // 模拟网络请求延迟
         await new Promise(resolve => setTimeout(resolve, 600));
         
-        // 使用与account-rental-market页面相同格式的模拟数据
+        // 使用模拟数据，添加账号要求和登录方式支持情况
         const mockData: AccountRentalInfo[] = [
           {
             id: 'req001',
@@ -72,7 +96,18 @@ const RentalRequestsPage = () => {
             rentalDays: 2,
             images: [
               'images/0e92a4599d02a7.jpg'      
-            ]
+            ],
+            accountRequirements: {
+              modifyNameAvatar: true,
+              modifyBio: true,
+              canComment: true,
+              canPostVideo: false
+            },
+            loginMethod: {
+              scanCode: true,
+              phoneVerification: false,
+              noLogin: false
+            }
           },
           {
             id: 'req002',
@@ -84,7 +119,18 @@ const RentalRequestsPage = () => {
             rentalDays: 3,
             images: [
               'images/0e92a4599d02a7.jpg'      
-            ]
+            ],
+            accountRequirements: {
+              modifyNameAvatar: false,
+              modifyBio: true,
+              canComment: true,
+              canPostVideo: true
+            },
+            loginMethod: {
+              scanCode: false,
+              phoneVerification: true,
+              noLogin: false
+            }
           },
           {
             id: 'req003',
@@ -96,7 +142,18 @@ const RentalRequestsPage = () => {
             rentalDays: 5,
             images: [
               'images/0e92a4599d02a7.jpg'      
-            ]
+            ],
+            accountRequirements: {
+              modifyNameAvatar: false,
+              modifyBio: false,
+              canComment: true,
+              canPostVideo: true
+            },
+            loginMethod: {
+              scanCode: false,
+              phoneVerification: false,
+              noLogin: true
+            }
           },
           {
             id: 'req004',
@@ -108,7 +165,18 @@ const RentalRequestsPage = () => {
             rentalDays: 1,
             images: [
               'images/0e92a4599d02a7.jpg'      
-            ]
+            ],
+            accountRequirements: {
+              modifyNameAvatar: true,
+              modifyBio: true,
+              canComment: false,
+              canPostVideo: false
+            },
+            loginMethod: {
+              scanCode: true,
+              phoneVerification: true,
+              noLogin: false
+            }
           }
         ];
         
@@ -131,19 +199,10 @@ const RentalRequestsPage = () => {
 
   // 处理查看详情
   const handleViewDetail = (requestId: string) => {
-    router.push(`/accountrental/account-rental-requests/request-detail?id=${requestId}`);
+    router.push(`/accountrental/account-rental-requests/requests-detail/${requestId}`);
   };
 
-  // 处理图片点击，显示大图预览
-  const handleImageClick = (event: React.MouseEvent, imageUrl: string) => {
-    event.stopPropagation();
-    setPreviewImage(imageUrl);
-  };
 
-  // 关闭图片预览
-  const handleClosePreview = () => {
-    setPreviewImage(null);
-  };
 
   // 复制订单号
   const copyOrderNumber = (event: React.MouseEvent, orderNumber: string) => {
@@ -192,43 +251,62 @@ const RentalRequestsPage = () => {
                 className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 hover:shadow-md transition-shadow cursor-pointer"
                 onClick={() => handleViewDetail(request.id)}
               >
-                {/* 图片缩略图区域 */}
-                {request.images && request.images.length > 0 && (
-                  <div className="mb-3">
-                    <div 
-                      className="w-full h-40 bg-gray-100 rounded-lg overflow-hidden relative cursor-pointer hover:opacity-90 transition-opacity"
-                      onClick={(e) => handleImageClick(e, request.images![0])}
-                    >
-                      <img 
-                        src={`/${request.images[0]}`} 
-                        alt="账号缩略图" 
-                        className="w-full h-full object-cover"
-                      />
-                      <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity bg-black bg-opacity-30">
-                        <EyeOutlined className="text-white text-2xl" />
+                {/* 已移除图片显示区域 */}
+                
+                {/* 求租要求显示模块 */}
+                <div className="mb-3 space-y-3">
+                  {/* 账号要求 - 根据支持情况显示 */}
+                  {request.accountRequirements && (
+                    <div className="mb-1">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">账号要求</label>
+                      <div className="space-y-1">
+                        {request.accountRequirements.modifyNameAvatar && (
+                          <div className="flex items-center text-sm text-gray-700">
+                            ✓ 修改抖音账号名称和头像
+                          </div>
+                        )}
+                        {request.accountRequirements.modifyBio && (
+                          <div className="flex items-center text-sm text-gray-700">
+                            ✓ 修改账号简介
+                          </div>
+                        )}
+                        {request.accountRequirements.canComment && (
+                          <div className="flex items-center text-sm text-gray-700">
+                            ✓ 支持发布评论
+                          </div>
+                        )}
+                        {request.accountRequirements.canPostVideo && (
+                          <div className="flex items-center text-sm text-gray-700">
+                            ✓ 支持发布视频
+                          </div>
+                        )}
                       </div>
                     </div>
-                  </div>
-                )}
-                
-                <div className="flex justify-between items-start mb-3">
-                  <div className="flex items-center text-sm font-medium text-gray-500">
-                    <span>订单号: {request.orderNumber}</span>
-                    <button 
-                      className="ml-2 text-gray-400 hover:text-blue-500 transition-colors"
-                      onClick={(e) => copyOrderNumber(e, request.orderNumber)}
-                      title="复制订单号"
-                    >
-                      {copySuccess === request.orderNumber ? (
-                        <span className="text-green-500 text-xs">已复制</span>
-                      ) : (
-                        <CopyOutlined />
-                      )}
-                    </button>
-                  </div>
-                  <div className={`text-sm px-2 py-1 rounded-full ${getOrderStatusClass(request.orderStatus)}`}>
-                    {request.orderStatus}
-                  </div>
+                  )}
+                  
+                  {/* 登录方式 - 根据支持情况显示 */}
+                  {request.loginMethod && (
+                    <div className="mb-1">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">登录方式</label>
+                      <div className="space-y-1">
+                        {request.loginMethod.scanCode && (
+                          <div className="flex items-center text-sm text-gray-700">
+                            ✓ 扫码登录
+                          </div>
+                        )}
+                        {request.loginMethod.phoneVerification && (
+                          <div className="flex items-center text-sm text-gray-700">
+                            ✓ 手机号+短信验证登录
+                          </div>
+                        )}
+                        {request.loginMethod.noLogin && (
+                          <div className="flex items-center text-sm text-gray-700">
+                            ✓ 不登录账号，按照承租方要求完成租赁
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
                 <h3 className="font-medium text-gray-800 mb-2 line-clamp-2">{request.rentalDescription}</h3>
                 <div className="flex justify-between items-center text-sm text-gray-600 mb-2">
@@ -244,24 +322,7 @@ const RentalRequestsPage = () => {
           </div>
         )}
       </div>
-      {/* 图片预览模态框 */}
-      {previewImage && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80">
-          <div className="relative max-w-4xl max-h-[90vh] p-4">
-            <button 
-              className="absolute top-4 right-4 text-white bg-black bg-opacity-50 rounded-full p-2 z-10"
-              onClick={handleClosePreview}
-            >
-              <CloseOutlined className="text-xl" />
-            </button>
-            <img 
-              src={`/${previewImage}`} 
-              alt="预览图片" 
-              className="max-w-full max-h-[85vh] object-contain" 
-            />
-          </div>
-        </div>
-      )}
+
     </div>
   );
 };

@@ -235,7 +235,7 @@ export default function AccountRentalMarketPage({ searchParams }: { searchParams
 
   // 处理账号卡片点击
   const handleAccountClick = (accountId: string) => {
-    router.push(`/accountrental/account-rental-market/market-detail?id=${accountId}`);
+    router.push(`/accountrental/account-rental-market/market-detail/${accountId}`);
   };
 
   // 处理图片点击，显示大图预览
@@ -337,25 +337,7 @@ export default function AccountRentalMarketPage({ searchParams }: { searchParams
                           </div>
                         )}
                         
-                        <div className="flex justify-between items-start mb-3">
-                          <div className="flex items-center text-sm font-medium text-gray-500">
-                            <span>订单号: {account.orderNumber}</span>
-                            <button 
-                              className="ml-2 text-gray-400 hover:text-blue-500 transition-colors"
-                              onClick={(e) => copyOrderNumber(e, account.orderNumber)}
-                              title="复制订单号"
-                            >
-                              {copySuccess === account.orderNumber ? (
-                                <span className="text-green-500 text-xs">已复制</span>
-                              ) : (
-                                <CopyOutlined />
-                              )}
-                            </button>
-                          </div>
-                          <div className={`text-sm px-2 py-1 rounded-full ${getOrderStatusClass(account.orderStatus)}`}>
-                            {account.orderStatus}
-                          </div>
-                        </div>
+
                         <h3 className="font-medium text-gray-800 mb-2 line-clamp-2">{account.rentalDescription}</h3>
                         <div className="flex justify-between items-center text-sm text-gray-600 mb-2">
                           <div>发布时间: {formatPublishTime(account.publishTime)}</div>

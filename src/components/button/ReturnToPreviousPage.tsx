@@ -59,11 +59,11 @@ export const BackButton: React.FC<BackButtonProps> = ({ className = '', customBa
     '/commenter/hall-content',
     
     // 账号租赁模块
+    '/accountrental',
     '/accountrental/account-rental-market',
+    '/accountrental/account-rental-requests',
     '/accountrental/account-rental-publish',
-    '/accountrental/my-account-rental',
-    '/accountrental/orders',
-    '/accountrental/finance'
+    '/accountrental/my-account-rental'
   ];
 
   const handleBack = () => {
@@ -85,9 +85,42 @@ export const BackButton: React.FC<BackButtonProps> = ({ className = '', customBa
       // 默认返回网站首页
       router.push('/');
     } else {
-      // 不是一级页面，提取上一级路由路径
+      // 处理动态路由页面（带[id]的页面）
+      const dynamicRoutes = [
+        '/accountrental/account-rental-market/market-detail/[id]',
+        '/accountrental/account-rental-requests/requests-detail/[id]',
+        '/accountrental/my-account-rental/forrentorder/forrentorder-detail/[id]',
+        '/accountrental/my-account-rental/rentalorder/rentalorder-detail/[id]',
+        '/accountrental/my-account-rental/rentaloffer/rentaloffer-detail/[id]',
+        '/accountrental/my-account-rental/rentalrequest/rentalrequest-detail/[id]',
+        '/accountrental/my-account-rental/rented/rented-detail/[id]'
+      ];
+
+      // 检查当前路径是否匹配动态路由模式
+      for (const dynamicRoute of dynamicRoutes) {
+        const routePattern = dynamicRoute.replace('/[id]', '');
+        if (pathname?.startsWith(routePattern)) {
+          // 对于动态路由，返回到包含该动态路由的上级页面
+          router.push(routePattern as any);
+          return;
+        }
+      }
+
+      // 不是一级页面和动态路由页面，提取上一级路由路径
       const pathParts = (pathname || '').split('/').filter(Boolean);
       if (pathParts.length > 0) {
+        // 检查是否为多层级路径
+        if (pathParts.length > 1) {
+          // 对于账号租赁模块的特殊处理
+          if (pathParts[0] === 'accountrental') {
+            // 检查是否为accountrental的二级页面
+            const secondLevelPath = '/' + pathParts.slice(0, 2).join('/');
+            if (firstLevelPages.includes(secondLevelPath)) {
+              router.push(secondLevelPath as any);
+              return;
+            }
+          }
+        }
         const parentPath = '/' + pathParts.slice(0, -1).join('/');
         // 使用类型断言解决 typedRoutes 的类型问题
         router.push(parentPath as any);

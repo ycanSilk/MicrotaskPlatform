@@ -13,15 +13,16 @@ interface RentalRequest {
   price: number;
   description: string;
   accountRequirements: {
-    canChangeName: boolean;
-    canChangeAvatar: boolean;
-    canPostComments: boolean;
-    canPostVideos: boolean;
-  };
-  loginMethods: {
-    qrCode: boolean;
-    phoneSms: boolean;
-  };
+    modifyNameAvatar: true,
+    modifyBio: true,
+    canComment: true,
+    canPostVideo: false
+  },
+  loginMethod: {
+    scanCode: true,
+    phoneVerification: false,
+    noLogin: false
+  }
   platform: string;
   platformName: string;
   publisherName: string;
@@ -36,6 +37,7 @@ interface RentalRequest {
     maxConcurrentUsers: number;
     allowedRegions: string[];
   };
+  
 }
 
 // 复制状态接口
@@ -49,15 +51,7 @@ interface ToastMessage {
   message: string;
 }
 
-// 获取平台名称
-const getPlatformName = (platform: string) => {
-  const nameMap: Record<string, string> = {
-    douyin: '抖音',
-    xiaohongshu: '小红书',
-    kuaishou: '快手',
-  };
-  return nameMap[platform] || '其他平台';
-};
+
 
 // 格式化日期时间
 const formatDateTime = (dateString: string) => {
@@ -117,14 +111,15 @@ const RentalRequestDetailPage = () => {
             price: 92.40,
             description: '专注于美食探店内容，有稳定的粉丝群体和良好的互动率。我们团队正在为一家新开业的高端餐厅进行推广活动，需要优质的美食账号来展示餐厅特色菜品和用餐环境。希望账号有一定的美食内容基础，能够制作精美的食物展示视频。',
             accountRequirements: {
-              canChangeName: true,
-              canChangeAvatar: true,
-              canPostComments: true,
-              canPostVideos: true
+              modifyNameAvatar: true,
+              modifyBio: true,
+              canComment: true,
+              canPostVideo: false
             },
-            loginMethods: {
-              qrCode: true,
-              phoneSms: true
+            loginMethod: {
+              scanCode: true,
+              phoneVerification: false,
+              noLogin: false
             },
             platform: 'douyin',
             platformName: '抖音',
@@ -217,20 +212,6 @@ const RentalRequestDetailPage = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* 顶部导航栏 */}
-      <div className="bg-white border-b border-gray-200 p-4">
-        <div className="max-w-4xl mx-auto flex items-center">
-          <button
-            onClick={handleBack}
-            className="mr-2 p-1 rounded hover:bg-gray-100 text-gray-500"
-            title="返回"
-          >
-            <ArrowLeftOutlined />
-          </button>
-          <h1 className="text-xl">求租信息详情</h1>
-        </div>
-      </div>
-
       {/* 主内容区域 */}
       <div className="max-w-4xl mx-auto px-4 py-6">
         <div className="bg-white rounded-lg shadow-sm overflow-hidden border border-blue-100">
@@ -281,122 +262,91 @@ const RentalRequestDetailPage = () => {
                 <span>{formatDateTime(request.deadline)}</span>
               </div>
               <div>
-                <span className="text-gray-600">用户评分：</span>
-                <span className="text-yellow-500">★★★★★</span>
-                <span className="ml-1">{request.publisherRating}</span>
+                <span className="text-gray-600">租赁时长：</span>
+                <span>{request.orderDetails?.rentalDuration || 'N/A'}天</span>
               </div>
             </div>
           </div>
 
           {/* 求租详情 */}
           <div className="p-4 border-b border-gray-100">
-            <h3 className="text-lg font-medium mb-3">求租详情</h3>
+            <h3 className="text-lg font-medium mb-3">求租描述</h3>
             <div className="bg-blue-50 p-4 rounded-md">
-              <h4 className="font-medium mb-2">项目描述</h4>
               <p className="text-gray-700 leading-relaxed">{request.description}</p>
             </div>
           </div>
 
-          {/* 账号要求 */}
+          {/* 求租要求显示模块 */}
           <div className="p-4 border-b border-gray-100">
             <h3 className="text-lg font-medium mb-3">账号要求</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <h4 className="font-medium">账户权限</h4>
-                <div className="space-y-1">
-                  <div className="flex items-center">
-                    <span className={`w-2 h-2 rounded-full mr-2 ${request.accountRequirements.canChangeName ? 'bg-green-500' : 'bg-red-500'}`}></span>
-                    <span>修改名称：</span>
-                    <span className={`ml-1 ${request.accountRequirements.canChangeName ? 'text-green-600' : 'text-red-600'}`}>
-                      {request.accountRequirements.canChangeName ? '允许' : '禁止'}
-                    </span>
-                  </div>
-                  <div className="flex items-center">
-                    <span className={`w-2 h-2 rounded-full mr-2 ${request.accountRequirements.canChangeAvatar ? 'bg-green-500' : 'bg-red-500'}`}></span>
-                    <span>修改头像：</span>
-                    <span className={`ml-1 ${request.accountRequirements.canChangeAvatar ? 'text-green-600' : 'text-red-600'}`}>
-                      {request.accountRequirements.canChangeAvatar ? '允许' : '禁止'}
-                    </span>
-                  </div>
-                  <div className="flex items-center">
-                    <span className={`w-2 h-2 rounded-full mr-2 ${request.accountRequirements.canPostComments ? 'bg-green-500' : 'bg-red-500'}`}></span>
-                    <span>发布评论：</span>
-                    <span className={`ml-1 ${request.accountRequirements.canPostComments ? 'text-green-600' : 'text-red-600'}`}>
-                      {request.accountRequirements.canPostComments ? '允许' : '禁止'}
-                    </span>
-                  </div>
-                  <div className="flex items-center">
-                    <span className={`w-2 h-2 rounded-full mr-2 ${request.accountRequirements.canPostVideos ? 'bg-green-500' : 'bg-red-500'}`}></span>
-                    <span>发布视频：</span>
-                    <span className={`ml-1 ${request.accountRequirements.canPostVideos ? 'text-green-600' : 'text-red-600'}`}>
-                      {request.accountRequirements.canPostVideos ? '允许' : '禁止'}
-                    </span>
-                  </div>
-                </div>
+            <div className="space-y-2">
+              <div className="flex items-center text-sm">
+                <span className={`mr-2 ${request.accountRequirements.modifyNameAvatar ? 'text-green-500 font-medium' : 'text-red-500'}`}>
+                  {request.accountRequirements.modifyNameAvatar ? '√' : 'X'}
+                </span>
+                <span className={request.accountRequirements.modifyNameAvatar ? 'text-gray-700' : 'text-gray-500'}>
+                  修改抖音账号名称和头像
+                </span>
               </div>
-              <div className="space-y-2">
-                <h4 className="font-medium">登录方式</h4>
-                <div className="space-y-1">
-                  <div className="flex items-center">
-                    <span className={`w-2 h-2 rounded-full mr-2 ${request.loginMethods.qrCode ? 'bg-green-500' : 'bg-gray-300'}`}></span>
-                    <span>扫码登录：</span>
-                    <span className={`ml-1 ${request.loginMethods.qrCode ? 'text-green-600' : 'text-gray-500'}`}>
-                      {request.loginMethods.qrCode ? '支持' : '不支持'}
-                    </span>
-                  </div>
-                  <div className="flex items-center">
-                    <span className={`w-2 h-2 rounded-full mr-2 ${request.loginMethods.phoneSms ? 'bg-green-500' : 'bg-gray-300'}`}></span>
-                    <span>手机号+短信：</span>
-                    <span className={`ml-1 ${request.loginMethods.phoneSms ? 'text-green-600' : 'text-gray-500'}`}>
-                      {request.loginMethods.phoneSms ? '支持' : '不支持'}
-                    </span>
-                  </div>
-                </div>
+              <div className="flex items-center text-sm">
+                <span className={`mr-2 ${request.accountRequirements.modifyBio ? 'text-green-500 font-medium' : 'text-red-500'}`}>
+                  {request.accountRequirements.modifyBio ? '√' : 'X'}
+                </span>
+                <span className={request.accountRequirements.modifyBio ? 'text-gray-700' : 'text-gray-500'}>
+                  修改账号简介
+                </span>
+              </div>
+              <div className="flex items-center text-sm">
+                <span className={`mr-2 ${request.accountRequirements.canComment ? 'text-green-500 font-medium' : 'text-red-500'}`}>
+                  {request.accountRequirements.canComment ? '√' : 'X'}
+                </span>
+                <span className={request.accountRequirements.canComment ? 'text-gray-700' : 'text-gray-500'}>
+                  支持发布评论
+                </span>
+              </div>
+              <div className="flex items-center text-sm">
+                <span className={`mr-2 ${request.accountRequirements.canPostVideo ? 'text-green-500 font-medium' : 'text-red-500'}`}>
+                  {request.accountRequirements.canPostVideo ? '√' : 'X'}
+                </span>
+                <span className={request.accountRequirements.canPostVideo ? 'text-gray-700' : 'text-gray-500'}>
+                  支持发布视频
+                </span>
+              </div>
+            </div>
+          </div>
+          
+          {/* 登录方式 */}
+          <div className="p-4 border-b border-gray-100">
+            <h3 className="text-lg font-medium mb-3">登录方式</h3>
+            <div className="space-y-2">
+              <div className="flex items-center text-sm">
+                <span className={`mr-2 ${request.loginMethod.scanCode ? 'text-green-500 font-medium' : 'text-red-500'}`}>
+                  {request.loginMethod.scanCode ? '√' : 'X'}
+                </span>
+                <span className={request.loginMethod.scanCode ? 'text-gray-700' : 'text-gray-500'}>
+                  扫码登录
+                </span>
+              </div>
+              <div className="flex items-center text-sm">
+                <span className={`mr-2 ${request.loginMethod.phoneVerification ? 'text-green-500 font-medium' : 'text-red-500'}`}>
+                  {request.loginMethod.phoneVerification ? '√' : 'X'}
+                </span>
+                <span className={request.loginMethod.phoneVerification ? 'text-gray-700' : 'text-gray-500'}>
+                  手机号+短信验证登录
+                </span>
+              </div>
+              <div className="flex items-center text-sm">
+                <span className={`mr-2 ${request.loginMethod.noLogin ? 'text-green-500 font-medium' : 'text-red-500'}`}>
+                  {request.loginMethod.noLogin ? '√' : 'X'}
+                </span>
+                <span className={request.loginMethod.noLogin ? 'text-gray-700' : 'text-gray-500'}>
+                  不登录账号，按照承租方要求完成租赁
+                </span>
               </div>
             </div>
           </div>
 
-          {/* 订单细节 */}
-          {request.orderDetails && (
-            <div className="p-4 border-b border-gray-100">
-              <h3 className="text-lg font-medium mb-3">订单细节</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                <div>
-                  <span className="text-gray-600">租赁时长：</span>
-                  <span className="font-medium">{request.orderDetails.rentalDuration}天</span>
-                </div>
-                <div>
-                  <span className="text-gray-600">最大并发用户：</span>
-                  <span>{request.orderDetails.maxConcurrentUsers}人</span>
-                </div>
-                <div>
-                  <span className="text-gray-600">允许地区：</span>
-                  <span>{request.orderDetails.allowedRegions.join('、')}</span>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* 发布者信息 */}
-          {request.publisherInfo && (
-            <div className="p-4 border-b border-gray-100">
-              <h3 className="text-lg font-medium mb-3">发布者信息</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                <div>
-                  <span className="text-gray-600">注册时间：</span>
-                  <span>{formatDate(request.publisherInfo.joinedDate)}</span>
-                </div>
-                <div>
-                  <span className="text-gray-600">完成订单：</span>
-                  <span>{request.publisherInfo.completedOrders}个</span>
-                </div>
-                <div>
-                  <span className="text-gray-600">响应率：</span>
-                  <span>{request.publisherInfo.responseRate}%</span>
-                </div>
-              </div>
-            </div>
-          )}
+          {/* 移除了账号要求、订单细节和发布者信息部分 */}
 
           {/* 风险提示 */}
           <div className="p-4 bg-red-50">

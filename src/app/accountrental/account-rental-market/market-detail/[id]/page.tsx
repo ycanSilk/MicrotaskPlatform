@@ -1,6 +1,9 @@
+'use client';
+
+import { useState, useEffect } from 'react';
 import { notFound } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
-import { AccountRentalInfo } from '../../types';
+import { AccountRentalInfo } from '../../../types';
 
 
 
@@ -26,22 +29,65 @@ const fetchAccountDetail = async (accountId: string): Promise<AccountRentalInfo>
   };
 };
 
-// 服务器组件获取数据
-const AccountDetailPage = async ({
-  searchParams,
+// 客户端组件
+const AccountDetailPage = ({
+  params
 }: {
-  searchParams: {
-    id?: string;
+  params: {
+    id: string;
   };
 }) => {
-  const accountId = searchParams?.id || '';
+  const accountId = params?.id || '';
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [account, setAccount] = useState<AccountRentalInfo | null>(null);
+  const [loading, setLoading] = useState(true);
+  
+  // 组件挂载时获取数据
+  useEffect(() => {
+    const loadAccountData = async () => {
+      try {
+        const data = await fetchAccountDetail(accountId);
+        setAccount(data);
+      } catch (error) {
+        console.error('获取账号详情失败:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    if (accountId) {
+      loadAccountData();
+    }
+  }, [accountId]);
   
   if (!accountId) {
     return notFound();
   }
-
-  try {
-    const account = await fetchAccountDetail(accountId);
+  
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-2xl mb-2">🔄</div>
+          <div>加载中...</div>
+        </div>
+      </div>
+    );
+  }
+  
+  if (!account) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <div className="text-center">
+          <h2 className="text-lg font-medium text-gray-900 mb-2">获取账号详情失败</h2>
+          <p className="text-gray-500 mb-4">请稍后再试或返回首页</p>
+          <Button onClick={() => window.history.back()}>
+            返回
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
     // 格式化发布时间
     const formatPublishTime = (timeString: string): string => {
@@ -94,15 +140,30 @@ const AccountDetailPage = async ({
               <div className="bg-white rounded-lg shadow-sm overflow-hidden">
                 <div className="p-6">
                   {/* 订单基本信息 */}
-                  <div className="flex justify-between items-start mb-6">
+                  <div className="mb-6">
                     <div>
                       <h1 className="text-xl font-bold text-gray-800">租赁详情</h1>
-                      <p className="text-sm text-gray-500 mt-1">抖音账号租赁</p>
-                    </div>
-                    <div className={`text-sm px-3 py-1 rounded-full ${getOrderStatusClass(account.orderStatus)}`}>
-                      {account.orderStatus}
                     </div>
                   </div>
+                  
+                  {/* 图片预览区域 */}
+                  {account.images && account.images.length > 0 && (
+                    <div className="mb-6">
+                      <h2 className="text-lg font-medium text-gray-800 mb-2">账号图片</h2>
+                      <div className="flex flex-wrap gap-2">
+                        {account.images.slice(0, 6).map((image, index) => (
+                          <div key={index} className="w-[85px] h-[85px] bg-gray-100 rounded-lg overflow-hidden">
+                            <img 
+                              src={`/${image}`} 
+                              alt={`账号图片${index + 1}`} 
+                              className="w-full h-full object-cover cursor-pointer hover:opacity-90 transition-opacity"
+                              onClick={() => setSelectedImage(image)}
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                   
                   {/* 租赁描述 */}
                   <div className="mb-6">
@@ -132,6 +193,7 @@ const AccountDetailPage = async ({
                 <div className="mb-6">
                   <div className="flex items-end">
                     <span className="text-3xl font-bold text-red-600">¥{account.price}</span>
+                    <span className="text-sm text-gray-500 ml-2 mb-1">（单价：¥{(account.price / account.rentalDays).toFixed(2)}/天）</span>
                   </div>
                 </div>
                 
@@ -161,22 +223,30 @@ const AccountDetailPage = async ({
             </div>
           </div>
         </div>
+        
+        {/* 图片预览模态框 */}
+        {selectedImage && (
+          <div 
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80" 
+            onClick={() => setSelectedImage(null)}
+          >
+            <div className="relative max-w-4xl max-h-[90vh] p-4" onClick={(e) => e.stopPropagation()}>
+              <button 
+                className="absolute top-4 right-4 text-white bg-black bg-opacity-50 rounded-full p-2 z-10 hover:bg-opacity-70 transition-colors"
+                onClick={() => setSelectedImage(null)}
+              >
+                ✕
+              </button>
+              <img 
+                src={`/${selectedImage}`} 
+                alt="预览图片" 
+                className="max-w-full max-h-[85vh] object-contain" 
+              />
+            </div>
+          </div>
+        )}
       </div>
     );
-  } catch (error) {
-    console.error('获取账号详情失败:', error);
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="text-center">
-          <h2 className="text-lg font-medium text-gray-900 mb-2">获取账号详情失败</h2>
-          <p className="text-gray-500 mb-4">请稍后再试或返回首页</p>
-          <Button onClick={() => window.history.back()}>
-            返回
-          </Button>
-        </div>
-      </div>
-    );
-  }
 };
 
 export default AccountDetailPage;

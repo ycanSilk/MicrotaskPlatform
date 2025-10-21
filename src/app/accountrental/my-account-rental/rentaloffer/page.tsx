@@ -206,9 +206,9 @@ const RentalOfferPage = () => {
             <Link href={`/accountrental/my-account-rental/rentaloffer/rentaloffer-detail/${offer.id}`} key={offer.id}>
               <Card className="border-0 rounded-none mb-3 cursor-pointer hover:shadow-md transition-shadow">
                 {/* 出租头部信息 */}
-                <div className="flex justify-between items-center py-3 px-2">
+                <div className="flex justify-between items-center">
                   <div className="flex items-center">
-                    <span className="text-sm text-black">出租编号：{offer.offerNo}</span>
+                    <span className="text-sm text-black">出租单号：{offer.offerNo}</span>
                     <Button 
                       type="text" 
                       onClick={(e) => {
@@ -222,13 +222,14 @@ const RentalOfferPage = () => {
                       复制
                     </Button>
                   </div>
+                </div>
+                <div className='mb-1'>
                   <span className="text-sm text-red-500">
                     {offer.status}
                   </span>
                 </div>
-
                 {/* 出租详细信息 - 左右结构，同一行显示，垂直居中 */}
-                <div className="flex flex-row gap-2 py-2 px-1 items-center">
+                <div className="flex flex-row gap-2 items-center">
                   {/* 左侧图片区域 */}
                   <div className="flex-shrink-0">
                     <div className="w-20 h-20 bg-gray-100 overflow-hidden">
@@ -248,37 +249,29 @@ const RentalOfferPage = () => {
 
                   {/* 右侧信息区域 */}
                   <div className="flex-1">
-          
-                    {/* 第二行：账号描述 - 显示2行，超出部分隐藏 */}
-                    <div className="mb-1">
                       <div className="text-sm text-gray-600 line-clamp-2">{offer.accountDescription}</div>
-                    </div>
-
-                    {/* 第三行：粉丝数量和价格，同一行显示 */}
-                    <div className="flex justify-between items-center mb-2">
-                      <span className="text-xs text-gray-500">租赁时长：{offer.rentalDuration} 天</span>
-                      <span className="text-sm text-black">{offer.rentalPrice} 元/天</span>
-                    </div>
+                      <div className="text-xs text-gray-500">租赁时长：{offer.rentalDuration} 天</div>
+                      <div className="text-sm text-black">{offer.rentalPrice} 元/天</div>
                   </div>
                 </div>
                 
                 {/* 按钮区域 */}
-                <div className="flex justify-between items-center mt-2 py-3 px-2">
-                  <Button
-                    type="default"
-                    icon={<PhoneOutlined />}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      handleContactService(offer.id);
-                    }}
-                    size="small"
-                    style={{ borderColor: '#000' }}
-                  >
-                    客服
-                  </Button>
-
+                <div className="flex justify-end items- mt-1">
                   <Space>
+                    <Button
+                      type="default"
+                      icon={<PhoneOutlined />}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleContactService(offer.id);
+                      }}
+                      size="small"
+                      style={{ borderColor: '#000' }}
+                    >
+                      客服
+                    </Button>
+
                     {/* 根据状态显示不同按钮 */}
                     {offer.status === '已上架' && (
                       <>
@@ -293,19 +286,7 @@ const RentalOfferPage = () => {
                           style={{ borderColor: '#000' }}
                         >
                           编辑出租
-                        </Button>
-                        <Button 
-                          type="default" 
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            router.push(`/accountrental/my-account-rental/rentaloffer/rentaloffer-detail?id=${offer.id}`);
-                          }} 
-                          size="small"
-                          style={{ borderColor: '#000' }}
-                        >
-                          查看详情
-                        </Button>
+                        </Button>                       
                         <Button
                           danger
                           onClick={(e) => {
@@ -323,35 +304,6 @@ const RentalOfferPage = () => {
                       </>
                     )}
 
-                    {offer.status === '已租出' && (
-                      <>
-                        <Button 
-                          type="default" 
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            router.push(`/accountrental/my-account-rental/rentaloffer/rentaloffer-detail?id=${offer.id}`);
-                          }} 
-                          size="small"
-                          style={{ borderColor: '#000' }}
-                        >
-                          查看详情
-                        </Button>
-                        <Button 
-                          type="default" 
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            handleOfferAction(offer.id, '查看订单');
-                          }} 
-                          size="small"
-                          style={{ borderColor: '#000' }}
-                        >
-                          查看订单
-                        </Button>
-                      </>
-                    )}
-
                     {offer.status === '已下架' && (
                       <>
                         <Button 
@@ -364,18 +316,6 @@ const RentalOfferPage = () => {
                           size="small"
                         >
                           重新上架
-                        </Button>
-                        <Button 
-                          type="default" 
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            router.push(`/accountrental/my-account-rental/rentaloffer/rentaloffer-detail?id=${offer.id}`);
-                          }} 
-                          size="small"
-                          style={{ borderColor: '#000' }}
-                        >
-                          查看详情
                         </Button>
                       </>
                     )}

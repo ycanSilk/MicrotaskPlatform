@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, Button, Space, Avatar, Tabs, Modal, Radio, DatePicker, message } from 'antd';
 import Link from 'next/link';
-import { PhoneOutlined, SearchOutlined, CopyOutlined } from '@ant-design/icons';
+import {  SearchOutlined, CopyOutlined } from '@ant-design/icons';
 import { ConfigProvider } from 'antd';
 import zhCN from 'antd/locale/zh_CN';
 import dayjs from 'dayjs';
@@ -249,11 +249,12 @@ const RentalOrderPage = () => {
                       复制
                     </Button>
                   </div>
-                  <span className="text-sm text-red-500">
+                </div>
+                <div className='mb-1'> 
+                  <span className="text-sm text-red-500 border border-red-500 px-2 rounded-md bg-red-50">
                     {order.status}
                   </span>
-                </div>
-
+                </div>       
                 {/* 订单详细信息 - 左右结构，响应式布局 */}
                 <div className="flex flex-row gap-2 p-0 items-center">
                   {/* 左侧图片区域 - 在移动设备上调整尺寸 */}
@@ -275,36 +276,27 @@ const RentalOrderPage = () => {
 
                   {/* 右侧信息区域 */}
                   <div className="flex-1">
-                    {/* 第一行：租赁描述信息 - 显示2行，超出部分隐藏 */}
-                    <div className="mb-1">
-                      <div className="text-sm text-black line-clamp-2">{order.accountInfo}</div>
-                    </div>
-
-                    {/* 第三行：租赁时长和价格，同一行显示 */}
-                    <div className="flex justify-between items-center mb-4">
-                      <p className="text-sm text-black">租赁时长：{order.rentalDays} 天</p>
-                      <p className="text-sm font-medium text-black">￥{order.totalAmount.toFixed(2)}</p>
-                    </div> 
+                    <div className="text-sm text-black line-clamp-2">{order.accountInfo}</div>
+                    <div className="text-sm text-black">租赁时长：{order.rentalDays} 天</div>
+                    <div className="text-sm font-medium text-black">￥{order.totalAmount.toFixed(2)}</div>
                   </div>
                 </div>
-                {/* 按钮区域 - 响应式布局，在小屏幕上按钮自动换行 */}
-                <div className="flex flex-wrap justify-between items-center mt-2 p-0 gap-2">
-                  <Button
-                    type="default"
-                    icon={<PhoneOutlined />}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      handleContactService(order.id);
-                    }}
-                    size="small"
-                    style={{ borderColor: '#000', minWidth: '60px' }}
-                    className="whitespace-nowrap"
-                  >
-                    客服
-                  </Button>
-
-                  <Space className="flex-wrap">
+                {/* 按钮区域 */}
+                <div className="flex justify-end items-center mt-1">
+                  <Space>
+                    <Button
+                      type="default"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleContactService(order.id);
+                      }}
+                      size="small"
+                      style={{ borderColor: '#000' }}
+                    >
+                      客服
+                    </Button>
+                    
                     {/* 根据订单状态显示不同按钮 */}
                     {order.status === '待付款' && (
                       <>
@@ -352,24 +344,6 @@ const RentalOrderPage = () => {
                           className="whitespace-nowrap"
                         >
                           延长租期
-                        </Button>
-                      </>
-                    )}
-
-                    {order.status === '已完成' && (
-                      <>
-                        <Button 
-                          type="default" 
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            handleOrderAction(order.id, '评价');
-                          }} 
-                          size="small"
-                          style={{ borderColor: '#000' }}
-                          className="whitespace-nowrap"
-                        >
-                          评价
                         </Button>
                       </>
                     )}
