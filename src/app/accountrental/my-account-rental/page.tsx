@@ -4,9 +4,9 @@ import React from 'react';
 import { useRouter } from 'next/navigation';
 import RightOutlined from '@ant-design/icons/RightOutlined';
 import ShopOutlined from '@ant-design/icons/ShopOutlined';
-import WalletOutlined from '@ant-design/icons/WalletOutlined';
-import FileTextOutlined from '@ant-design/icons/FileTextOutlined';
-import StarOutlined from '@ant-design/icons/StarOutlined';
+import TransactionOutlined from '@ant-design/icons/TransactionOutlined';
+import DeploymentUnitOutlined from '@ant-design/icons/DeploymentUnitOutlined';
+import SearchOutlined from '@ant-design/icons/SearchOutlined';
 
 // 定义菜单项接口
 interface MenuItem {
@@ -20,33 +20,33 @@ interface MenuItem {
 const MyAccountRentalPage = () => {
   const router = useRouter();
 
-  // 所有菜单项列表 - 更新为四个按钮
+  // 所有菜单项列表 - 更新为四个按钮，使用更匹配功能的图标
   const menuItems: MenuItem[] = [
     {
       id: 'rental-orders',
-      title: '出租订单',
-      icon: <ShopOutlined className="text-xl" />,
+      title: '我出租的订单',
+      icon: <ShopOutlined className="text-xl" />, // 保留ShopOutlined，适合表示出租业务
       color: 'bg-blue-100',
       path: '/accountrental/my-account-rental/forrentorder'
     },
     {
       id: 'lease-orders',
-      title: '租用订单',
-      icon: <WalletOutlined className="text-xl" />,
+      title: '我租用的订单',
+      icon: <TransactionOutlined className="text-xl" />, // 替换为TransactionOutlined，更适合表示交易/订单
       color: 'bg-green-100',
       path: '/accountrental/my-account-rental/rentalorder'
     },
     {
       id: 'rental-info',
-      title: '出租信息',
-      icon: <FileTextOutlined className="text-xl" />,
+      title: '我发布的出租',
+      icon: <DeploymentUnitOutlined className="text-xl" />, // 替换为DeploymentUnitOutlined，表示发布/上线
       color: 'bg-purple-100',
       path: '/accountrental/my-account-rental/rentaloffer'
     },
     {
       id: 'lease-info',
-      title: '求租信息',
-      icon: <StarOutlined className="text-xl" />,
+      title: '我发布的求租',
+      icon: <SearchOutlined className="text-xl" />, // 替换为SearchOutlined，表示寻找/搜索
       color: 'bg-amber-100',
       path: '/accountrental/my-account-rental/rentalrequest'
     }

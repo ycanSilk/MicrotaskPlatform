@@ -78,7 +78,7 @@ const ClientHeader: React.FC<ClientHeaderProps> = ({ user }) => {
       '/accountrental/my-account-rental/rentalorder/rentalorder-detail': '/accountrental/my-account-rental/rentalorder',
       '/accountrental/my-account-rental/rentaloffer/rentaloffer-detail': '/accountrental/my-account-rental/rentaloffer',
       '/accountrental/my-account-rental/rentalrequest/rentalrequest-detail': '/accountrental/my-account-rental/rentalrequest',
-      '/accountrental/my-account-rental/rented/rented-detail': '/accountrental/my-account-rental/rented'
+      '/accountrental/my-account-rental/rented/rented-detail': '/accountrental/my-account-rental/rented',
     };
 
     // 检查当前路径是否匹配动态路由模式
@@ -138,16 +138,44 @@ const ClientHeader: React.FC<ClientHeaderProps> = ({ user }) => {
         return;
       }
 
-      // 尝试匹配包含特定路径段的路由
       // 优先匹配更长的路由模式，以避免匹配到更短的通用路径
       const sortedRoutes = Object.entries(routeTitleMap).sort(([a], [b]) => b.length - a.length);
       
+      // 处理动态路由的特殊逻辑
+      const pathParts = pathWithoutQuery.split('/').filter(Boolean);
+      
       for (const [route, title] of sortedRoutes) {
-        // 对于动态路由，检查路径是否以该路由开头或者包含该路由后跟斜杠或结尾
-        const routePattern = new RegExp(`^${route}(/.*)?$`);
-        if (pathWithoutQuery.includes(route) || routePattern.test(pathWithoutQuery)) {
-          setPageTitle(title);
-          return;
+        // 检查是否是动态路由模式（包含[ID]或类似参数）
+        if (route.includes('[id]')) {
+          // 创建动态路由的正则表达式模式
+          // 将 [id] 替换为匹配任何非斜杠字符的模式 (\d+ 匹配数字ID)
+          const dynamicRoutePattern = route.replace(/\[id\]/g, '(\\d+)');
+          const regexPattern = new RegExp(`^${dynamicRoutePattern}$`);
+          
+          if (regexPattern.test(pathWithoutQuery)) {
+            setPageTitle(title);
+            return;
+          }
+        } else {
+          // 对于非动态路由，检查路径是否以该路由开头或者包含该路由后跟斜杠或结尾
+          const routePattern = new RegExp(`^${route}(/.*)?$`);
+          if (pathWithoutQuery.includes(route) || routePattern.test(pathWithoutQuery)) {
+            setPageTitle(title);
+            return;
+          }
+        }
+      }
+      
+      // 如果没有找到匹配项，尝试基于路径段进行匹配
+      // 例如: /accountrental/my-account-rental/rentalrequest/rentalrequest-detail/1 应该匹配到 rentalrequest-detail
+      if (pathParts.length >= 4) {
+        // 对于详细页面，尝试匹配倒数第二个路径段
+        const detailPathSegment = pathParts[pathParts.length - 2];
+        for (const [route, title] of sortedRoutes) {
+          if (route.includes(detailPathSegment)) {
+            setPageTitle(title);
+            return;
+          }
         }
       }
     }

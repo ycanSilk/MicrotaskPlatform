@@ -48,6 +48,10 @@ interface RentalOffer {
   accountRequirements?: AccountRequirements;
   // 登录方式
   loginMethods?: string[];
+  // 联系信息
+  contactPhone?: string;
+  contactQQ?: string;
+  contactEmail?: string;
 }
 
 
@@ -62,6 +66,9 @@ interface EditFormData {
   dataImages: string[];
   accountRequirements: AccountRequirements;
   loginMethods: string[];
+  contactPhone?: string;
+  contactQQ?: string;
+  contactEmail?: string;
 }
 
 const RentalOfferDetailPage = () => {
@@ -86,7 +93,10 @@ const RentalOfferDetailPage = () => {
       canPostVideos: false,
       canUnbanAccount: false
     },
-    loginMethods: []
+    loginMethods: [],
+    contactPhone: '',
+    contactQQ: '',
+    contactEmail: ''
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
@@ -120,7 +130,10 @@ const RentalOfferDetailPage = () => {
           canPostVideos: false,
           canUnbanAccount: true
         },
-        loginMethods: ['scan', 'phone_sms']
+        loginMethods: ['scan', 'phone_sms'],
+        contactPhone: '13812346789',
+        contactQQ: '2345678',
+        contactEmail: 'example@qq.com'
       },
       {
         id: '2',
@@ -201,7 +214,10 @@ const RentalOfferDetailPage = () => {
         canPostVideos: false,
         canUnbanAccount: false
       },
-      loginMethods: offerWithDouyinType.loginMethods || []
+      loginMethods: offerWithDouyinType.loginMethods || [],
+      contactPhone: offerWithDouyinType.contactPhone || '',
+      contactQQ: offerWithDouyinType.contactQQ || '',
+      contactEmail: offerWithDouyinType.contactEmail || ''
     });
   }, [offerId]);
 
@@ -230,8 +246,87 @@ const RentalOfferDetailPage = () => {
       newErrors.rentalDuration = '请输入租赁时长';
     }
     
+    // 手机号必填验证
+    if (!editForm.contactPhone || !editForm.contactPhone.trim()) {
+      newErrors.contactPhone = '请输入手机号';
+    }
+    
+    // 联系信息验证（格式验证）
+    validateContactInfo(newErrors);
+    
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
+  };
+  
+  // 联系信息验证函数
+  const validateContactInfo = (errors: Record<string, string>) => {
+    // 手机号验证：中国大陆手机号规则（已在validateForm中验证必填）
+    if (editForm.contactPhone && editForm.contactPhone.trim()) {
+      if (!/^1[3-9]\d{9}$/.test(editForm.contactPhone)) {
+        errors.contactPhone = '请输入有效的中国大陆手机号（11位数字）';
+      }
+    }
+    
+    // QQ号验证：5-13位数字，不能以0开头（选填）
+    if (editForm.contactQQ && editForm.contactQQ.trim()) {
+      if (!/^[1-9]\d{4,13}$/.test(editForm.contactQQ)) {
+        errors.contactQQ = '请输入有效的QQ号（5-13位数字，不能以0开头）';
+      }
+    }
+    
+    // 邮箱验证：标准邮箱格式，支持常见域名（选填）
+    if (editForm.contactEmail && editForm.contactEmail.trim()) {
+      const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+      if (!emailRegex.test(editForm.contactEmail)) {
+        errors.contactEmail = '请输入有效的邮箱地址（如example@domain.com）';
+      } else if (editForm.contactEmail.length > 100) {
+        errors.contactEmail = '邮箱地址长度不能超过100个字符';
+      }
+    }
+  };
+  
+  // 单个字段实时验证
+  const validateField = (fieldName: string) => {
+    const newErrors = { ...errors };
+    
+    switch (fieldName) {
+      case 'contactPhone':
+        if (!editForm.contactPhone || !editForm.contactPhone.trim()) {
+          newErrors.contactPhone = '请输入手机号';
+        } else if (!/^1[3-9]\d{9}$/.test(editForm.contactPhone)) {
+          newErrors.contactPhone = '请输入有效的中国大陆手机号（11位数字）';
+        } else {
+          delete newErrors.contactPhone;
+        }
+        break;
+      case 'contactQQ':
+        if (editForm.contactQQ) {
+          if (!/^[1-9]\d{4,13}$/.test(editForm.contactQQ)) {
+            newErrors.contactQQ = '请输入有效的QQ号（5-13位数字，不能以0开头）';
+          } else {
+            delete newErrors.contactQQ;
+          }
+        } else {
+          delete newErrors.contactQQ;
+        }
+        break;
+      case 'contactEmail':
+        if (editForm.contactEmail) {
+          const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+          if (!emailRegex.test(editForm.contactEmail)) {
+            newErrors.contactEmail = '请输入有效的邮箱地址（如example@domain.com）';
+          } else if (editForm.contactEmail.length > 100) {
+            newErrors.contactEmail = '邮箱地址长度不能超过100个字符';
+          } else {
+            delete newErrors.contactEmail;
+          }
+        } else {
+          delete newErrors.contactEmail;
+        }
+        break;
+    }
+    
+    setErrors(newErrors);
   };
 
   // 处理表单输入变化
@@ -239,8 +334,11 @@ const RentalOfferDetailPage = () => {
     const { name, value } = e.target;
     setEditForm(prev => ({ ...prev, [name]: value }));
     
-    // 清除对应字段的错误
-    if (errors[name]) {
+    // 对联系信息字段进行实时验证
+    if (['contactPhone', 'contactQQ', 'contactEmail'].includes(name)) {
+      validateField(name);
+    } else if (errors[name]) {
+      // 清除其他字段的错误
       setErrors(prev => ({ ...prev, [name]: '' }));
     }
   };
@@ -305,7 +403,10 @@ const RentalOfferDetailPage = () => {
           canPostVideos: false,
           canUnbanAccount: false
         }) },
-        loginMethods: [...(offerDetail.loginMethods || [])]
+        loginMethods: [...(offerDetail.loginMethods || [])],
+        contactPhone: offerDetail.contactPhone || '',
+        contactQQ: offerDetail.contactQQ || '',
+        contactEmail: offerDetail.contactEmail || ''
       });
     }
     setIsEditing(true);
@@ -327,7 +428,10 @@ const RentalOfferDetailPage = () => {
           canPostVideos: false,
           canUnbanAccount: false
         }) },
-        loginMethods: [...(offerDetail.loginMethods || [])]
+        loginMethods: [...(offerDetail.loginMethods || [])],
+        contactPhone: offerDetail.contactPhone || '',
+        contactQQ: offerDetail.contactQQ || '',
+        contactEmail: offerDetail.contactEmail || ''
       });
     }
     setErrors({});
@@ -365,6 +469,9 @@ const RentalOfferDetailPage = () => {
       newErrors.loginMethods = '请至少选择一种登录方式';
     }
     
+    // 联系信息验证
+    validateContactInfo(newErrors);
+    
     // 检查账号要求是否至少选择一项
     const hasAnyRequirement = Object.values(editForm.accountRequirements).some(Boolean);
     if (!hasAnyRequirement) {
@@ -387,6 +494,9 @@ const RentalOfferDetailPage = () => {
         dataImages: editForm.dataImages,
         accountRequirements: editForm.accountRequirements,
         loginMethods: editForm.loginMethods,
+        contactPhone: editForm.contactPhone,
+        contactQQ: editForm.contactQQ,
+        contactEmail: editForm.contactEmail,
         status: '待审核' // 编辑后自动变为待审核状态
       };
       
@@ -504,15 +614,15 @@ const RentalOfferDetailPage = () => {
                 {isEditing ? (
                   <div className="flex items-center">
                     <input
-                      type="number"
-                      name="rentalPrice"
-                      value={editForm.rentalPrice}
-                      onChange={handleInputChange}
-                      className={`w-full px-3 py-2 border rounded-md ${errors.rentalPrice ? 'border-red-500' : 'border-gray-300'}`}
-                      placeholder="请输入租赁价格"
-                      min="0"
-                      step="0.01"
-                    />
+                        type="number"
+                        name="rentalPrice"
+                        value={editForm.rentalPrice}
+                        onChange={handleInputChange}
+                        className={`w-full px-3 py-2 border rounded-md ${errors.rentalPrice ? 'border-red-500' : 'border-gray-300'} `}
+                        placeholder="请输入租赁价格"
+                        min="0"
+                        step="0.01"
+                      />
                   </div>
                 ) : (
                   <div className="mt-1 p-2 bg-gray-50 rounded border border-gray-200">{offerDetail.rentalPrice} </div>
@@ -531,7 +641,7 @@ const RentalOfferDetailPage = () => {
                     name="rentalDuration"
                     value={editForm.rentalDuration}
                     onChange={handleInputChange}
-                    className={`w-full px-3 py-2 border rounded-md ${errors.rentalDuration ? 'border-red-500' : 'border-gray-300'}`}
+                    className={`w-full px-3 py-2 border rounded-md ${errors.rentalDuration ? 'border-red-500' : 'border-gray-300'} `}
                     placeholder="例如：可租赁1-7天，每次至少2小时等"
                   />
                 ) : (
@@ -540,15 +650,98 @@ const RentalOfferDetailPage = () => {
                 {errors.rentalDuration && (
                   <p className="mt-1 text-sm text-red-600">{errors.rentalDuration}</p>
                 )}
-                {isEditing && (
-                  <p className="mt-1 text-xs text-gray-500">请清晰描述租赁时长规则，如适用期限、最短/最长租赁时间等</p>
-                )}
+               
               </div>
 
               {/* 发布时间 */}
               <div className="space-y-1">
                 <label className="block text-sm font-medium text-gray-700">发布时间</label>
                 <div className="mt-1 p-2 bg-gray-50 rounded border border-gray-200">{offerDetail.createTime}</div>
+              </div>
+
+              {/* 联系信息 */}
+              <div className="mt-6">
+                <div className="text-base font-medium mb-3">联系方式</div>
+                <div className="space-y-4">
+                  {/* 手机号 */}
+                  <div className="space-y-1">
+                    <label className="block text-sm font-medium text-gray-700">手机号：</label>
+                    {isEditing ? (
+                      <div>
+                        <input
+                          type="tel"
+                          name="contactPhone"
+                          value={editForm.contactPhone || ''}
+                          onChange={handleInputChange}
+                          onBlur={() => validateField('contactPhone')}
+                          className={`w-full px-3 py-2 border rounded-md ${errors.contactPhone ? 'border-red-500' : 'border-gray-300'} `}
+                          placeholder="请输入手机号"
+                          maxLength={11}
+                          pattern="1[3-9]\d{9}"
+                        />
+                      </div>
+                    ) : (
+                      <div className="mt-1 p-2 bg-gray-50 rounded border border-gray-200">
+                        {offerDetail.contactPhone || ''}
+                      </div>
+                    )}
+                    {errors.contactPhone && (
+                      <p className="mt-1 text-sm text-red-600">{errors.contactPhone}</p>
+                    )}
+                  </div>
+                  
+                  {/* QQ号 */}
+                  <div className="space-y-1">
+                    <label className="block text-sm font-medium text-gray-700">QQ号：</label>
+                    {isEditing ? (
+                      <div>
+                        <input
+                          type="text"
+                          name="contactQQ"
+                          value={editForm.contactQQ || ''}
+                          onChange={handleInputChange}
+                          onBlur={() => validateField('contactQQ')}
+                          className={`w-full px-3 py-2 border rounded-md ${errors.contactQQ ? 'border-red-500' : 'border-gray-300'} `}
+                          placeholder="请输入QQ号（选填）"
+                          maxLength={13}
+                        />
+                      </div>
+                    ) : (
+                      <div className="mt-1 p-2 bg-gray-50 rounded border border-gray-200 h-10">
+                        {offerDetail.contactQQ || ''}
+                      </div>
+                    )}
+                    {errors.contactQQ && (
+                      <p className="mt-1 text-sm text-red-600">{errors.contactQQ}</p>
+                    )}
+                  </div>
+                  
+                  {/* 邮箱 */}
+                  <div className="space-y-1">
+                    <label className="block text-sm font-medium text-gray-700">邮箱：</label>
+                    {isEditing ? (
+                      <div>
+                        <input
+                          type="email"
+                          name="contactEmail"
+                          value={editForm.contactEmail || ''}
+                          onChange={handleInputChange}
+                          onBlur={() => validateField('contactEmail')}
+                          className={`w-full px-3 py-2 border rounded-md ${errors.contactEmail ? 'border-red-500' : 'border-gray-300'} `}
+                          placeholder="请输入邮箱地址（选填）"
+                          maxLength={100}
+                        />
+                      </div>
+                    ) : (
+                      <div className="mt-1 p-2 bg-gray-50 rounded border border-gray-200 h-10">
+                        {offerDetail.contactEmail || ''}
+                      </div>
+                    )}
+                    {errors.contactEmail && (
+                      <p className="mt-1 text-sm text-red-600">{errors.contactEmail}</p>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -696,7 +889,7 @@ const RentalOfferDetailPage = () => {
                     );
                   })}
                   {(!offerDetail.loginMethods || offerDetail.loginMethods.length === 0) && (
-                    <span className="text-gray-500 text-sm">未设置</span>
+                    <span className="text-gray-500 text-sm"></span>
                   )}
                 </div>
               ) : (
@@ -860,14 +1053,14 @@ const RentalOfferDetailPage = () => {
                         icon={<EditOutlined />}
                         className="px-4 py-2 border border-blue-600 text-blue-600 hover:bg-blue-50"
                       >
-                        编辑出租
+                        编辑
                       </Button>
                       <Button 
                         onClick={handleOffShelf}
                         icon={<DeleteOutlined />}
                         className="px-4 py-2 bg-red-600 text-white hover:bg-red-700"
                       >
-                        下架出租
+                        下架
                       </Button>
                     </>
                   )}
