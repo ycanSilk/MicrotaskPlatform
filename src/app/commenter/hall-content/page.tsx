@@ -176,32 +176,35 @@ export default function CommenterHallContentPage() {
   // 抢单功能 - 暂停API调用，仅显示模拟成功消息
   const handleGrabTask = async (taskId: string) => {
     console.log('=== 抢单功能开始 ===', { taskId });
-    // 检查是否处于冷却状态
-    if (isCoolingDown()) {
-      console.log('当前处于冷却状态，显示冷却模态框');
-      setShowCoolingModal(true);
-      return;
-    }
+    // 检查是否处于冷却状态 - 注释掉冷却时间检查
+    // if (isCoolingDown()) {
+    //   console.log('当前处于冷却状态，显示冷却模态框');
+    //   setShowCoolingModal(true);
+    //   return;
+    // }
 
     if (grabbingTasks.has(taskId)) {
       console.log('该任务正在抢单中，忽略重复点击');
       return;
     }
 
-    try {
-      const user = CommenterAuthStorage.getCurrentUser();
-      if (!user) {
-        console.log('用户未登录');
-        showAlert('提示', '请先登录', 'info');
-        return;
-      }
 
-      // 检查用户角色是否为评论员
-      if (user.role !== 'commenter') {
-        console.log('用户角色不是评论员');
-        showAlert('权限不足', '您不是评论员角色，无法抢单', 'warning');
-        return;
-      }
+
+    try {
+      // 移除登录验证和角色验证限制
+      // const user = CommenterAuthStorage.getCurrentUser();
+      // if (!user) {
+      //   console.log('用户未登录');
+      //   showAlert('提示', '请先登录', 'info');
+      //   return;
+      // }
+
+      // // 检查用户角色是否为评论员
+      // if (user.role !== 'commenter') {
+      //   console.log('用户角色不是评论员');
+      //   showAlert('权限不足', '您不是评论员角色，无法抢单', 'warning');
+      //   return;
+      // }
 
       setGrabbingTasks(prev => new Set(prev).add(taskId));
       console.log('设置任务为正在抢单状态');
@@ -212,17 +215,17 @@ export default function CommenterHallContentPage() {
       console.log('模拟抢单成功');
       
       // 模拟成功响应
-      showAlert('抢单成功', '您已成功抢到该任务，即将跳转到任务页面', 'success');
+      showAlert('抢单成功', '您已成功抢到该任务。单个抖音账号每天评论任务次数5次以内。超过5次可能会影响抖音账号权重导致无法正常显示评论影响个人账号的完成率。如个人有多个抖音账号，可以注册多个平台账号', 'success');
       
-      // 使用冷却计时器组件开始5分钟冷却
-      console.log('调用冷却计时器开始5分钟冷却');
-      coolingTimerRef.current?.startCooling(5);
+      // 移除冷却计时器的调用
+      // console.log('调用冷却计时器开始5分钟冷却');
+      // coolingTimerRef.current?.startCooling(5);
       
-      // 抢单成功后延迟1秒跳转到任务页面
+      // 抢单成功后延迟3秒跳转到任务页面
       setTimeout(() => {
         console.log('跳转到任务页面');
         router.push('/commenter/tasks');
-      }, 1000);
+      }, 4000);
       
       // 抢单成功后立即刷新列表
       await fetchAvailableTasks();
@@ -266,23 +269,7 @@ export default function CommenterHallContentPage() {
         onCoolingEnd={handleCoolingEnd}
       />
       
-      {/* 冷却时间显示 */}
-      {isCoolingDown() && (
-        <div className="bg-gradient-to-r from-orange-500 to-red-500 text-white mx-4 mt-4 rounded-lg p-4 shadow-md">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <ClockCircleOutlined className="text-xl" /> 
-                <span className="font-medium">抢单冷却中</span>
-              </div>
-            <div className="font-bold text-lg">
-              {getRemainingTime().minutes.toString().padStart(2, '0')}:{getRemainingTime().seconds.toString().padStart(2, '0')}
-            </div>
-          </div>
-          <div className="mt-2 text-sm opacity-90">
-            为保证任务质量，每成功抢单后将有5分钟冷却时间
-          </div>
-        </div>
-      )}
+
 
       {/* 排序功能按钮 */}
       <div className="bg-white mx-4 mt-4 rounded-lg shadow-sm p-4">
@@ -384,11 +371,11 @@ export default function CommenterHallContentPage() {
             </div>
             
             <button 
-              className={`w-full py-3 rounded-lg font-medium transition-colors ${grabbingTasks.has(task.id) || isCoolingDown() ? 'bg-gray-400 text-gray-200 cursor-not-allowed' : 'bg-blue-500 text-white hover:bg-blue-600'}`}
+              className={`w-full py-3 rounded-lg font-medium transition-colors ${grabbingTasks.has(task.id) ? 'bg-gray-400 text-gray-200 cursor-not-allowed' : 'bg-blue-500 text-white hover:bg-blue-600'}`}
               onClick={() => handleGrabTask(task.id)}
-              disabled={grabbingTasks.has(task.id) || isCoolingDown()}
+              disabled={grabbingTasks.has(task.id)}
             >
-              {grabbingTasks.has(task.id) ? '抢单中...' : isCoolingDown() ? `冷却中 ${getRemainingTime().minutes}:${getRemainingTime().seconds < 10 ? '0' : ''}${getRemainingTime().seconds}` : '抢单'}
+              {grabbingTasks.has(task.id) ? '抢单中...' : '抢单'}
             </button>
             </div>
           ))
@@ -426,14 +413,7 @@ export default function CommenterHallContentPage() {
         </button>
       </div>
 
-      {/* 冷却提示模态框 - 使用统一的AlertModal组件 */}
-      <AlertModal
-        isOpen={showCoolingModal}
-        icon={<ClockCircleOutlined className="text-orange-500" />}
-        title="抢单冷却中"
-        message={`您当前处于冷却期，还剩余 ${getRemainingTime().minutes} 分 ${getRemainingTime().seconds} 秒`}
-        onClose={() => setShowCoolingModal(false)}
-      />
+
 
       {/* 通用提示模态框 */}
     <AlertModal

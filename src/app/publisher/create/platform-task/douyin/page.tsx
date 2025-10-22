@@ -159,7 +159,7 @@ export default function CreateTask() {
         price: task.price.toString(),
         description: task.description
       });
-      router.push(`/publisher/create/publish-nakahiro?${params.toString()}`);
+      router.push(`/publisher/create/publish-middle-comment?${params.toString()}`);
     }
   };
 
@@ -196,7 +196,7 @@ export default function CreateTask() {
             <div>
               <h3 className="font-medium text-blue-900 mb-1">任务说明</h3>
               <p className="text-blue-700 text-sm leading-relaxed">
-                请根据您的需求选择合适的任务类型。
+                请根据您的需求选择合适的任务类型。发布评论需求请规避抖音平台敏感词，否则会无法完成任务导致浪费宝贵时间。
               </p>
             </div>
           </div>

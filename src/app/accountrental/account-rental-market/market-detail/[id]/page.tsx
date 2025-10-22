@@ -121,17 +121,6 @@ const AccountDetailPage = ({
 
     return (
       <div className="min-h-screen bg-gray-50">
-        {/* 导航栏 */}
-        <div className="bg-white border-b border-gray-200">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between h-16">
-              <div className="flex items-center">
-                <span className="text-lg font-semibold text-gray-800">账号详情</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
         {/* 主内容区域 */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -142,7 +131,7 @@ const AccountDetailPage = ({
                   {/* 订单基本信息 */}
                   <div className="mb-6">
                     <div>
-                      <h1 className="text-xl font-bold text-gray-800">租赁详情</h1>
+                      <h1 className="text-xl font-bold text-gray-800">出租账号详情</h1>
                     </div>
                   </div>
                   
@@ -167,7 +156,7 @@ const AccountDetailPage = ({
                   
                   {/* 租赁描述 */}
                   <div className="mb-6">
-                    <h2 className="text-lg font-medium text-gray-800 mb-2">租赁描述</h2>
+                    <h2 className="text-lg font-medium text-gray-800 mb-2">账号描述</h2>
                     <p className="text-gray-600 leading-relaxed">{account.rentalDescription}</p>
                   </div>
                   

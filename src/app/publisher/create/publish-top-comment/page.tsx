@@ -391,6 +391,11 @@ export default function PublishTaskPage() {
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
        <div className="px-4 py-3 space-y-4">
+
+        <div className="text-lg text-red-500">
+          <span className="text-2xl text-red-500">⚠️</span>提示：发布评论需求请规避抖音平台敏感词，否则会无法完成任务导致浪费宝贵时间。
+        </div>
+
         {/* 视频链接 */}
         <div className="bg-white rounded-2xl p-4 shadow-sm">
           <label className="block text-sm font-medium text-gray-700 mb-2">

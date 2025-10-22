@@ -765,6 +765,7 @@ export default function CommenterTasksPage() {
       )}
       
       <div className="pb-20">
+        <div className='px-4 py-2 bg-white text-red-500 text-xs'>单个抖音账号每天评论任务次数5次以内。超过5次可能会影响抖音账号权重导致无法正常显示评论影响个人账号的完成率。如个人有多个家庭抖音账号，可以注册多个平台账号。</div>
       {/* 任务状态筛选（合并统计和筛选功能） */}
       <div className="mx-4 mt-4 flex space-x-2">
         <button 

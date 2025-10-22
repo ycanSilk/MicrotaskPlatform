@@ -227,8 +227,8 @@ const RentalRequestsPage = () => {
         {/* 发布求租信息按钮 */}
         <div className="mb-6">
           <Button 
-            onClick={() => router.push('/accountrental/account-rental-request-publish')}
-            className="bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg text-lg font-medium shadow-md transition-all min-h-12 active:scale-95"
+            onClick={() => router.push('/accountrental/account-rental-publish/publish-requests')}
+            className="bg-blue-600 w-full hover:bg-blue-700 text-white py-3 rounded-lg text-lg font-medium shadow-md transition-all min-h-12 active:scale-95"
           >
             发布求租信息
           </Button>

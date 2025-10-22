@@ -33,7 +33,6 @@ export default function RootLayout({
   return (
     <html lang="zh-CN">
       <head>
-        <link rel="icon" href="/favicon.ico" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <meta name="apple-mobile-web-app-title" content="派单系统" />
         <meta name="application-name" content="派单系统" />

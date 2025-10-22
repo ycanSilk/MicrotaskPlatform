@@ -279,11 +279,11 @@ export default function AccountRentalMarketPage({ searchParams }: { searchParams
   }
 
     return (
-      <div className="min-h-screen pb-28">
+      <div className="min-h-screen pb-28 max-w-7xl mx-auto">
       {/* 发布出租账号按钮 */}
       <div className="px-4 pt-4 mb-3">
         <Button 
-          onClick={() => router.push('/accountrental/account-rental-publish')}
+          onClick={() => router.push('/accountrental/account-rental-publish/publish-for-rent')}
           className="bg-blue-600 hover:bg-blue-700 text-white w-full py-3 rounded-lg text-lg font-medium shadow-md transition-all min-h-12 active:scale-95"
         >
           发布出租账号

@@ -270,7 +270,7 @@ const RentalRequestDetailPage = () => {
 
           {/* 求租详情 */}
           <div className="p-4 border-b border-gray-100">
-            <h3 className="text-lg font-medium mb-3">求租描述</h3>
+            <h3 className="text-lg font-medium mb-3">求租信息描述</h3>
             <div className="bg-blue-50 p-4 rounded-md">
               <p className="text-gray-700 leading-relaxed">{request.description}</p>
             </div>

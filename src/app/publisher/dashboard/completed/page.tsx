@@ -114,24 +114,13 @@ export default function CompletedTabPage() {
     }
   ];
 
-  // 获取仪表板数据
+  // 直接使用静态数据，无需动态获取
   useEffect(() => {
-    const fetchDashboardData = async () => {
-      try {
-        setLoading(true);
-        
-        // 直接使用静态数据，模拟API延迟
-        setTimeout(() => {
-          setCompletedTasks(mockCompletedTasks);
-          setLoading(false);
-        }, 500);
-      } catch (error) {
-        console.error("获取数据失败:", error);
-        setLoading(false);
-      }
-    };
-
-    fetchDashboardData();
+    setLoading(true);
+    
+    // 直接设置静态数据
+    setCompletedTasks(mockCompletedTasks);
+    setLoading(false);
   }, []);
 
   // 处理搜索
@@ -141,7 +130,9 @@ export default function CompletedTabPage() {
 
   // 处理任务操作
   const handleTaskAction = (taskId: string, action: string) => {
-    // 这里可以添加具体的操作逻辑
+    if (action === '再次下单') {
+      router.push(`/publisher/create/supplementaryorder?id=${taskId}`);
+    }
   };
 
   // 过滤最近订单

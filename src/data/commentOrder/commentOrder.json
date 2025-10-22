@@ -172,6 +172,36 @@
           "userId": "com004"
         }
       ]
+    },
+    {
+      "id": "pub003_1761138164151",
+      "userId": "pub003",
+      "orderNumber": "DY20251022727",
+      "videoUrl": "https://www.douyin.com/video/example",
+      "mention": "",
+      "status": "in_progress",
+      "quantity": 1,
+      "completedQuantity": 0,
+      "unitPrice": 4,
+      "taskRequirements": "这款产品真的太好了，超出预期！质量做工都很棒，强烈推荐给大家！",
+      "publishTime": "2025-10-22T13:02:44.152Z",
+      "deadline": "2025-10-24T13:02:44.152Z",
+      "needImageComment": true,
+      "taskType": "comment_top",
+      "title": "上评评论",
+      "subOrders": [
+        {
+          "id": "sub1761138164151001",
+          "orderNumber": "SUB1761138164151001",
+          "parentId": "pub003_1761138164151",
+          "status": "pending",
+          "commenterId": "",
+          "commenterName": "",
+          "commentContent": "",
+          "commentTime": "",
+          "screenshotUrl": ""
+        }
+      ]
     }
   ]
 }

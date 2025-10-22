@@ -211,7 +211,7 @@ const ClientHeader: React.FC<ClientHeaderProps> = ({ user }) => {
   };
 
   return (
-    <div ref={headerRef} className="bg-[#008cffff] border-b border-[#9bcfffff] px-4 py-3 flex items-center justify-between h-[60px] box-border">
+    <div ref={headerRef} className="bg-blue-500 border-b border-[#9bcfffff] px-4 py-3 flex items-center justify-between h-[60px] box-border">
       <div className="flex items-center flex-1">
         {isClient && shouldShowBackButton() && (
           <button 

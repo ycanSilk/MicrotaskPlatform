@@ -744,6 +744,7 @@ const PublisherOrdersPage: React.FC = () => {
                         </button>
                         {isOrderFullyCompleted(order) && (
                           <button
+                            onClick={() => router.push(`/publisher/create/supplementaryorder?id=${order.id}`)}
                             className="px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-md hover:bg-green-700 transition-colors"
                           >
                             再次下单
