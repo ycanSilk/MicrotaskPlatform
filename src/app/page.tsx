@@ -94,10 +94,10 @@ export default function HomePage() {
               </div>
             </div>
             <div className="flex space-x-2">
-              <a href="/auth/login/commenterlogin" className="flex-1 py-3 px-4 bg-green-500 text-white rounded-lg text-center text-sm font-medium hover:bg-green-600 transition-colors">
+              <a href="/commenter/auth/login/" className="flex-1 py-3 px-4 bg-green-500 text-white rounded-lg text-center text-sm font-medium hover:bg-green-600 transition-colors">
                 登录
               </a>
-              <a href="/auth/register/commenter" className="flex-1 py-3 px-4 bg-green-100 text-green-700 rounded-lg text-center text-sm font-medium hover:bg-green-200 transition-colors">
+              <a href="/commenter/auth/register/" className="flex-1 py-3 px-4 bg-green-100 text-green-700 rounded-lg text-center text-sm font-medium hover:bg-green-200 transition-colors">
                 注册
               </a>
             </div>

@@ -10,6 +10,7 @@ export default function CommenterRegisterPage() {
     password: '',
     confirmPassword: '',
     phone: '',
+    email: '',
     captcha: '',
     inviteCode: '',
     agreeToTerms: false
@@ -41,34 +42,71 @@ export default function CommenterRegisterPage() {
     setErrorMessage('');
     setSuccessMessage('');
     
-    // 基础验证
-    if (!formData.username.trim() || !formData.password.trim()) {
-      setErrorMessage('请输入用户名和密码');
+    // 用户名验证
+    if (!formData.username.trim()) {
+      setErrorMessage('请输入用户名');
+      return;
+    }
+    
+    // 用户名格式验证（6-20位字母数字组合）
+    const usernameRegex = /^[a-zA-Z0-9]{6,20}$/;
+    if (!usernameRegex.test(formData.username.trim())) {
+      setErrorMessage('用户名必须为6-20位字母数字组合');
       return;
     }
 
+    // 密码验证
+    if (!formData.password) {
+      setErrorMessage('请输入密码');
+      return;
+    }
+    
+    if (formData.password.length < 6) {
+      setErrorMessage('密码长度不能少于6位');
+      return;
+    }
+    
+    if (formData.password.length > 20) {
+      setErrorMessage('密码长度不能超过20位');
+      return;
+    }
+
+    // 确认密码验证
+    if (!formData.confirmPassword) {
+      setErrorMessage('请确认密码');
+      return;
+    }
+    
     if (formData.password !== formData.confirmPassword) {
       setErrorMessage('两次输入的密码不一致');
       return;
     }
 
-    if (formData.password.length < 6) {
-      setErrorMessage('密码长度不能少于6位');
+    // 手机号验证（必填）
+    if (!formData.phone.trim()) {
+      setErrorMessage('请输入手机号');
       return;
     }
-
-    // 如果填写了手机号，则验证手机号格式
-    if (formData.phone.trim()) {
-      const phoneRegex = /^1[3-9]\d{9}$/;
-      if (!phoneRegex.test(formData.phone)) {
-        setErrorMessage('请输入正确的手机号码');
+    
+    // 手机号格式验证
+    const phoneRegex = /^1[3-9]\d{9}$/;
+    if (!phoneRegex.test(formData.phone.trim())) {
+      setErrorMessage('请输入正确的11位手机号码');
+      return;
+    }
+    
+    // 邮箱验证（选填）
+    if (formData.email.trim()) {
+      const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+      if (!emailRegex.test(formData.email.trim())) {
+        setErrorMessage('请输入正确的邮箱地址');
         return;
       }
-    }
-
-    if (!formData.agreeToTerms) {
-      setErrorMessage('请阅读并同意用户协议和隐私政策');
-      return;
+      
+      if (formData.email.trim().length > 50) {
+        setErrorMessage('邮箱地址长度不能超过50个字符');
+        return;
+      }
     }
 
     // 验证码验证
@@ -76,10 +114,27 @@ export default function CommenterRegisterPage() {
       setErrorMessage('请输入验证码');
       return;
     }
+    
+    if (formData.captcha.trim().length !== 4) {
+      setErrorMessage('验证码长度不正确');
+      return;
+    }
 
     if (formData.captcha.toUpperCase() !== captchaCode.toUpperCase()) {
       setErrorMessage('验证码错误');
       refreshCaptcha();
+      return;
+    }
+
+    // 用户协议验证
+    if (!formData.agreeToTerms) {
+      setErrorMessage('请阅读并同意用户协议和隐私政策');
+      return;
+    }
+    
+    // 邀请码验证（如果有填写）
+    if (formData.inviteCode.trim() && formData.inviteCode.trim().length > 20) {
+      setErrorMessage('邀请码长度不能超过20位');
       return;
     }
 
@@ -93,26 +148,43 @@ export default function CommenterRegisterPage() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          username: formData.username,
+          username: formData.username.trim(),
           password: formData.password,
-          phone: formData.phone,
-          inviteCode: formData.inviteCode
+          phone: formData.phone.trim(),
+          email: formData.email.trim() || undefined,
+          inviteCode: formData.inviteCode.trim() || undefined
         }),
+        // 设置请求超时
+        signal: AbortSignal.timeout(5000)
       });
+
+      // 检查响应状态
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
 
       const result = await response.json();
       
       if (result.success) {
         // 注册成功
-        setSuccessMessage(result.message);
+        setSuccessMessage(result.message || '注册成功！');
         // 显示确认提示框
         setShowConfirmModal(true);
       } else {
-        setErrorMessage(result.message || '注册失败');
+        setErrorMessage(result.message || '注册失败，请稍后重试');
+        // 刷新验证码
+        refreshCaptcha();
       }
     } catch (error) {
-      console.error('Registration error:', error);
-      setErrorMessage('注册过程中发生错误，请重试');
+      console.error('注册错误:', error);
+      // 根据不同类型的错误提供更友好的提示
+      if (  error instanceof DOMException && error.name === 'AbortError') {
+        setErrorMessage('请求超时，请检查网络连接后重试');
+      } else {
+        setErrorMessage('注册过程中发生错误，请稍后重试');
+      }
+      // 刷新验证码
+      refreshCaptcha();
     } finally {
       setIsLoading(false);
     }
@@ -185,14 +257,30 @@ export default function CommenterRegisterPage() {
                 <div className="space-y-3">
                   <div>
                     <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
-                      手机号
+                      手机号 <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="tel"
-                      placeholder="请输入11位手机号（选填）"
+                      placeholder="请输入11位手机号"
                       value={formData.phone}
                       onChange={(e) => setFormData({...formData, phone: e.target.value})}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-sm"
+                      maxLength={11}
+                    />
+                  </div>
+                  
+                  {/* 邮箱（选填） */}
+                  <div>
+                    <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
+                      邮箱（选填）
+                    </label>
+                    <input
+                      type="email"
+                      placeholder="请输入邮箱地址"
+                      value={formData.email}
+                      onChange={(e) => setFormData({...formData, email: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-sm"
+                      maxLength={50}
                     />
                   </div>
 
@@ -222,8 +310,8 @@ export default function CommenterRegisterPage() {
               </div>
 
               {/* 邀请码 */}
-              <div className="bg-purple-50 rounded-lg p-3 md:p-4">
-                <h3 className="text-sm font-bold text-red-800 mb-3"> 邀请码（可选）</h3>
+              <div className="bg-blue-50 rounded-lg p-3 md:p-4">
+                <h3 className="text-sm font-bold text-blue-800 mb-3"> 邀请码（可选）</h3>
                 <div>
                   <input
                     type="text"
@@ -232,7 +320,7 @@ export default function CommenterRegisterPage() {
                     onChange={(e) => setFormData({...formData, inviteCode: e.target.value})}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                   />
-                  <p className="text-xs text-red-600 mt-2">邀请新用户,指导新用户完成首个100元提现，可获得10元系统奖励</p>
+                  <p className="text-xs text-blue-600 mt-2">邀请新用户,指导新用户完成首个100元提现，可获得10元系统奖励</p>
                 </div>
               </div>
 
@@ -285,19 +373,10 @@ export default function CommenterRegisterPage() {
               <p className="text-xs text-gray-600">
                 已有账号？{' '}
                 <button 
-                  onClick={() => router.push('/auth/login/commenterlogin')}
+                  onClick={() => router.push('/commenter/auth/login')}
                   className="text-blue-600 hover:text-blue-800 underline"
                 >
                   立即登录
-                </button>
-              </p>
-              <p className="text-xs text-gray-600 mt-2">
-                申请派单员账号？{' '}
-                <button 
-                  onClick={() => router.push('/auth/register/publisher')}
-                  className="text-blue-600 hover:text-blue-800 underline"
-                >
-                  点击这里
                 </button>
               </p>
             </div>
