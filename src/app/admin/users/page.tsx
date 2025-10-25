@@ -75,7 +75,7 @@ export default function AdminControlPanel() {
           title="用户管理"
           icon="👥"
           description="管理系统中的所有用户和角色"
-          route="/admin/users/manage"
+          route="/admin/usersManagement"
           count="1234"
         />
         <FeatureCard
