@@ -398,7 +398,7 @@ export default function CommenterRegisterPage() {
         title="注册成功"
         message={successMessage || '您的账号已成功注册，现在可以登录了！'}
         buttonText="确认并登录"
-        redirectUrl="/auth/login/commenterlogin"
+        redirectUrl="/commenter/auth/login"
       />
     </div>
   );

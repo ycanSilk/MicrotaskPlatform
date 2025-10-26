@@ -1,6 +1,6 @@
 {
-  "baseUrl": "http://localhost:8083/api/ind",
-  "timeout": 10000,
+  "baseUrl": "http://localhost:8080/api/ind",
+  "timeout": 5000,
   "headers": {
     "accept": "*/*",
     "Content-Type": "application/json"
@@ -16,6 +16,10 @@
       "forgotpwd": "/user/forgot-password",
       "changepwd": "/user/change-password",
       "userprofile": "/user/profile"
+    },
+    "bankcards": {
+      "banklist": "/bank/list",
+      "bankdetail": "/bank/detail"
     }
   },
   "mockMode": false,

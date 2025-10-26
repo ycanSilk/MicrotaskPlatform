@@ -36,7 +36,7 @@ const validationRules = {
 
 export default function CommenterLoginPage() {
   const [formData, setFormData] = useState<LoginFormData>({
-    username: 'testkf1',
+    username: 'ceshiapi',
     password: '123456',
     captcha: ''
   });
@@ -108,29 +108,36 @@ export default function CommenterLoginPage() {
   useEffect(() => {
     const initialCaptcha = generateCaptcha();
     setCaptchaCode(initialCaptcha);
-    // 默认填充验证码
-    setFormData(prev => ({ ...prev, captcha: initialCaptcha }));
+    // 不自动填充验证码，让用户自己输入
+    setFormData(prev => ({ ...prev, captcha: '' }));
   }, []);
 
-  // 自动填充测试账号
+  // 自动填充测试账号（仅填充用户名和密码，不填充验证码）
   useEffect(() => {
-    // 设置默认测试账号
-    setFormData({
-      username: 'testkf1',
+    // 设置默认测试账号信息
+    setFormData(prev => ({
+      ...prev,
+      username: 'ceshiapi',
       password: '123456',
-      captcha: captchaCode
-    });
-  }, [captchaCode]);
+      // captcha 不自动填充
+    }));
+  }, []); // 只在组件挂载时设置一次
 
   // 刷新验证码
   const refreshCaptcha = () => {
     const newCaptcha = generateCaptcha();
     setCaptchaCode(newCaptcha);
-    // 刷新验证码时保持用户名和密码不变，只更新验证码
+    // 刷新验证码时清空用户输入的验证码
     setFormData(prev => ({
       ...prev,
-      captcha: newCaptcha
+      captcha: ''
     }));
+    // 清除验证码相关的错误提示
+    setFieldErrors(prev => {
+      const newErrors = { ...prev };
+      delete newErrors.captcha;
+      return newErrors;
+    });
   };
 
   // 处理表单输入变化
@@ -151,19 +158,30 @@ export default function CommenterLoginPage() {
         ...prev,
         [fieldName]: error
       }));
+    } else {
+      // 清除验证码错误提示（如果有）
+      setFieldErrors(prev => {
+        if (!prev.captcha) return prev;
+        const newErrors = { ...prev };
+        delete newErrors.captcha;
+        return newErrors;
+      });
     }
   };
 
   // 重置表单
   const handleReset = () => {
     setFormData({
-      username: 'testkf1',
+      username: 'ceshiapi',
       password: '123456',
-      captcha: captchaCode
+      captcha: '' // 不自动填充验证码
     });
     setErrorMessage('');
     setResponseTime(null);
     setRequestInfo(null);
+    setFieldErrors({}); // 清除所有字段错误提示
+    // 重置时也刷新验证码
+    refreshCaptcha();
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -172,56 +190,105 @@ export default function CommenterLoginPage() {
     // 重置错误信息
     setErrorMessage('');
     
-    // 临时登录逻辑：跳过验证，直接模拟成功
+    // 执行表单验证
+    if (!validateForm()) {
+      return;
+    }
+    
     setIsLoading(true);
+    const startTime = Date.now();
     
     try {
-      // 模拟网络延迟
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // 调用登录API
+      const response = await fetch('/api/commenter/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          username: formData.username.trim(),
+          password: formData.password
+        }),
+        // 设置请求超时
+        signal: AbortSignal.timeout(10000)
+      });
+      
+      const responseTime = Date.now() - startTime;
+      setResponseTime(responseTime);
+      
+      // 解析响应数据
+      const data = await response.json();
+      
+      // 保存请求和响应信息用于调试
+      setRequestInfo({
+        request: { username: formData.username, password: '******' },
+        response: data,
+        status: response.status,
+        responseTime
+      });
+      
+      // 处理API响应
+      if (!response.ok || !data.success) {
+        setErrorMessage(data.message || '登录失败，请检查用户名和密码');
+        return;
+      }
       
       // 先清除所有其他角色的认证信息
       clearAllAuth();
       
-      // 模拟生成认证信息
-      const mockToken = 'mock_token_' + Date.now();
-      const mockUserInfo = {
-        username: formData.username || 'testkf1',
-        id: '1',
+      // 验证返回的数据结构
+      if (!data.data || !data.data.token) {
+        throw new Error('无效的认证信息');
+      }
+      
+      // 构建用户信息
+      const userInfo = {
+        username: formData.username,
+        id: data.data.userId || '',
         role: 'commenter' as const,
-        balance: 0,
-        status: 'active' as const, // 使用常量断言确保类型匹配联合类型
-        createdAt: new Date().toISOString()
+        balance: data.data.userInfo?.balance || 0,
+        status: data.data.userInfo?.status || 'active',
+        createdAt: data.data.userInfo?.createdAt || new Date().toISOString(),
+        ...data.data.userInfo
       };
       
       // 保存认证信息到本地存储
       CommenterAuthStorage.saveAuth({
-        token: mockToken,
-        user: mockUserInfo,
-        expiresAt: Date.now() + 24 * 60 * 60 * 1000 // 默认24小时后过期
+        token: data.data.token,
+        user: userInfo,
+        expiresAt: Date.now() + (data.data.expiresIn || 86400) * 1000
       });
       
       // 保存token到本地缓存
       if (typeof window !== 'undefined') {
         const tokenData = {
-          token: mockToken,
+          token: data.data.token,
           tokenType: 'Bearer',
-          expiresIn: 3600,
+          expiresIn: data.data.expiresIn || 86400,
           timestamp: Date.now(),
-          expiresAt: Date.now() + 3600 * 1000
+          expiresAt: Date.now() + (data.data.expiresIn || 86400) * 1000
         };
         localStorage.setItem('commenterAuthToken', JSON.stringify(tokenData));
       }
       
       // 设置成功消息并显示模态框
-      setLoginSuccessMessage(`登录成功！欢迎 ${mockUserInfo.username}`);
+      setLoginSuccessMessage(`登录成功！欢迎 ${userInfo.username}`);
       setShowSuccessModal(true);
     } catch (error) {
-      // 提供错误信息
+      // 处理不同类型的错误
+      let errorMsg = '登录过程中出现错误，请稍后再试';
+      
       if (error instanceof Error) {
-        setErrorMessage(error.message);
-      } else {
-        setErrorMessage('登录过程中出现错误，请稍后再试');
+        if (error.name === 'AbortError') {
+          errorMsg = '请求超时，请检查网络连接';
+        } else if (error.message.includes('Failed to fetch')) {
+          errorMsg = '无法连接到服务器，请稍后再试';
+        } else {
+          errorMsg = error.message;
+        }
       }
+      
+      setErrorMessage(errorMsg);
     } finally {
       setIsLoading(false);
     }
@@ -290,12 +357,15 @@ export default function CommenterLoginPage() {
                     type="text"
                     placeholder="请输入验证码"
                     value={formData.captcha}
-                    onChange={(e) => setFormData({...formData, captcha: e.target.value})}
+                    onChange={handleInputChange}
+                    name="captcha"
                     className={`flex-1 px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 ${fieldErrors.captcha ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'}`}
+                    autoComplete="off"
                   />
                   <div 
-                    className="w-24 h-10 flex items-center justify-center bg-gray-100 border border-gray-300 rounded-lg font-bold text-lg cursor-pointer"
+                    className="w-24 h-10 flex items-center justify-center bg-gray-100 border border-gray-300 rounded-lg font-bold text-lg cursor-pointer hover:bg-gray-200 transition-colors"
                     onClick={refreshCaptcha}
+                    title="刷新验证码"
                   >
                     {captchaCode}
                   </div>

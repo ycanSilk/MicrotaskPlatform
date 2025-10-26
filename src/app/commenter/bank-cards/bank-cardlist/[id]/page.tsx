@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { CreditCardOutlined } from '@ant-design/icons';
+import { CommenterAuthStorage } from '@/auth/commenter/auth';
 
 interface BankCard {
   id: string;
@@ -16,27 +17,97 @@ export default function BankCardDetail() {
   const params = useParams();
   const [bankCard, setBankCard] = useState<BankCard | null>(null);
   const [showFullCardNumber, setShowFullCardNumber] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isOfflineMode, setIsOfflineMode] = useState(false); // 添加离线模式标志
   
-  // 模拟获取银行卡数据
+  // 从API获取银行卡详情数据
   useEffect(() => {
-    // 在实际项目中，这里应该是一个API调用，获取银行卡详情
     const fetchBankCard = async () => {
       if (!params || typeof params.id !== 'string') {
+        setError('无效的银行卡ID');
+        setIsLoading(false);
         return;
       }
-      // 模拟数据
-      const mockCard: BankCard = {
-        id: params.id,
-        bankName: '招商银行',
-        cardType: '储蓄卡',
-        cardNumber: '6226 8888 8888 0280',
-        isDefault: params.id === '1' // 假设ID为1的卡是bg-white卡
-      };
-      setBankCard(mockCard);
+      
+      try {
+        setIsLoading(true);
+        setError(null);
+        
+        // 获取当前登录用户信息
+        const currentUser = CommenterAuthStorage.getCurrentUser();
+        if (!currentUser) {
+          setError('用户未登录，请重新登录');
+          setTimeout(() => {
+            router.push('/auth/login/commenterlogin');
+          }, 1500);
+          return;
+        }
+        
+        // 调用后端API获取银行卡详情
+        // 使用正确的API路径 - 注意这里的路径需要根据实际后端实现进行调整
+        const response = await fetch(`/api/commenter/bank/bankcardslist/${params.id}`, {
+          method: 'GET',
+          headers: {
+            'accept': 'application/json',
+            'X-User-Id': currentUser.username
+          }
+        });
+        
+        // 先检查响应是否成功
+        if (!response.ok) {
+          setError(`获取银行卡详情失败: HTTP ${response.status}`);
+          return;
+        }
+        
+        // 检查响应内容类型
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+          // 如果不是JSON，尝试获取文本内容以便调试
+          const textContent = await response.text();
+          console.error('非JSON响应:', textContent);
+          setError('服务器返回了非JSON格式的数据');
+          return;
+        }
+        
+        // 尝试解析JSON
+        try {
+          const data = await response.json();
+          
+          if (!data.success) {
+            setError(data.message || '获取银行卡详情失败');
+            return;
+          }
+          
+          // 设置银行卡数据
+          if (data.data) {
+            setBankCard(data.data);
+          } else {
+            setError('未找到银行卡信息');
+          }
+        } catch (jsonError) {
+          console.error('JSON解析错误:', jsonError);
+          setError('服务器返回的数据格式错误');
+        }
+      } catch (err) {
+          console.error('获取银行卡详情出错:', err);
+          setError('网络错误，请稍后重试');
+          // 当API调用失败时，使用模拟数据作为后备方案
+          setIsOfflineMode(true);
+          const mockCard: BankCard = {
+            id: params.id,
+            bankName: '招商银行',
+            cardType: '储蓄卡',
+            cardNumber: '6226 8888 8888 0280',
+            isDefault: params.id === '1' // 假设ID为1的卡是默认卡
+          };
+          setBankCard(mockCard);
+          setIsLoading(false);
+        }
     };
     
     fetchBankCard();
-  }, [params]);
+  }, [params, router]);
 
   // 返回上一页
   const handleGoBack = () => {
@@ -54,13 +125,42 @@ export default function BankCardDetail() {
     
     if (confirmUnbind && bankCard) {
       try {
-        // 在实际项目中，这里应该是一个API调用，删除银行卡绑定
-        // 模拟API调用延迟
-        await new Promise(resolve => setTimeout(resolve, 500));
+        // 获取当前登录用户信息
+        const currentUser = CommenterAuthStorage.getCurrentUser();
+        if (!currentUser) {
+          setError('用户未登录，请重新登录');
+          return;
+        }
+        
+        // 调用后端API解除绑定
+        const response = await fetch(`/api/commenter/bank/bankcardslist/${bankCard.id}`, {
+          method: 'DELETE',
+          headers: {
+            'accept': '*/*',
+            'X-User-Id': currentUser.username
+          }
+        });
+        
+        // 先检查响应状态
+        if (!response.ok) {
+          throw new Error(`解除绑定失败: HTTP ${response.status}`);
+        }
+        
+        // 检查响应内容类型
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+          throw new Error('服务器返回了非JSON格式的数据');
+        }
+        
+        const data = await response.json();
+        
+        if (!data.success) {
+          throw new Error(data.message || '解除绑定失败');
+        }
         
         // 删除成功后返回银行卡列表页
         alert('银行卡解除绑定成功');
-        router.push('/publisher/bank-cards');
+        router.push('/commenter/bank-cards');
       } catch (error) {
         alert('银行卡解除绑定失败，请稍后再试');
         console.error('解除绑定银行卡失败:', error);
@@ -82,13 +182,43 @@ export default function BankCardDetail() {
     
     if (confirmSetDefault) {
       try {
-        // 在实际项目中，这里应该是一个API调用，设置默认银行卡
-        // 模拟API调用延迟
-        await new Promise(resolve => setTimeout(resolve, 500));
+        // 获取当前登录用户信息
+        const currentUser = CommenterAuthStorage.getCurrentUser();
+        if (!currentUser) {
+          setError('用户未登录，请重新登录');
+          return;
+        }
         
-        // 设置成功后返回银行卡列表页
+        // 调用后端API设置默认银行卡
+        const response = await fetch(`/api/commenter/bank/bankcardslist/setdefault/${bankCard.id}`, {
+          method: 'POST',
+          headers: {
+            'accept': '*/*',
+            'Content-Type': 'application/json',
+            'X-User-Id': currentUser.username
+          }
+        });
+        
+        // 先检查响应状态
+        if (!response.ok) {
+          throw new Error(`设置默认银行卡失败: HTTP ${response.status}`);
+        }
+        
+        // 检查响应内容类型
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+          throw new Error('服务器返回了非JSON格式的数据');
+        }
+        
+        const data = await response.json();
+        
+        if (!data.success) {
+          throw new Error(data.message || '设置默认银行卡失败');
+        }
+        
+        // 设置成功后更新本地状态
+        setBankCard({ ...bankCard, isDefault: true });
         alert('默认银行卡设置成功');
-        router.push('/publisher/bank-cards');
       } catch (error) {
         alert('设置默认银行卡失败，请稍后再试');
         console.error('设置默认银行卡失败:', error);
@@ -96,10 +226,50 @@ export default function BankCardDetail() {
     }
   };
 
+  // 错误状态显示
+  if (error && !isLoading) {
+    return (
+      <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6">
+        <div className="text-red-500 text-xl mb-4">
+          <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+        <p className="text-gray-600 text-center mb-6">{error}</p>
+        <button
+          onClick={() => router.back()}
+          className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+        >
+          返回银行卡列表
+        </button>
+      </div>
+    );
+  }
+  
+  // 加载状态显示
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-white flex flex-col items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mb-4"></div>
+        <p className="text-gray-600">加载银行卡信息中...</p>
+      </div>
+    );
+  }
+  
+  // 如果没有数据且不是加载或错误状态
   if (!bankCard) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div>加载中...</div>
+      <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6">
+        <div className="text-gray-400 text-xl mb-4">
+          <CreditCardOutlined className="h-16 w-16" />
+        </div>
+        <p className="text-gray-500 mb-6">未找到银行卡信息</p>
+        <button
+          onClick={() => router.back()}
+          className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+        >
+          返回银行卡列表
+        </button>
       </div>
     );
   }
@@ -117,12 +287,28 @@ export default function BankCardDetail() {
   return (
     <div className="min-h-screen bg-white px-4">
       {/* 顶部导航 */}
-      <div className="flex text-xl text-center items-center justify-center px-4 py-3 bg-white border-b border-gray-200">
-        银行卡
+      <div className="flex text-xl text-center items-center justify-center px-4 py-3 bg-white border-b border-gray-200 relative">
+        <button
+          onClick={handleGoBack}
+          className="absolute left-4 p-2 -ml-2 text-gray-600"
+          aria-label="返回"
+        >
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
+        银行卡详情
       </div>
 
       {/* 银行卡卡片 */}
       <div className="mx-4 mt-4 rounded-lg bg-red-600 p-6 mb-10 text-white" style={{ height: 'calc(100% + 20%)' }}>
+        {/* 离线模式提示 */}
+        {isOfflineMode && (
+          <div className="mb-2 text-xs bg-yellow-500/30 p-1 rounded">
+            <span className="inline-block w-2 h-2 rounded-full bg-yellow-200 mr-1"></span>
+            离线模式：显示模拟数据
+          </div>
+        )}
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center">
             <div className="">
